@@ -30,7 +30,8 @@ from modules import (
     legacy,
     patrol,
     release,
-    bgs
+    bgs,
+    biopatrol
 )
 from modules.debug import Debug
 from modules.lib import http
@@ -230,16 +231,18 @@ def plugin_app(parent):
     rel = release.Release(this.plugin_dir, frame, this.version, 1)
     this.patrol = patrol.PatrolModule(frame, 2)
     this.bgs_module = bgs.BGS()
+    this.biopatrol = biopatrol.BioPatrol(frame, 3)
     this.modules = [
         rel,
         this.patrol,
         this.systems_module,
         this.bgs_module,
-        this.canonn_rt_api
+        this.canonn_rt_api,
+        this.biopatrol
     ]
 
     # фрейм с различными уведомлениями из модулей
-    this.notifier = Notifier(frame, row=3)
+    this.notifier = Notifier(frame, row=4)
 
     for mod in context.modules:
         mod.on_start(context.plugin_dir)
