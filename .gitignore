@@ -4,6 +4,7 @@
 /*.bat
 /data/EDMC-Canonn.patrol
 /data/missions.db
+/data/bio.json
 /EDMC.log
 /.venv
 /venv
