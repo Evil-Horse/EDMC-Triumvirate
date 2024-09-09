@@ -115,6 +115,7 @@ class BioPatrol(nb.Frame, Module):
             except:
                 self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_RAW})")
                 self._enabled = False
+                return
 
             self.__raw_data = {}
             for region, region_data in raw_data.items():
