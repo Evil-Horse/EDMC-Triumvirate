@@ -69,11 +69,13 @@ class BioPatrol(nb.Frame, Module):
 
         self.distance_label = nb.Label(self.bottomframe, textvariable=self.__distance_var)
         self.closest_location_label = nb.Label(self.bottomframe, textvariable=self.__closest_location_var)
+        self.delete_button = nb.Button(self.bottomframe, text="No signals!", command=self.__delete)
         self.copy_button = nb.Button(self.bottomframe, text="Copy system", command=self.__copy)
 
         self.distance_label.grid(column=0, row=0)
         self.closest_location_label.grid(column=1, row=0, padx=3)
-        self.copy_button.grid(column=2, row=0)
+        self.delete_button.grid(column=2, row=0)
+        self.copy_button.grid(column=3, row=0)
 
         # упаковываем до данных по местоположению
         self.set_status("Ожидание ивента Location/FSDJump...")
@@ -159,8 +161,27 @@ class BioPatrol(nb.Frame, Module):
             if bioname not in self.__bio_found[self.body]["signals"]:
                 self.__bio_found[self.body]["signals"].append(bioname)
 
+            region = None
+            priority = 1
+            if bioname in self.__raw_data:
+                locations = self.__raw_data[bioname]["locations"]
+                if self.body in locations:
+                    region = locations[self.body]["region"]
+                    priority = locations[self.body]["priority"]
+
             for species, data in self.__raw_data.items():
                 if self.body in data["locations"]:
+                    # remove all "region new" from the list
+                    removed = {k: v for k, v in data["locations"].items() if v["region"] == region}
+                    for k, v in removed.items():
+                        print(f"Found {bioname} at region {region}, removing {k} from the list")
+
+                    data["locations"] = {k: v for k, v in data["locations"].items() if v["region"] != region}
+
+                    for body, body_data in data["locations"].items():
+                        # This is not a galactic new anymore, mark as region new
+                        if priority == 3:
+                            body_data["priority"] == 2
 
                     # everything has been found, clean up
                     if len(self.__bio_found[self.body]["signals"]) == self.__bio_found[self.body]["signalCount"]:
@@ -263,30 +284,33 @@ class BioPatrol(nb.Frame, Module):
 
 
     def __update_data(self, entry: JournalEntry):
-        def get_closest(current_coords, locations):
-            closest_key = min(locations, key=lambda l: distance_between(current_coords, Coords(locations[l]["x"], locations[l]["y"], locations[l]["z"])))
-            closest = locations[closest_key]
-            coords = Coords(closest["x"], closest["y"], closest["z"])
-            distance = distance_between(current_coords, coords)
-            system = closest["system"]
-            body = closest_key
-            priority = closest["priority"]
-            return system, body, distance, coords, priority
-
-        data = []
         current_coords = entry.coords
         if None in [entry.coords.x, entry.coords.y, entry.coords.z] and "StarPos" in entry.data:
             starpos = entry.data["StarPos"]
             current_coords = Coords(starpos[0], starpos[1], starpos[2])
 
+        self.__update_data_coords(current_coords)
+
+    def __update_data_coords(self, coords: Coords):
+        def get_closest(current_coords, locations):
+            closest_key = min(locations, key=lambda l: distance_between(current_coords, Coords(locations[l]["x"], locations[l]["y"], locations[l]["z"])))
+            closest = locations[closest_key]
+            _coords = Coords(closest["x"], closest["y"], closest["z"])
+            _distance = distance_between(current_coords, _coords)
+            _system = closest["system"]
+            _body = closest_key
+            _priority = closest["priority"]
+            return _system, _body, _distance, _coords, _priority
+
+        data = []
         for bio_item in self.get_species_left_to_discover():
-            closest_system, closest_body, distance, coords, priority = get_closest(current_coords, self.__raw_data[bio_item]["locations"])
+            closest_system, closest_body, distance, closest_coords, priority = get_closest(coords, self.__raw_data[bio_item]["locations"])
             data.append({
                 "species": bio_item,
                 "priority": priority,
                 "closest_location": closest_body,
                 "_system": closest_system,
-                "coords": coords,
+                "coords": closest_coords,
                 "distance": distance
             })
         data.sort(key=lambda x: (-x["priority"], x["distance"]))
@@ -334,3 +358,18 @@ class BioPatrol(nb.Frame, Module):
 
     def __copy(self):
         copyclip(self.data[self.pos]["_system"])
+
+    def __delete(self):
+        planet = self.data[self.pos]["closest_location"]
+        coords = self.data[self.pos]["coords"]
+
+        if planet in self.__bio_found and self.__bio_found[planet].get("signalCount", 0) != 0:
+            return
+
+        for species, data in self.__raw_data.items():
+            if planet in data["locations"]:
+                del data["locations"][planet]
+                self.__update_data_coords(coords)
+                self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
+                self.after(0, self.show)
+                self.save_data()
