@@ -56,9 +56,19 @@ class BioPatrol(nb.Frame, Module):
         self.next_button.grid(column=2, row=0)
 
         # средняя строка (приоритет)
+        self.midframe = nb.Frame(self)
+        self.midframe.grid_columnconfigure(1, weight=1)
+        
         self.__priority: int
-        self.priority_var = tk.StringVar(self)
-        self.priority_label = nb.Label(self, textvariable=self.priority_var)
+        self.priority_var = tk.StringVar(self.midframe)
+        self.priority_label = nb.Label(self.midframe, textvariable=self.priority_var)
+        
+        self.__count: int
+        self.count_var = tk.StringVar(self.midframe)
+        self.count_label = nb.Label(self.midframe, textvariable=self.count_var)
+        
+        self.priority_label.grid(column=0, row=0)
+        self.count_label.grid(column=1, row=0)
 
         # нижняя строка (ближайшее местоположение)
         self.bottomframe = nb.Frame(self)
@@ -135,6 +145,12 @@ class BioPatrol(nb.Frame, Module):
             self.save_data()
 
             self.set_status(f"Готов к работе")
+           
+        for k, v in self.__bio_found.items():
+            planet = k
+            for bioname in v["signals"]:
+                genus = bioname.split()[0]
+                self.process_genus_bio(genus, bioname, planet)
 
     def save_data(self):
         with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'w') as f:
@@ -142,6 +158,40 @@ class BioPatrol(nb.Frame, Module):
 
         with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'w') as f:
             json.dump(self.__bio_found, f, ensure_ascii=False, indent=2)
+
+    def process_genus_bio(self, genus, bioname, planet):
+        region = None
+        priority = 1
+        if bioname in self.__raw_data:
+            locations = self.__raw_data[bioname]["locations"]
+            if planet in locations:
+                region = locations[planet]["region"]
+                priority = locations[planet]["priority"]
+
+        for species, data in self.__raw_data.items():
+            if planet in data["locations"]:
+                # remove all "region new" from the list
+                removed = {k: v for k, v in data["locations"].items() if v["region"] == region}
+                for k, v in removed.items():
+                    print(f"Found {bioname} at region {region}, removing {k} from the list")
+
+                data["locations"] = {k: v for k, v in data["locations"].items() if v["region"] != region}
+
+                for body, body_data in data["locations"].items():
+                    # This is not a galactic new anymore, mark as region new
+                    if priority == 3:
+                        body_data["priority"] == 2
+
+                # everything has been found, clean up
+                if planet in data["locations"]:
+                    if len(self.__bio_found[planet]["signals"]) == self.__bio_found[planet]["signalCount"]:
+                        del data["locations"][planet]
+                    else:
+                        # something left to find, clear all with matching genus
+                        species_genus = species.split()[0]
+
+                        if genus == species_genus and bioname != species:
+                            del data["locations"][planet]
 
     def on_journal_entry(self, entry: JournalEntry):
         if not self._enabled:
@@ -162,37 +212,9 @@ class BioPatrol(nb.Frame, Module):
             if bioname not in self.__bio_found[self.body]["signals"]:
                 self.__bio_found[self.body]["signals"].append(bioname)
 
-            region = None
-            priority = 1
-            if bioname in self.__raw_data:
-                locations = self.__raw_data[bioname]["locations"]
-                if self.body in locations:
-                    region = locations[self.body]["region"]
-                    priority = locations[self.body]["priority"]
-
-            for species, data in self.__raw_data.items():
-                if self.body in data["locations"]:
-                    # remove all "region new" from the list
-                    removed = {k: v for k, v in data["locations"].items() if v["region"] == region}
-                    for k, v in removed.items():
-                        print(f"Found {bioname} at region {region}, removing {k} from the list")
-
-                    data["locations"] = {k: v for k, v in data["locations"].items() if v["region"] != region}
-
-                    for body, body_data in data["locations"].items():
-                        # This is not a galactic new anymore, mark as region new
-                        if priority == 3:
-                            body_data["priority"] == 2
-
-                    # everything has been found, clean up
-                    if len(self.__bio_found[self.body]["signals"]) == self.__bio_found[self.body]["signalCount"]:
-                        del data["locations"][self.body]
-                    else:
-                        # something left to find, clear all with matching genus
-                        species_genus = species.split()[0]
-
-                        if genus == species_genus and bioname != species:
-                            del data["locations"][self.body]
+            # update data
+            self.process_genus_bio(genus, bioname, self.body)
+            
             self.save_data()
             self.__update_data(entry)
             self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
@@ -226,7 +248,7 @@ class BioPatrol(nb.Frame, Module):
 
     def set_status(self, text: str):
         self.topframe.pack_forget()
-        self.priority_label.pack_forget()
+        self.midframe.pack_forget()
         self.bottomframe.pack_forget()
         self.__dummy_var.set(text)
         self.dummy_label.pack(side="top", fill="x")
@@ -235,7 +257,7 @@ class BioPatrol(nb.Frame, Module):
     def show(self):
         self.dummy_label.pack_forget()
         self.topframe.pack(side="top", fill="x")
-        self.priority_label.pack(side="top", fill="x")
+        self.midframe.pack(side="top", fill="x")
         self.bottomframe.pack(side="top", fill="x")
 
 
@@ -260,6 +282,14 @@ class BioPatrol(nb.Frame, Module):
             case 2: self.priority_var.set("Region new!")
             case _: self.priority_var.set("")
 
+    @property
+    def count(self):
+        return self.__count
+    
+    @count.setter
+    def count(self, value: int):
+        self.__count = value
+        self.count_var.set(f"{value} planet(s) left")
 
     @property
     def closest_location(self) -> str:
@@ -312,7 +342,8 @@ class BioPatrol(nb.Frame, Module):
                 "closest_location": closest_body,
                 "_system": closest_system,
                 "coords": closest_coords,
-                "distance": distance
+                "distance": distance,
+                "count": len(self.__raw_data[bio_item]["locations"])
             })
         data.sort(key=lambda x: (-x["priority"], x["distance"]))
         self.data = data
@@ -334,6 +365,7 @@ class BioPatrol(nb.Frame, Module):
         bio_item = self.data[value]
         self.selected_bio = bio_item["species"]
         self.priority = bio_item["priority"]
+        self.count = bio_item["count"]
         self.closest_location = bio_item["closest_location"]
         self.distance_to_closest = bio_item["distance"]
         self.__pos = value
