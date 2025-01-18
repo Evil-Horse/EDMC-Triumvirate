@@ -1,3 +1,4 @@
+import gzip
 import json
 import tkinter as tk
 from pathlib import Path
@@ -19,7 +20,7 @@ def distance_between(a: Coords, b: Coords):
 
 
 class BioPatrol(nb.Frame, Module):
-    FILENAME_RAW  = 'bio.json'
+    FILENAME_RAW  = 'bio.json.gz'
     FILENAME_FLAT = 'bio-flat.json'
     FILENAME_BIO  = 'bio-found.json'
 
@@ -120,7 +121,7 @@ class BioPatrol(nb.Frame, Module):
             self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_FLAT})")
 
             try:
-                f = open(Path(self.plugin_dir, "data", self.FILENAME_RAW), 'r')
+                f = gzip.open(Path(self.plugin_dir, "data", self.FILENAME_RAW), 'r')
                 raw_data = json.load(f)
             except:
                 self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_RAW})")
