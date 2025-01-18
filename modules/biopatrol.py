@@ -1,6 +1,7 @@
 import gzip
 import json
 import tkinter as tk
+from datetime import datetime, UTC
 from pathlib import Path
 from math import sqrt
 
@@ -97,8 +98,8 @@ class BioPatrol(nb.Frame, Module):
     def load_data(self):
         self.body = None
         try:
-            f = open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'r')
-            self.__bio_found = json.load(f)
+            with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'r') as f:
+                self.__bio_found = json.load(f)
         except:
             self.set_status(f"Данные по находкам не найдены или повреждены (data/{self.FILENAME_BIO})")
             self.__bio_found = {}
@@ -115,43 +116,64 @@ class BioPatrol(nb.Frame, Module):
             # }
 
         try:
-            f = open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'r')
-            self.__raw_data = json.load(f)
+            with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'r') as f:
+                raw_data = json.load(f)
+                raw_formed_at = datetime.fromisoformat(raw_data["timestamp"])
         except:
             self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_FLAT})")
+            raw_data = {}
 
-            try:
-                f = gzip.open(Path(self.plugin_dir, "data", self.FILENAME_RAW), 'r')
-                raw_data = json.load(f)
-            except:
-                self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_RAW})")
+        try:
+            with gzip.open(Path(self.plugin_dir, "data", self.FILENAME_RAW), 'r') as f:
+                archive_data = json.load(f)
+                archive_formed_at = datetime.fromisoformat(archive_data["timestamp"])
+        except:
+            self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_RAW})")
+            archive_data = {}
+
+        if not raw_data:
+            if archive_data:
+                self.__raw_data = self.process_archive_data(archive_data)
+                self.save_data()
+            else:
                 self._enabled = False
                 return
-
-            self.__raw_data = {}
-            for region, region_data in raw_data.items():
-                for species, species_data in region_data.items():
-                    priority = species_data["priority"]
-                    if species not in self.__raw_data:
-                        self.__raw_data[species] = {"locations" : {}}
-
-                    for location in species_data["locations"]:
-                        location["region"] = region
-                        location["priority"] = priority
-                        body = location["body"]
-                        del location["body"]
-                        self.__raw_data[species]["locations"][body] = location
-
-                self.set_status(f"Обработан регион {region}")
-            self.save_data()
-
-            self.set_status(f"Готов к работе")
+        else:
+            if archive_data and (raw_formed_at < archive_formed_at):
+                self.__raw_data = self.process_archive_data(archive_data)
+                self.save_data()
+            else:
+                self.__raw_data = raw_data
+        
+        self.set_status(f"Готов к работе")
            
         for k, v in self.__bio_found.items():
             planet = k
             for bioname in v["signals"]:
                 genus = bioname.split()[0]
                 self.process_genus_bio(genus, bioname, planet)
+
+    
+    def process_archive_data(self, raw_data: dict):
+        data = {}
+        for region, region_data in raw_data.items():
+            for species, species_data in region_data.items():
+                priority = species_data["priority"]
+                if species not in data:
+                    data[species] = {"locations" : {}}
+
+                for location in species_data["locations"]:
+                    location["region"] = region
+                    location["priority"] = priority
+                    body = location["body"]
+                    del location["body"]
+                    data[species]["locations"][body] = location
+
+            self.set_status(f"Обработан регион {region}")
+        
+        data["timestamp"] = raw_data["timestamp"]
+        return data
+
 
     def save_data(self):
         with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'w') as f:
