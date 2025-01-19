@@ -118,7 +118,7 @@ class BioPatrol(nb.Frame, Module):
         try:
             with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'r') as f:
                 raw_data = json.load(f)
-                raw_formed_at = datetime.fromisoformat(raw_data["timestamp"])
+                raw_formed_at = datetime.fromisoformat(raw_data.get("timestamp", "1970-01-01"))
         except:
             self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_FLAT})")
             raw_data = {}
@@ -126,7 +126,7 @@ class BioPatrol(nb.Frame, Module):
         try:
             with gzip.open(Path(self.plugin_dir, "data", self.FILENAME_RAW), 'r') as f:
                 archive_data = json.load(f)
-                archive_formed_at = datetime.fromisoformat(archive_data["timestamp"])
+                archive_formed_at = datetime.fromisoformat(archive_data.get("timestamp", "1970-01-01"))
         except:
             self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_RAW})")
             archive_data = {}
@@ -155,23 +155,26 @@ class BioPatrol(nb.Frame, Module):
 
     
     def process_archive_data(self, raw_data: dict):
-        data = {}
-        for region, region_data in raw_data.items():
+        data = {
+            "timestamp": raw_data.get("timestamp", "1970-01-01"),
+            "bio": {}
+        }
+
+        for region, region_data in raw_data["bio"].items():
             for species, species_data in region_data.items():
                 priority = species_data["priority"]
-                if species not in data:
-                    data[species] = {"locations" : {}}
+                if species not in data["bio"]:
+                    data["bio"][species] = {"locations" : {}}
 
                 for location in species_data["locations"]:
                     location["region"] = region
                     location["priority"] = priority
                     body = location["body"]
                     del location["body"]
-                    data[species]["locations"][body] = location
+                    data["bio"][species]["locations"][body] = location
 
             self.set_status(f"Обработан регион {region}")
         
-        data["timestamp"] = raw_data["timestamp"]
         return data
 
 
@@ -185,13 +188,13 @@ class BioPatrol(nb.Frame, Module):
     def process_genus_bio(self, genus, bioname, planet):
         region = None
         priority = 1
-        if bioname in self.__raw_data:
-            locations = self.__raw_data[bioname]["locations"]
+        if bioname in self.__raw_data["bio"]:
+            locations = self.__raw_data["bio"][bioname]["locations"]
             if planet in locations:
                 region = locations[planet]["region"]
                 priority = locations[planet]["priority"]
 
-        for species, data in self.__raw_data.items():
+        for species, data in self.__raw_data["bio"].items():
             if planet in data["locations"]:
                 # remove all "region new" from the list
                 removed = {k: v for k, v in data["locations"].items() if v["region"] == region}
@@ -253,7 +256,7 @@ class BioPatrol(nb.Frame, Module):
                   "signals" : []
                 }
 
-            for species, data in self.__raw_data.items():
+            for species, data in self.__raw_data["bio"].items():
                 if bodyName in data["locations"] and species.split()[0] not in genuses:
                     del data["locations"][bodyName]
                     self.__update_data(entry)
@@ -334,7 +337,7 @@ class BioPatrol(nb.Frame, Module):
 
 
     def get_species_left_to_discover(self):
-        return [bio_item for bio_item, data in self.__raw_data.items() if len(data["locations"]) > 0]
+        return [bio_item for bio_item, data in self.__raw_data["bio"].items() if len(data["locations"]) > 0]
 
 
     def __update_data(self, entry: JournalEntry):
@@ -358,7 +361,7 @@ class BioPatrol(nb.Frame, Module):
 
         data = []
         for bio_item in self.get_species_left_to_discover():
-            closest_system, closest_body, distance, closest_coords, priority = get_closest(coords, self.__raw_data[bio_item]["locations"])
+            closest_system, closest_body, distance, closest_coords, priority = get_closest(coords, self.__raw_data["bio"][bio_item]["locations"])
             data.append({
                 "species": bio_item,
                 "priority": priority,
@@ -366,7 +369,7 @@ class BioPatrol(nb.Frame, Module):
                 "_system": closest_system,
                 "coords": closest_coords,
                 "distance": distance,
-                "count": len(self.__raw_data[bio_item]["locations"])
+                "count": len(self.__raw_data["bio"][bio_item]["locations"])
             })
         data.sort(key=lambda x: (-x["priority"], x["distance"]))
         self.data = data
@@ -422,7 +425,7 @@ class BioPatrol(nb.Frame, Module):
         if planet in self.__bio_found and self.__bio_found[planet].get("signalCount", 0) != 0:
             return
 
-        for species, data in self.__raw_data.items():
+        for species, data in self.__raw_data["bio"].items():
             if planet in data["locations"]:
                 del data["locations"][planet]
                 self.__update_data_coords(coords)
