@@ -103,7 +103,7 @@ class BGS(Module):
     _systems = list()
     _data_send_queue = deque()      # по логике нужна queue, но не хочу ещё один импорт тащить
     _default_sounds_config = {
-        "version": "1.11.0-rc1.indev",
+        "version": "1.11.0-rc1.evilbio",
         "sounds": [
             {
                 "name": "notification",
