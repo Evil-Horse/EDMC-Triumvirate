@@ -246,7 +246,7 @@ class BioPatrol(nb.Frame, Module):
             self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
             self.after(0, self.show)
 
-        elif event == "SAASignalsFound" and entry.data.get("Genuses") is not None:
+        elif event == "SAASignalsFound" and entry.data.get("Genuses"):
             genuses = [i["Genus_Localised"] for i in entry.data["Genuses"]]
             bodyName = entry.data["BodyName"]
 
