@@ -12,6 +12,7 @@ from modules.lib.context import global_context
 
 import myNotebook as nb
 from theme import theme
+from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses
 
 
 def distance_between(a: Coords, b: Coords):
@@ -258,8 +259,8 @@ class BioPatrol(tk.Frame, Module):
             self.after(0, self.show)
 
         elif event == "ScanOrganic":
-            genus = entry.data["Genus_Localised"]
-            bioname = entry.data["Variant_Localised"]
+            genus = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
+            bioname = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
             self.set_status(f"Scanned {bioname} at {self.body}")
 
             if bioname not in self.__bio_found[self.body]["signals"]:
@@ -274,7 +275,7 @@ class BioPatrol(tk.Frame, Module):
             self.after(0, self.show)
 
         elif event == "SAASignalsFound" and entry.data.get("Genuses"):
-            genuses = [i["Genus_Localised"] for i in entry.data["Genuses"]]
+            genuses = [codex_to_english_genuses.get(i["Genus"], i["Genus"]) for i in entry.data["Genuses"]]
             bodyName = entry.data["BodyName"]
 
             if bodyName not in self.__bio_found:
