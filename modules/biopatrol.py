@@ -10,7 +10,8 @@ from modules.lib.journal import JournalEntry, Coords
 from modules.patrol.patrol_module import copyclip
 from modules.lib.context import global_context
 
-from tkinter import ttk as nb
+import myNotebook as nb
+from theme import theme
 
 
 def distance_between(a: Coords, b: Coords):
@@ -20,7 +21,7 @@ def distance_between(a: Coords, b: Coords):
     return sqrt(dx**2 + dy**2 + dz**2)
 
 
-class BioPatrol(nb.Frame, Module):
+class BioPatrol(tk.Frame, Module):
     FILENAME_RAW  = 'bio.json.gz'
     FILENAME_FLAT = 'bio-flat.json'
     FILENAME_BIO  = 'bio-found.json'
@@ -42,52 +43,78 @@ class BioPatrol(nb.Frame, Module):
 
         # заглушка/статус
         self.__dummy_var = tk.StringVar(self)
-        self.dummy_label = nb.Label(self, textvariable=self.__dummy_var)
+        self.dummy_label = tk.Label(self, textvariable=self.__dummy_var)
 
         # верхняя строка (переключатель)
-        self.topframe = nb.Frame(self)
+        self.topframe = tk.Frame(self)
         self.topframe.grid_columnconfigure(1, weight=1)
         self.__selected_bio_var = tk.StringVar(self.topframe)
 
-        self.prev_button = nb.Button(self.topframe, image=self.IMG_PREV, command=self.__prev)
-        self.next_button = nb.Button(self.topframe, image=self.IMG_NEXT, command=self.__next)
-        self.selected_bio_label = nb.Label(self.topframe, textvariable=self.__selected_bio_var)
+        self.prev_button = nb.Button(self.topframe, image=self.IMG_PREV)
+        self.prev_button_dark = tk.Label(self.topframe, image=self.IMG_PREV)
+        theme.register_alternate(
+            (self.prev_button, self.prev_button_dark, self.prev_button_dark),
+            {"column": 0, "row": 0}
+        )
+        self.prev_button.bind('<Button-1>', self.__prev)
+        theme.button_bind(self.prev_button_dark, self.__prev)
 
-        self.prev_button.grid(column=0, row=0)
+        self.next_button = nb.Button(self.topframe, image=self.IMG_NEXT)
+        self.next_button_dark = tk.Label(self.topframe, image=self.IMG_NEXT)
+        theme.register_alternate(
+            (self.next_button, self.next_button_dark, self.next_button_dark),
+            {"column": 2, "row": 0}
+        )
+        self.next_button.bind('<Button-1>', self.__next)
+        theme.button_bind(self.next_button_dark, self.__next)
+
+        self.selected_bio_label = tk.Label(self.topframe, textvariable=self.__selected_bio_var)
         self.selected_bio_label.grid(column=1, row=0, padx=3)
-        self.next_button.grid(column=2, row=0)
 
         # средняя строка (приоритет)
-        self.midframe = nb.Frame(self)
+        self.midframe = tk.Frame(self)
         self.midframe.grid_columnconfigure(1, weight=1)
         
         self.__priority: int
         self.priority_var = tk.StringVar(self.midframe)
-        self.priority_label = nb.Label(self.midframe, textvariable=self.priority_var)
+        self.priority_label = tk.Label(self.midframe, textvariable=self.priority_var)
         
         self.__count: int
         self.count_var = tk.StringVar(self.midframe)
-        self.count_label = nb.Label(self.midframe, textvariable=self.count_var)
+        self.count_label = tk.Label(self.midframe, textvariable=self.count_var)
         
         self.priority_label.grid(column=0, row=0)
         self.count_label.grid(column=1, row=0)
 
         # нижняя строка (ближайшее местоположение)
-        self.bottomframe = nb.Frame(self)
+        self.bottomframe = tk.Frame(self)
         self.bottomframe.grid_columnconfigure(1, weight=1)
         self.__distance: float
         self.__distance_var = tk.StringVar(self.bottomframe)
         self.__closest_location_var = tk.StringVar(self.bottomframe)
 
-        self.distance_label = nb.Label(self.bottomframe, textvariable=self.__distance_var)
-        self.closest_location_label = nb.Label(self.bottomframe, textvariable=self.__closest_location_var)
-        self.delete_button = nb.Button(self.bottomframe, text="No signals!", command=self.__delete)
-        self.copy_button = nb.Button(self.bottomframe, text="Copy system", command=self.__copy)
-
+        self.distance_label = tk.Label(self.bottomframe, textvariable=self.__distance_var)
+        self.closest_location_label = tk.Label(self.bottomframe, textvariable=self.__closest_location_var)
         self.distance_label.grid(column=0, row=0)
         self.closest_location_label.grid(column=1, row=0, padx=3)
-        self.delete_button.grid(column=2, row=0)
-        self.copy_button.grid(column=3, row=0)
+
+        self.delete_button = nb.Button(self.bottomframe, text="No signals!")
+        self.delete_button_dark = tk.Label(self.bottomframe, text="No signals!", fg="white")
+        theme.register_alternate(
+            (self.delete_button, self.delete_button_dark, self.delete_button_dark),
+            {"column": 2, "row": 0}
+        )
+        self.delete_button.bind('<Button-1>', self.__delete)
+        theme.button_bind(self.delete_button_dark, self.__delete)
+
+        self.copy_button = nb.Button(self.bottomframe, text="Copy system")
+        self.copy_button_dark = tk.Label(self.bottomframe, text="Copy system", fg="white")
+        theme.register_alternate(
+            (self.copy_button, self.copy_button_dark, self.copy_button_dark),
+            {"column": 3, "row": 0}
+        )
+        self.copy_button.bind('<Button-1>', self.__copy)
+        theme.button_bind(self.copy_button_dark, self.__copy)
 
         # упаковываем до данных по местоположению
         self.set_status("Ожидание ивента Location/FSDJump...")
@@ -398,11 +425,11 @@ class BioPatrol(nb.Frame, Module):
         self.__update_buttons_configuration()
 
 
-    def __prev(self):
+    def __prev(self, event):
         self.pos -= 1
 
 
-    def __next(self):
+    def __next(self, event):
         self.pos += 1
 
 
@@ -415,10 +442,10 @@ class BioPatrol(nb.Frame, Module):
             self.next_button.configure(state="disabled")
 
 
-    def __copy(self):
+    def __copy(self, event):
         copyclip(self.data[self.pos]["_system"])
 
-    def __delete(self):
+    def __delete(self, event):
         planet = self.data[self.pos]["closest_location"]
         coords = self.data[self.pos]["coords"]
 
