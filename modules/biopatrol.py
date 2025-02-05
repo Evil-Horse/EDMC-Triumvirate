@@ -118,7 +118,7 @@ class BioPatrol(tk.Frame, Module):
         theme.button_bind(self.copy_button_dark, self.__copy)
 
         # упаковываем до данных по местоположению
-        self.set_status("Ожидание ивента Location/FSDJump...")
+        self.set_status("Местоположение неизвестно. Требуется прыжок или перезапуск игры.")
         self.load_data()
         self.grid(column=0, row=gridrow, sticky="NWSE")
 
@@ -173,7 +173,7 @@ class BioPatrol(tk.Frame, Module):
             else:
                 self.__raw_data = raw_data
         
-        self.set_status(f"Готов к работе")
+        self.set_status(f"Данные импортированы. Требуется прыжок или перезапуск игры.")
            
         for k, v in self.__bio_found.items():
             planet = k
