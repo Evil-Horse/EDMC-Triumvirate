@@ -1,20 +1,23 @@
 import gzip
 import json
 import tkinter as tk
+from tkinter import ttk
 from datetime import datetime
 from pathlib import Path
 from math import sqrt
 from threading import Lock
+from typing import Callable, Any
 
 from modules.lib.module import Module
 from modules.lib.journal import JournalEntry, Coords
 from modules.patrol.patrol_module import copyclip
 from modules.lib.context import global_context
 from modules.lib.thread import BasicThread
+from modules.lib.conf import config as plugin_config
 
 import myNotebook as nb
 from theme import theme
-from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses
+from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses, regions
 
 
 def distance_between(a: Coords, b: Coords):
@@ -22,6 +25,68 @@ def distance_between(a: Coords, b: Coords):
     dy = a.y - b.y
     dz = a.z - b.z
     return sqrt(dx**2 + dy**2 + dz**2)
+
+
+class RegionFilterWindow(tk.Toplevel):
+    CONFIG_KEY = "BioPatrol.regions_config"
+
+    def __init__(self, parent: tk.Misc, callback: Callable[[dict[str, bool]], Any]):
+        super().__init__(parent)
+        self.callback = callback
+        config = self.load_config()
+        self.config = {r: tk.BooleanVar(value=config[r]) for r in regions}
+
+        self.frame = ttk.Frame(self)
+
+        # 42 региона: 3 столбца по 11, 1 на 9
+        for i, (region, var) in enumerate(self.config.items()):
+            column = int(i / 11)
+            row = i % 11
+            nb.Checkbutton(
+                self.frame, variable=var, text=region,
+                command=self.__change_save_button_state
+            ).grid(column=column, row=row, sticky="W")
+
+        self.set_all_button = nb.Button(self.frame, text="Выбрать все", command=self.__set_all)
+        self.unset_all_button = nb.Button(self.frame, text="Снять все", command=self.__unset_all)
+        self.save_button = nb.Button(self.frame, text="Сохранить")
+        self.save_button.bind("<Button-1>", self.__save_config)
+        self.set_all_button.grid(row=12, column=0, sticky="NWSE")
+        self.unset_all_button.grid(row=12, column=1, sticky="NWSE")
+        self.save_button.grid(row=12, column=3, sticky="NWSE")
+
+        self.frame.pack()
+
+
+    @classmethod
+    def load_config(cls) -> dict[str, bool]:
+        config = plugin_config.get_str(cls.CONFIG_KEY)
+        if config is None:
+            config = {r: True for r in regions}
+            plugin_config.set(cls.CONFIG_KEY, json.dumps(config, ensure_ascii=False))
+        else:
+            config = json.loads(config)
+        return config
+
+    def __set_all(self):
+        for _, var in self.config.items():
+            var.set(True)
+        self.save_button.configure(state="enabled")
+
+    def __unset_all(self):
+        for _, var in self.config.items():
+            var.set(False)
+        self.save_button.configure(state="disabled")
+
+    def __change_save_button_state(self):
+        self.save_button.configure(state="disabled" if not any(var.get() for _, var in self.config.items()) else "normal")
+
+    def __save_config(self, event):
+        if str(event.widget["state"]) == tk.DISABLED:
+            return
+        config = {reg: var.get() for reg, var in self.config.items()}
+        plugin_config.set(self.CONFIG_KEY, json.dumps(config, ensure_ascii=False))
+        self.callback(config)
 
 
 class BioPatrol(tk.Frame, Module):
@@ -34,8 +99,11 @@ class BioPatrol(tk.Frame, Module):
 
         self.plugin_dir = global_context.plugin_dir
         self.data: list[dict] = []
+        self.enabled_regions: list[str] = [region for region, enabled in RegionFilterWindow.load_config().items() if enabled]
+        self.current_coords: Coords = None
         self._enabled = True
         self.__threadlock = Lock()
+        self.__region_filter_window: RegionFilterWindow = None
         self.__pos = 0
         self.__priority = 0
         self.__selected_bio = ""
@@ -435,40 +503,56 @@ class BioPatrol(tk.Frame, Module):
         if None in [entry.coords.x, entry.coords.y, entry.coords.z] and "StarPos" in entry.data:
             starpos = entry.data["StarPos"]
             current_coords = Coords(starpos[0], starpos[1], starpos[2])
+        self.current_coords = current_coords
+        self.__update_data_coords(self.current_coords)
 
-        self.__update_data_coords(current_coords)
 
+    def __update_data_coords(self, current_coords: Coords):
+        def get_closest(current_coords, locations: dict):
+            closest = None
+            min_dist = float("inf")
+            found = 0
+            for body, loc in locations.items():
+                if loc["region"] not in self.enabled_regions:
+                    continue
+                found += 1
+                loc_coords = Coords(loc["x"], loc["y"], loc["z"])
+                if (loc_distance := distance_between(current_coords, loc_coords)) < min_dist:
+                    min_dist = loc_distance
+                    closest = (body, loc)
 
-    def __update_data_coords(self, coords: Coords):
-        def get_closest(current_coords, locations):
-            closest_key = min(locations, key=lambda l: distance_between(current_coords, Coords(locations[l]["x"], locations[l]["y"], locations[l]["z"])))
-            closest = locations[closest_key]
-            _coords = Coords(closest["x"], closest["y"], closest["z"])
-            _distance = distance_between(current_coords, _coords)
-            _system = closest["system"]
-            _body = closest_key
-            _priority = closest["priority"]
-            _region = closest["region"]
-            return _system, _body, _distance, _coords, _priority, _region
+            if not found:
+                return None
 
+            body, location = closest
+            coords = Coords(location["x"], location["y"], location["z"])
+            distance = distance_between(current_coords, coords)
+            system = location["system"]
+            priority = location["priority"]
+            region = location["region"]
+            return system, body, distance, coords, priority, region, found
+
+        self.set_status("Пересчёт данных...")
         data = []
         for bio_item in self.get_species_left_to_discover():
-            closest_system, closest_body, distance, closest_coords, priority, region = get_closest(coords, self.__raw_data["bio"][bio_item]["locations"])
+            closest_location = get_closest(current_coords, self.__raw_data["bio"][bio_item]["locations"])
+            if closest_location is None:
+                continue
+            system, body, distance, coords, priority, region, count = closest_location
             data.append({
                 "species": bio_item,
                 "priority": priority,
-                "closest_location": closest_body,
-                "_system": closest_system,
-                "coords": closest_coords,
+                "closest_location": body,
+                "_system": system,
+                "coords": coords,
                 "distance": distance,
                 "region": region,
-                "count": len(self.__raw_data["bio"][bio_item]["locations"])
+                "count": count
             })
         data.sort(key=lambda x: (-x["priority"], x["distance"]))
         self.data = data
         if len(self.data) == 0:
             self.set_status("Либо все виды найдены, либо что-то сломалось.")
-            self._enabled = False
 
 
     @property
@@ -525,5 +609,23 @@ class BioPatrol(tk.Frame, Module):
                 self.save_data()
 
 
-    def __create_filter_window(self):
-        pass
+    def __create_filter_window(self, event):
+        if self.__region_filter_window is not None:
+            return
+        self.__region_filter_window = RegionFilterWindow(self, self.__region_filter_callback)
+        self.__region_filter_window.protocol("WM_DELETE_WINDOW", self.__region_filter_closed)
+
+
+    def __region_filter_closed(self):
+        self.__region_filter_window.destroy()
+        self.__region_filter_window = None
+
+
+    def __region_filter_callback(self, config: dict[str, bool]):
+        self.enabled_regions = [region for region, enabled in config.items() if enabled]
+        self.__region_filter_window.destroy()
+        self.__region_filter_window = None
+        self.__update_data_coords(self.current_coords)
+        if len(self.data) > 0:
+            self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
+            self.show()
