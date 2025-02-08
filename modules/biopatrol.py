@@ -229,10 +229,10 @@ class BioPatrol(tk.Frame, Module):
 
     def save_data(self):
         with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'w') as f:
-            json.dump(self.__raw_data, f, ensure_ascii=False, indent=2)
+            json.dump(self.__raw_data, f, ensure_ascii=False)
 
         with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'w') as f:
-            json.dump(self.__bio_found, f, ensure_ascii=False, indent=2)
+            json.dump(self.__bio_found, f, ensure_ascii=False)
 
 
     def process_genus_bio(self, genus, bioname, planet):
