@@ -279,7 +279,7 @@ class BioPatrol(tk.Frame, Module):
         if event in ("Location", "FSDJump"):
             self.__update_data(entry)
             self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-            self.after(0, self.show)
+            self.show()
 
         elif event == "ScanOrganic":
             genus = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
@@ -295,7 +295,7 @@ class BioPatrol(tk.Frame, Module):
             self.save_data()
             self.__update_data(entry)
             self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-            self.after(0, self.show)
+            self.show()
 
         elif event == "SAASignalsFound" and entry.data.get("Genuses"):
             genuses = [codex_to_english_genuses.get(i["Genus"], i["Genus"]) for i in entry.data["Genuses"]]
@@ -312,7 +312,7 @@ class BioPatrol(tk.Frame, Module):
                     del data["locations"][bodyName]
                     self.__update_data(entry)
                     self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-                    self.after(0, self.show)
+                    self.show()
             self.save_data()
 
 
@@ -326,21 +326,25 @@ class BioPatrol(tk.Frame, Module):
 
 
     def set_status(self, text: str):
-        self.switch_frame.pack_forget()
-        self.region_frame.pack_forget()
-        self.closest_location_frame.pack_forget()
-        self.buttons_frame.pack_forget()
-        self.__dummy_var.set(text)
-        self.dummy_label.pack(side="top", fill="x")
+        def __inner(self):
+            self.switch_frame.pack_forget()
+            self.region_frame.pack_forget()
+            self.closest_location_frame.pack_forget()
+            self.buttons_frame.pack_forget()
+            self.__dummy_var.set(text)
+            self.dummy_label.pack(side="top", fill="x")
+        self.after(0, __inner, self)
 
 
     def show(self):
-        self.dummy_label.pack_forget()
-        self.switch_frame.pack(side="top", fill="x")
-        self.region_frame.pack(side="top", fill="x")
-        self.closest_location_frame.pack(side="top", fill="x")
-        self.buttons_frame.pack(side="top", fill="x")
-        self.filter_frame.pack(side="bottom", fill="x")
+        def __inner(self):
+            self.dummy_label.pack_forget()
+            self.switch_frame.pack(side="top", fill="x")
+            self.region_frame.pack(side="top", fill="x")
+            self.closest_location_frame.pack(side="top", fill="x")
+            self.buttons_frame.pack(side="top", fill="x")
+            self.filter_frame.pack(side="bottom", fill="x")
+        self.after(0, __inner, self)
 
 
     @property
@@ -512,7 +516,7 @@ class BioPatrol(tk.Frame, Module):
                 del data["locations"][planet]
                 self.__update_data_coords(coords)
                 self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-                self.after(0, self.show)
+                self.show()
                 self.save_data()
 
 
