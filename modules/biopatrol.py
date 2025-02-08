@@ -4,11 +4,13 @@ import tkinter as tk
 from datetime import datetime
 from pathlib import Path
 from math import sqrt
+from threading import Lock
 
 from modules.lib.module import Module
 from modules.lib.journal import JournalEntry, Coords
 from modules.patrol.patrol_module import copyclip
 from modules.lib.context import global_context
+from modules.lib.thread import BasicThread
 
 import myNotebook as nb
 from theme import theme
@@ -33,6 +35,7 @@ class BioPatrol(tk.Frame, Module):
         self.plugin_dir = global_context.plugin_dir
         self.data: list[dict] = []
         self._enabled = True
+        self.__threadlock = Lock()
         self.__pos = 0
         self.__priority = 0
         self.__selected_bio = ""
@@ -140,67 +143,68 @@ class BioPatrol(tk.Frame, Module):
 
         # упаковываем до данных по местоположению
         self.set_status("Местоположение неизвестно. Требуется прыжок или перезапуск игры.")
-        self.load_data()
+        BasicThread(name="BioPatrolDataReader", target=self.load_data).start()
         self.grid(column=0, row=gridrow, sticky="NWSE")
 
 
     def load_data(self):
-        self.body = None
-        try:
-            with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'r') as f:
-                self.__bio_found = json.load(f)
-        except Exception:
-            self.set_status(f"Данные по находкам не найдены или повреждены (data/{self.FILENAME_BIO})")
-            self.__bio_found = {}
+        with self.__threadlock:
+            self.body = None
+            try:
+                with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'r') as f:
+                    self.__bio_found = json.load(f)
+            except Exception:
+                self.set_status(f"Данные по находкам не найдены или повреждены (data/{self.FILENAME_BIO})")
+                self.__bio_found = {}
 
-            # {
-            #   "signalCount": 5
-            #   "signals" : [
-            #     "Tussock Pennatis - Yellow",
-            #     "Tussock Pennatis - Yellow",
-            #     "Tussock Pennatis - Yellow",
-            #     "Tussock Pennatis - Yellow",
-            #     "Tussock Pennatis - Yellow"
-            #   ]
-            # }
+                # {
+                #   "signalCount": 5
+                #   "signals" : [
+                #     "Tussock Pennatis - Yellow",
+                #     "Tussock Pennatis - Yellow",
+                #     "Tussock Pennatis - Yellow",
+                #     "Tussock Pennatis - Yellow",
+                #     "Tussock Pennatis - Yellow"
+                #   ]
+                # }
 
-        try:
-            with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'r') as f:
-                raw_data = json.load(f)
-                raw_formed_at = datetime.fromisoformat(raw_data.get("timestamp", "1970-01-01"))
-        except Exception:
-            self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_FLAT})")
-            raw_data = {}
+            try:
+                with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'r') as f:
+                    raw_data = json.load(f)
+                    raw_formed_at = datetime.fromisoformat(raw_data.get("timestamp", "1970-01-01"))
+            except Exception:
+                self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_FLAT})")
+                raw_data = {}
 
-        try:
-            with gzip.open(Path(self.plugin_dir, "data", self.FILENAME_RAW), 'r') as f:
-                archive_data = json.load(f)
-                archive_formed_at = datetime.fromisoformat(archive_data.get("timestamp", "1970-01-01"))
-        except Exception:
-            self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_RAW})")
-            archive_data = {}
+            try:
+                with gzip.open(Path(self.plugin_dir, "data", self.FILENAME_RAW), 'r') as f:
+                    archive_data = json.load(f)
+                    archive_formed_at = datetime.fromisoformat(archive_data.get("timestamp", "1970-01-01"))
+            except Exception:
+                self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_RAW})")
+                archive_data = {}
 
-        if not raw_data:
-            if archive_data:
-                self.__raw_data = self.process_archive_data(archive_data)
-                self.save_data()
+            if not raw_data:
+                if archive_data:
+                    self.__raw_data = self.process_archive_data(archive_data)
+                    self.save_data()
+                else:
+                    self._enabled = False
+                    return
             else:
-                self._enabled = False
-                return
-        else:
-            if archive_data and (raw_formed_at < archive_formed_at):
-                self.__raw_data = self.process_archive_data(archive_data)
-                self.save_data()
-            else:
-                self.__raw_data = raw_data
+                if archive_data and (raw_formed_at < archive_formed_at):
+                    self.__raw_data = self.process_archive_data(archive_data)
+                    self.save_data()
+                else:
+                    self.__raw_data = raw_data
 
-        self.set_status("Данные импортированы. Требуется прыжок или перезапуск игры.")
+            self.set_status("Данные импортированы. Требуется прыжок или перезапуск игры.")
 
-        for k, v in self.__bio_found.items():
-            planet = k
-            for bioname in v["signals"]:
-                genus = bioname.split()[0]
-                self.process_genus_bio(genus, bioname, planet)
+            for k, v in self.__bio_found.items():
+                planet = k
+                for bioname in v["signals"]:
+                    genus = bioname.split()[0]
+                    self.process_genus_bio(genus, bioname, planet)
 
 
     def process_archive_data(self, raw_data: dict):
@@ -274,46 +278,47 @@ class BioPatrol(tk.Frame, Module):
         if not self._enabled:
             return
 
-        event = entry.data["event"]
+        with self.__threadlock:
+            event = entry.data["event"]
 
-        if event in ("Location", "FSDJump"):
-            self.__update_data(entry)
-            self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-            self.show()
+            if event in ("Location", "FSDJump"):
+                self.__update_data(entry)
+                self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
+                self.show()
 
-        elif event == "ScanOrganic":
-            genus = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
-            bioname = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
-            self.set_status(f"Scanned {bioname} at {self.body}")
+            elif event == "ScanOrganic":
+                genus = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
+                bioname = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
+                self.set_status(f"Scanned {bioname} at {self.body}")
 
-            if bioname not in self.__bio_found[self.body]["signals"]:
-                self.__bio_found[self.body]["signals"].append(bioname)
+                if bioname not in self.__bio_found[self.body]["signals"]:
+                    self.__bio_found[self.body]["signals"].append(bioname)
 
-            # update data
-            self.process_genus_bio(genus, bioname, self.body)
+                # update data
+                self.process_genus_bio(genus, bioname, self.body)
 
-            self.save_data()
-            self.__update_data(entry)
-            self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-            self.show()
+                self.save_data()
+                self.__update_data(entry)
+                self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
+                self.show()
 
-        elif event == "SAASignalsFound" and entry.data.get("Genuses"):
-            genuses = [codex_to_english_genuses.get(i["Genus"], i["Genus"]) for i in entry.data["Genuses"]]
-            bodyName = entry.data["BodyName"]
+            elif event == "SAASignalsFound" and entry.data.get("Genuses"):
+                genuses = [codex_to_english_genuses.get(i["Genus"], i["Genus"]) for i in entry.data["Genuses"]]
+                bodyName = entry.data["BodyName"]
 
-            if bodyName not in self.__bio_found:
-                self.__bio_found[bodyName] = {
-                    "signalCount": len(genuses),
-                    "signals": []
-                }
+                if bodyName not in self.__bio_found:
+                    self.__bio_found[bodyName] = {
+                        "signalCount": len(genuses),
+                        "signals": []
+                    }
 
-            for species, data in self.__raw_data["bio"].items():
-                if bodyName in data["locations"] and species.split()[0] not in genuses:
-                    del data["locations"][bodyName]
-                    self.__update_data(entry)
-                    self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-                    self.show()
-            self.save_data()
+                for species, data in self.__raw_data["bio"].items():
+                    if bodyName in data["locations"] and species.split()[0] not in genuses:
+                        del data["locations"][bodyName]
+                        self.__update_data(entry)
+                        self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
+                        self.show()
+                self.save_data()
 
 
     def on_dashboard_entry(self, cmdr, is_beta, entry):
