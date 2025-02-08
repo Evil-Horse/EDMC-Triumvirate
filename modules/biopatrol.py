@@ -1,7 +1,7 @@
 import gzip
 import json
 import tkinter as tk
-from datetime import datetime, UTC
+from datetime import datetime
 from pathlib import Path
 from math import sqrt
 
@@ -23,9 +23,9 @@ def distance_between(a: Coords, b: Coords):
 
 
 class BioPatrol(tk.Frame, Module):
-    FILENAME_RAW  = 'bio.json.gz'
+    FILENAME_RAW = 'bio.json.gz'
     FILENAME_FLAT = 'bio-flat.json'
-    FILENAME_BIO  = 'bio-found.json'
+    FILENAME_BIO = 'bio-found.json'
 
     def __init__(self, parent, gridrow):
         super().__init__(parent)
@@ -75,15 +75,15 @@ class BioPatrol(tk.Frame, Module):
         # средняя строка (приоритет)
         self.midframe = tk.Frame(self)
         self.midframe.grid_columnconfigure(1, weight=1)
-        
+
         self.__priority: int
         self.priority_var = tk.StringVar(self.midframe)
         self.priority_label = tk.Label(self.midframe, textvariable=self.priority_var)
-        
+
         self.__count: int
         self.count_var = tk.StringVar(self.midframe)
         self.count_label = tk.Label(self.midframe, textvariable=self.count_var)
-        
+
         self.priority_label.grid(column=0, row=0)
         self.count_label.grid(column=1, row=0)
 
@@ -128,7 +128,7 @@ class BioPatrol(tk.Frame, Module):
         try:
             with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'r') as f:
                 self.__bio_found = json.load(f)
-        except:
+        except Exception:
             self.set_status(f"Данные по находкам не найдены или повреждены (data/{self.FILENAME_BIO})")
             self.__bio_found = {}
 
@@ -147,7 +147,7 @@ class BioPatrol(tk.Frame, Module):
             with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'r') as f:
                 raw_data = json.load(f)
                 raw_formed_at = datetime.fromisoformat(raw_data.get("timestamp", "1970-01-01"))
-        except:
+        except Exception:
             self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_FLAT})")
             raw_data = {}
 
@@ -155,7 +155,7 @@ class BioPatrol(tk.Frame, Module):
             with gzip.open(Path(self.plugin_dir, "data", self.FILENAME_RAW), 'r') as f:
                 archive_data = json.load(f)
                 archive_formed_at = datetime.fromisoformat(archive_data.get("timestamp", "1970-01-01"))
-        except:
+        except Exception:
             self.set_status(f"Данные по биологии не найдены или повреждены (data/{self.FILENAME_RAW})")
             archive_data = {}
 
@@ -172,16 +172,16 @@ class BioPatrol(tk.Frame, Module):
                 self.save_data()
             else:
                 self.__raw_data = raw_data
-        
-        self.set_status(f"Данные импортированы. Требуется прыжок или перезапуск игры.")
-           
+
+        self.set_status("Данные импортированы. Требуется прыжок или перезапуск игры.")
+
         for k, v in self.__bio_found.items():
             planet = k
             for bioname in v["signals"]:
                 genus = bioname.split()[0]
                 self.process_genus_bio(genus, bioname, planet)
 
-    
+
     def process_archive_data(self, raw_data: dict):
         data = {
             "timestamp": raw_data.get("timestamp", "1970-01-01"),
@@ -192,7 +192,7 @@ class BioPatrol(tk.Frame, Module):
             for species, species_data in region_data.items():
                 priority = species_data["priority"]
                 if species not in data["bio"]:
-                    data["bio"][species] = {"locations" : {}}
+                    data["bio"][species] = {"locations": {}}
 
                 for location in species_data["locations"]:
                     location["region"] = region
@@ -202,7 +202,7 @@ class BioPatrol(tk.Frame, Module):
                     data["bio"][species]["locations"][body] = location
 
             self.set_status(f"Обработан регион {region}")
-        
+
         return data
 
 
@@ -212,6 +212,7 @@ class BioPatrol(tk.Frame, Module):
 
         with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'w') as f:
             json.dump(self.__bio_found, f, ensure_ascii=False, indent=2)
+
 
     def process_genus_bio(self, genus, bioname, planet):
         region = None
@@ -247,6 +248,7 @@ class BioPatrol(tk.Frame, Module):
                         if genus == species_genus and bioname != species:
                             del data["locations"][planet]
 
+
     def on_journal_entry(self, entry: JournalEntry):
         if not self._enabled:
             return
@@ -268,7 +270,7 @@ class BioPatrol(tk.Frame, Module):
 
             # update data
             self.process_genus_bio(genus, bioname, self.body)
-            
+
             self.save_data()
             self.__update_data(entry)
             self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
@@ -280,8 +282,8 @@ class BioPatrol(tk.Frame, Module):
 
             if bodyName not in self.__bio_found:
                 self.__bio_found[bodyName] = {
-                  "signalCount" : len(genuses),
-                  "signals" : []
+                    "signalCount": len(genuses),
+                    "signals": []
                 }
 
             for species, data in self.__raw_data["bio"].items():
@@ -292,13 +294,15 @@ class BioPatrol(tk.Frame, Module):
                     self.after(0, self.show)
             self.save_data()
 
+
     def on_dashboard_entry(self, cmdr, is_beta, entry):
-        if not "BodyName" in entry:
+        if "BodyName" not in entry:
             self.body = None
             return
 
         if self.body != entry["BodyName"]:
             self.body = entry["BodyName"]
+
 
     def set_status(self, text: str):
         self.topframe.pack_forget()
@@ -336,14 +340,16 @@ class BioPatrol(tk.Frame, Module):
             case 2: self.priority_var.set("Region new!")
             case _: self.priority_var.set("")
 
+
     @property
     def count(self):
         return self.__count
-    
+
     @count.setter
     def count(self, value: int):
         self.__count = value
         self.count_var.set(f"{value} planet(s) left")
+
 
     @property
     def closest_location(self) -> str:
@@ -375,6 +381,7 @@ class BioPatrol(tk.Frame, Module):
             current_coords = Coords(starpos[0], starpos[1], starpos[2])
 
         self.__update_data_coords(current_coords)
+
 
     def __update_data_coords(self, coords: Coords):
         def get_closest(current_coords, locations):
@@ -445,6 +452,7 @@ class BioPatrol(tk.Frame, Module):
 
     def __copy(self, event):
         copyclip(self.data[self.pos]["_system"])
+
 
     def __delete(self, event):
         planet = self.data[self.pos]["closest_location"]
