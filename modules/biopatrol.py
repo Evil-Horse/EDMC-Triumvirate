@@ -34,6 +34,8 @@ class BioPatrol(tk.Frame, Module):
         self.data: list[dict] = []
         self._enabled = True
         self.__pos = 0
+        self.__priority = 0
+        self.__selected_bio = ""
 
         self.IMG_PREV = tk.PhotoImage(
             file=Path(self.plugin_dir, "icons", "left_arrow.gif")
@@ -46,13 +48,12 @@ class BioPatrol(tk.Frame, Module):
         self.__dummy_var = tk.StringVar(self)
         self.dummy_label = tk.Label(self, textvariable=self.__dummy_var)
 
-        # верхняя строка (переключатель)
-        self.topframe = tk.Frame(self)
-        self.topframe.grid_columnconfigure(1, weight=1)
-        self.__selected_bio_var = tk.StringVar(self.topframe)
+        # переключатель видов
+        self.switch_frame = tk.Frame(self)
+        self.switch_frame.grid_columnconfigure(1, weight=1)
 
-        self.prev_button = nb.Button(self.topframe, image=self.IMG_PREV)
-        self.prev_button_dark = tk.Label(self.topframe, image=self.IMG_PREV)
+        self.prev_button = nb.Button(self.switch_frame, image=self.IMG_PREV)
+        self.prev_button_dark = tk.Label(self.switch_frame, image=self.IMG_PREV)
         theme.register_alternate(
             (self.prev_button, self.prev_button_dark, self.prev_button_dark),
             {"column": 0, "row": 0}
@@ -60,8 +61,8 @@ class BioPatrol(tk.Frame, Module):
         self.prev_button.bind('<Button-1>', self.__prev)
         theme.button_bind(self.prev_button_dark, self.__prev)
 
-        self.next_button = nb.Button(self.topframe, image=self.IMG_NEXT)
-        self.next_button_dark = tk.Label(self.topframe, image=self.IMG_NEXT)
+        self.next_button = nb.Button(self.switch_frame, image=self.IMG_NEXT)
+        self.next_button_dark = tk.Label(self.switch_frame, image=self.IMG_NEXT)
         theme.register_alternate(
             (self.next_button, self.next_button_dark, self.next_button_dark),
             {"column": 2, "row": 0}
@@ -69,53 +70,73 @@ class BioPatrol(tk.Frame, Module):
         self.next_button.bind('<Button-1>', self.__next)
         theme.button_bind(self.next_button_dark, self.__next)
 
-        self.selected_bio_label = tk.Label(self.topframe, textvariable=self.__selected_bio_var)
-        self.selected_bio_label.grid(column=1, row=0, padx=3)
+        self.__switch_text_var = tk.StringVar(self.switch_frame)
+        self.switch_text_label = tk.Label(self.switch_frame, textvariable=self.__switch_text_var)
+        self.switch_text_label.grid(column=1, row=0, padx=3)
 
-        # средняя строка (приоритет)
-        self.midframe = tk.Frame(self)
-        self.midframe.grid_columnconfigure(1, weight=1)
+        # регион локации и количество планет с видом
+        self.region_frame = tk.Frame(self)
+        self.region_frame.grid_columnconfigure(0, weight=1)
 
-        self.__priority: int
-        self.priority_var = tk.StringVar(self.midframe)
-        self.priority_label = tk.Label(self.midframe, textvariable=self.priority_var)
+        self.__region_var = tk.StringVar(self.region_frame)
+        self.region_label = tk.Label(self.region_frame, textvariable=self.__region_var)
 
-        self.__count: int
-        self.count_var = tk.StringVar(self.midframe)
-        self.count_label = tk.Label(self.midframe, textvariable=self.count_var)
+        self.__locations_count: int
+        self.__locations_count_var = tk.StringVar(self.region_frame)
+        self.locations_count_label = tk.Label(self.region_frame, textvariable=self.__locations_count_var)
 
-        self.priority_label.grid(column=0, row=0)
-        self.count_label.grid(column=1, row=0)
+        self.region_label.grid(column=0, row=0, sticky="W")
+        self.locations_count_label.grid(column=1, row=0, sticky="E")
 
-        # нижняя строка (ближайшее местоположение)
-        self.bottomframe = tk.Frame(self)
-        self.bottomframe.grid_columnconfigure(1, weight=1)
+        # ближайшая локация и расстояние до неё
+        self.closest_location_frame = tk.Frame(self)
+        self.closest_location_frame.grid_columnconfigure(0, weight=1)
+
+        self.__closest_location_var = tk.StringVar(self.closest_location_frame)
+        self.closest_location_label = tk.Label(self.closest_location_frame, textvariable=self.__closest_location_var)
+
         self.__distance: float
-        self.__distance_var = tk.StringVar(self.bottomframe)
-        self.__closest_location_var = tk.StringVar(self.bottomframe)
+        self.__distance_var = tk.StringVar(self.closest_location_frame)
+        self.distance_label = tk.Label(self.closest_location_frame, textvariable=self.__distance_var)
 
-        self.distance_label = tk.Label(self.bottomframe, textvariable=self.__distance_var)
-        self.closest_location_label = tk.Label(self.bottomframe, textvariable=self.__closest_location_var)
-        self.distance_label.grid(column=0, row=0)
-        self.closest_location_label.grid(column=1, row=0, padx=3)
+        self.closest_location_label.grid(column=0, row=0, sticky="W")
+        self.distance_label.grid(column=1, row=0, sticky="E")
 
-        self.delete_button = nb.Button(self.bottomframe, text="No signals!")
-        self.delete_button_dark = tk.Label(self.bottomframe, text="No signals!", fg="white")
+        # кнопки удаления локации и копирования системы
+        self.buttons_frame = tk.Frame(self)
+        self.buttons_frame.grid_columnconfigure(0, weight=1)
+        self.buttons_frame.grid_columnconfigure(1, weight=1)
+
+        self.copy_button = nb.Button(self.buttons_frame, text="Copy system")
+        self.copy_button_dark = tk.Label(self.buttons_frame, text="Copy system", fg="white")
+        theme.register_alternate(
+            (self.copy_button, self.copy_button_dark, self.copy_button_dark),
+            {"column": 0, "row": 0, "sticky": "EW"}
+        )
+        self.copy_button.bind('<Button-1>', self.__copy)
+        theme.button_bind(self.copy_button_dark, self.__copy)
+
+        self.delete_button = nb.Button(self.buttons_frame, text="No signals!")
+        self.delete_button_dark = tk.Label(self.buttons_frame, text="No signals!", fg="white")
         theme.register_alternate(
             (self.delete_button, self.delete_button_dark, self.delete_button_dark),
-            {"column": 2, "row": 0}
+            {"column": 1, "row": 0, "sticky": "EW"}
         )
         self.delete_button.bind('<Button-1>', self.__delete)
         theme.button_bind(self.delete_button_dark, self.__delete)
 
-        self.copy_button = nb.Button(self.bottomframe, text="Copy system")
-        self.copy_button_dark = tk.Label(self.bottomframe, text="Copy system", fg="white")
+        # кнопка фильтра по регионам
+        self.filter_frame = tk.Frame(self)      # EDMC использует grid для пар виджетов, а мы хотим в self юзать pack
+        self.filter_frame.grid_columnconfigure(0, weight=1)
+
+        self.filter_button = nb.Button(self.filter_frame, text="Filter regions")
+        self.filter_button_dark = tk.Label(self.filter_frame, text="Filter regions", fg="white")
         theme.register_alternate(
-            (self.copy_button, self.copy_button_dark, self.copy_button_dark),
-            {"column": 3, "row": 0}
+            (self.filter_button, self.filter_button_dark, self.filter_button_dark),
+            {"column": 0, "row": 0, "sticky": "EW"}
         )
-        self.copy_button.bind('<Button-1>', self.__copy)
-        theme.button_bind(self.copy_button_dark, self.__copy)
+        self.filter_button.bind("<Button-1>", self.__create_filter_window)
+        theme.button_bind(self.filter_button_dark, self.__create_filter_window)
 
         # упаковываем до данных по местоположению
         self.set_status("Местоположение неизвестно. Требуется прыжок или перезапуск игры.")
@@ -305,27 +326,31 @@ class BioPatrol(tk.Frame, Module):
 
 
     def set_status(self, text: str):
-        self.topframe.pack_forget()
-        self.midframe.pack_forget()
-        self.bottomframe.pack_forget()
+        self.switch_frame.pack_forget()
+        self.region_frame.pack_forget()
+        self.closest_location_frame.pack_forget()
+        self.buttons_frame.pack_forget()
         self.__dummy_var.set(text)
         self.dummy_label.pack(side="top", fill="x")
 
 
     def show(self):
         self.dummy_label.pack_forget()
-        self.topframe.pack(side="top", fill="x")
-        self.midframe.pack(side="top", fill="x")
-        self.bottomframe.pack(side="top", fill="x")
+        self.switch_frame.pack(side="top", fill="x")
+        self.region_frame.pack(side="top", fill="x")
+        self.closest_location_frame.pack(side="top", fill="x")
+        self.buttons_frame.pack(side="top", fill="x")
+        self.filter_frame.pack(side="bottom", fill="x")
 
 
     @property
     def selected_bio(self) -> str:
-        return self.__selected_bio_var.get()
+        return self.__selected_bio
 
     @selected_bio.setter
     def selected_bio(self, value: str):
-        self.__selected_bio_var.set(value)
+        self.__selected_bio = value
+        self.__update_switch_text(bio_name=value, priority=self.priority)
 
 
     @property
@@ -335,20 +360,34 @@ class BioPatrol(tk.Frame, Module):
     @priority.setter
     def priority(self, value: int):
         self.__priority = value
-        match value:
-            case 3: self.priority_var.set("GALACTIC NEW!")
-            case 2: self.priority_var.set("Region new!")
-            case _: self.priority_var.set("")
+        self.__update_switch_text(priority=value, bio_name=self.selected_bio)
+
+
+    def __update_switch_text(self, priority: int, bio_name: str):
+        match priority:
+            case 3: priority_text = "GALACTIC NEW!"
+            case 2: priority_text = "Region new!"
+            case _: priority_text = ""
+        self.__switch_text_var.set(priority_text + bio_name)
+
+
+    @property
+    def region(self):
+        return self.__region_var.get()
+
+    @region.setter
+    def region(self, value: str):
+        self.__region_var.set(value)
 
 
     @property
     def count(self):
-        return self.__count
+        return self.__locations_count
 
     @count.setter
     def count(self, value: int):
-        self.__count = value
-        self.count_var.set(f"{value} planet(s) left")
+        self.__locations_count = value
+        self.__locations_count_var.set(f"{value} planet(s) left")
 
 
     @property
@@ -392,11 +431,12 @@ class BioPatrol(tk.Frame, Module):
             _system = closest["system"]
             _body = closest_key
             _priority = closest["priority"]
-            return _system, _body, _distance, _coords, _priority
+            _region = closest["region"]
+            return _system, _body, _distance, _coords, _priority, _region
 
         data = []
         for bio_item in self.get_species_left_to_discover():
-            closest_system, closest_body, distance, closest_coords, priority = get_closest(coords, self.__raw_data["bio"][bio_item]["locations"])
+            closest_system, closest_body, distance, closest_coords, priority, region = get_closest(coords, self.__raw_data["bio"][bio_item]["locations"])
             data.append({
                 "species": bio_item,
                 "priority": priority,
@@ -404,6 +444,7 @@ class BioPatrol(tk.Frame, Module):
                 "_system": closest_system,
                 "coords": closest_coords,
                 "distance": distance,
+                "region": region,
                 "count": len(self.__raw_data["bio"][bio_item]["locations"])
             })
         data.sort(key=lambda x: (-x["priority"], x["distance"]))
@@ -429,6 +470,7 @@ class BioPatrol(tk.Frame, Module):
         self.count = bio_item["count"]
         self.closest_location = bio_item["closest_location"]
         self.distance_to_closest = bio_item["distance"]
+        self.region = bio_item["region"]
         self.__pos = value
         self.__update_buttons_configuration()
 
@@ -442,12 +484,8 @@ class BioPatrol(tk.Frame, Module):
 
 
     def __update_buttons_configuration(self):
-        self.prev_button.configure(state="normal")
-        self.next_button.configure(state="normal")
-        if self.pos == 0:
-            self.prev_button.configure(state="disabled")
-        if self.pos == len(self.data)-1:
-            self.next_button.configure(state="disabled")
+        self.prev_button.configure(state="disabled" if self.pos == 0 else "normal")
+        self.next_button.configure(state="disabled" if (self.pos == len(self.data) - 1) else "normal")
 
 
     def __copy(self, event):
@@ -468,3 +506,7 @@ class BioPatrol(tk.Frame, Module):
                 self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
                 self.after(0, self.show)
                 self.save_data()
+
+
+    def __create_filter_window(self):
+        pass
