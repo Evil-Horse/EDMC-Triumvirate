@@ -107,8 +107,8 @@ class BioPatrol(tk.Frame, Module):
         self.buttons_frame.grid_columnconfigure(0, weight=1)
         self.buttons_frame.grid_columnconfigure(1, weight=1)
 
-        self.copy_button = nb.Button(self.buttons_frame, text="Copy system")
-        self.copy_button_dark = tk.Label(self.buttons_frame, text="Copy system", fg="white")
+        self.copy_button = nb.Button(self.buttons_frame, text="Копировать систему")
+        self.copy_button_dark = tk.Label(self.buttons_frame, text="Копировать систему", fg="white")
         theme.register_alternate(
             (self.copy_button, self.copy_button_dark, self.copy_button_dark),
             {"column": 0, "row": 0, "sticky": "EW"}
@@ -116,8 +116,8 @@ class BioPatrol(tk.Frame, Module):
         self.copy_button.bind('<Button-1>', self.__copy)
         theme.button_bind(self.copy_button_dark, self.__copy)
 
-        self.delete_button = nb.Button(self.buttons_frame, text="No signals!")
-        self.delete_button_dark = tk.Label(self.buttons_frame, text="No signals!", fg="white")
+        self.delete_button = nb.Button(self.buttons_frame, text="На планете нет биосигналов!")
+        self.delete_button_dark = tk.Label(self.buttons_frame, text="На планете нет биосигналов!", fg="white")
         theme.register_alternate(
             (self.delete_button, self.delete_button_dark, self.delete_button_dark),
             {"column": 1, "row": 0, "sticky": "EW"}
@@ -129,8 +129,8 @@ class BioPatrol(tk.Frame, Module):
         self.filter_frame = tk.Frame(self)      # EDMC использует grid для пар виджетов, а мы хотим в self юзать pack
         self.filter_frame.grid_columnconfigure(0, weight=1)
 
-        self.filter_button = nb.Button(self.filter_frame, text="Filter regions")
-        self.filter_button_dark = tk.Label(self.filter_frame, text="Filter regions", fg="white")
+        self.filter_button = nb.Button(self.filter_frame, text="Фильтр регионов")
+        self.filter_button_dark = tk.Label(self.filter_frame, text="Фильтр регионов", fg="white")
         theme.register_alternate(
             (self.filter_button, self.filter_button_dark, self.filter_button_dark),
             {"column": 0, "row": 0, "sticky": "EW"}
@@ -365,8 +365,8 @@ class BioPatrol(tk.Frame, Module):
 
     def __update_switch_text(self, priority: int, bio_name: str):
         match priority:
-            case 3: priority_text = "GALACTIC NEW!"
-            case 2: priority_text = "Region new!"
+            case 3: priority_text = "ПЕРВЫЙ В ГАЛАКТИКЕ! "
+            case 2: priority_text = "Открытие региона: "
             case _: priority_text = ""
         self.__switch_text_var.set(priority_text + bio_name)
 
@@ -387,7 +387,15 @@ class BioPatrol(tk.Frame, Module):
     @count.setter
     def count(self, value: int):
         self.__locations_count = value
-        self.__locations_count_var.set(f"{value} planet(s) left")
+        if value % 100 in (11, 12, 13, 14):
+            text = "найденных локаций"
+        elif value % 10 == 1:
+            text = "найденная локация"
+        elif value % 10 in (2, 3, 4):
+            text = "найденные локации"
+        else:
+            text = "найденных локаций"
+        self.__locations_count_var.set(f"{value} {text}")
 
 
     @property
