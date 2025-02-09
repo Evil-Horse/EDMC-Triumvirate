@@ -351,8 +351,6 @@ class BioPatrol(tk.Frame, Module):
 
             if event in ("Location", "FSDJump"):
                 self.__update_data(entry)
-                self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-                self.show()
 
             elif event == "ScanOrganic":
                 genus = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
@@ -367,8 +365,6 @@ class BioPatrol(tk.Frame, Module):
 
                 self.save_data()
                 self.__update_data(entry)
-                self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-                self.show()
 
             elif event == "SAASignalsFound" and entry.data.get("Genuses"):
                 genuses = [codex_to_english_genuses.get(i["Genus"], i["Genus"]) for i in entry.data["Genuses"]]
@@ -384,8 +380,6 @@ class BioPatrol(tk.Frame, Module):
                     if bodyName in data["locations"] and species.split()[0] not in genuses:
                         del data["locations"][bodyName]
                         self.__update_data(entry)
-                        self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-                        self.show()
                 self.save_data()
 
 
@@ -553,6 +547,9 @@ class BioPatrol(tk.Frame, Module):
         self.data = data
         if len(self.data) == 0:
             self.set_status("Либо все виды найдены, либо что-то сломалось.")
+        else:
+            self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
+            self.show()
 
 
     @property
@@ -608,8 +605,6 @@ class BioPatrol(tk.Frame, Module):
             if planet in data["locations"]:
                 del data["locations"][planet]
                 self.__update_data_coords(coords)
-                self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-                self.show()
                 self.save_data()
 
 
@@ -630,6 +625,3 @@ class BioPatrol(tk.Frame, Module):
         self.__region_filter_window.destroy()
         self.__region_filter_window = None
         self.__update_data_coords(self.current_coords)
-        if len(self.data) > 0:
-            self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-            self.show()
