@@ -601,7 +601,7 @@ class BioPatrol(tk.Frame, Module):
         planet = self.data[self.pos]["closest_location"]
         coords = self.data[self.pos]["coords"]
 
-        if planet in self.__bio_found and self.__bio_found[planet].get("signalCount", 0) != 0:
+        if planet not in self.__bio_found or self.__bio_found[planet].get("signalCount", 0) != 0:
             return
 
         for species, data in self.__raw_data["bio"].items():
