@@ -19,6 +19,7 @@ import myNotebook as nb
 from theme import theme
 from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses, regions
 
+from .legacy import Reporter, URL_GOOGLE
 
 def distance_between(a: Coords, b: Coords):
     dx = a.x - b.x
@@ -316,7 +317,7 @@ class BioPatrol(tk.Frame, Module):
             json.dump(self.__bio_found, f, ensure_ascii=False)
 
 
-    def process_genus_bio(self, genus, bioname, planet):
+    def process_genus_bio(self, genus, bioname, planet, report=False):
         region = None
         priority = 1
         if bioname in self.__raw_data["bio"]:
@@ -324,6 +325,17 @@ class BioPatrol(tk.Frame, Module):
             if planet in locations:
                 region = locations[planet]["region"]
                 priority = locations[planet]["priority"]
+
+        if report == True:
+            url_params = {
+                "entry.1220081267": self.cmdr,
+                "entry.82601913": region,
+                "entry.1533043520": planet,
+                "entry.1614339748": get_priority_text(priority),
+                "entry.393624172": bioname
+            }
+            url = f'{URL_GOOGLE}/1FAIpQLSfp4rPNSOVf5V-LYLEUXCKomDBaHo92lPwfp9YJDrml2QGUQQ/formResponse?usp=pp_url&{"&".join([f"{k}={v}" for k, v in url_params.items()])}'
+            Reporter(url).start()
 
         for species, data in self.__raw_data["bio"].items():
             if planet in data["locations"]:
@@ -370,7 +382,7 @@ class BioPatrol(tk.Frame, Module):
                     self.__bio_found[self.body]["signals"].append(bioname)
 
                 # update data
-                self.process_genus_bio(genus, bioname, self.body)
+                self.process_genus_bio(genus, bioname, self.body, report=True)
 
                 self.save_data()
                 self.__update_data(entry)
