@@ -419,7 +419,8 @@ class BioPatrol(tk.Frame, Module):
 
 
     def on_dashboard_entry(self, cmdr, is_beta, entry):
-        self.cmdr = cmdr
+        if self.cmdr != cmdr and cmdr is not None:
+            self.cmdr = cmdr
 
         if "BodyName" not in entry:
             self.body = None
