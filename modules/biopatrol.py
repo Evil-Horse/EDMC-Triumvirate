@@ -175,8 +175,7 @@ class BioPatrol(tk.Frame, Module):
 
         # кнопки удаления локации и копирования системы
         self.buttons_frame = tk.Frame(self)
-        self.buttons_frame.grid_columnconfigure(0, uniform="equal")
-        self.buttons_frame.grid_columnconfigure(1, uniform="equal")
+        self.buttons_frame.grid_columnconfigure((0, 1), weight=1, uniform="equal")
 
         self.copy_button = nb.Button(self.buttons_frame, text="Копировать систему", padding=(10, 0))
         self.copy_button_dark = tk.Label(self.buttons_frame, text="Копировать систему", fg="white", padx=10)
