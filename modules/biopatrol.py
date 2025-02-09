@@ -577,10 +577,14 @@ class BioPatrol(tk.Frame, Module):
 
 
     def __prev(self, event):
+        if str(event.widget["state"]) == tk.DISABLED:
+            return
         self.pos -= 1
 
 
     def __next(self, event):
+        if str(event.widget["state"]) == tk.DISABLED:
+            return
         self.pos += 1
 
 
