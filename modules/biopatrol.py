@@ -116,6 +116,7 @@ class BioPatrol(tk.Frame, Module):
         self.__pos = 0
         self.__priority = 0
         self.__selected_bio = ""
+        self.cmdr = None
 
         self.IMG_PREV = tk.PhotoImage(
             file=Path(self.plugin_dir, "icons", "left_arrow.gif")
@@ -392,6 +393,8 @@ class BioPatrol(tk.Frame, Module):
 
 
     def on_dashboard_entry(self, cmdr, is_beta, entry):
+        self.cmdr = cmdr
+
         if "BodyName" not in entry:
             self.body = None
             return
