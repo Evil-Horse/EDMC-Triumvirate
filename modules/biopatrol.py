@@ -597,7 +597,14 @@ class BioPatrol(tk.Frame, Module):
         planet = self.data[self.pos]["closest_location"]
         coords = self.data[self.pos]["coords"]
 
-        if planet not in self.__bio_found or self.__bio_found[planet].get("signalCount", 0) != 0:
+        if planet not in self.__bio_found:
+            self.set_status("Сначала просканируйте планету с помощью DSS.")
+            self.after(3000, self.show)
+            return
+
+        if self.__bio_found[planet].get("signalCount", 0) != 0:
+            self.set_status("На планете есть биосигналы.")
+            self.after(3000, self.show)
             return
 
         for species, data in self.__raw_data["bio"].items():
@@ -605,6 +612,9 @@ class BioPatrol(tk.Frame, Module):
                 del data["locations"][planet]
                 self.__update_data_coords(coords)
                 self.save_data()
+
+                self.set_status("Планета {planet} удалена из списка.")
+                self.after(3000, self.show)
 
 
     def __create_filter_window(self, event):
