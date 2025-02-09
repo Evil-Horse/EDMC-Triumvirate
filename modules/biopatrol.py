@@ -175,11 +175,11 @@ class BioPatrol(tk.Frame, Module):
 
         # кнопки удаления локации и копирования системы
         self.buttons_frame = tk.Frame(self)
-        self.buttons_frame.grid_columnconfigure(0, weight=1)
-        self.buttons_frame.grid_columnconfigure(1, weight=1)
+        self.buttons_frame.grid_columnconfigure(0, uniform="equal")
+        self.buttons_frame.grid_columnconfigure(1, uniform="equal")
 
-        self.copy_button = nb.Button(self.buttons_frame, text="Копировать систему")
-        self.copy_button_dark = tk.Label(self.buttons_frame, text="Копировать систему", fg="white")
+        self.copy_button = nb.Button(self.buttons_frame, text="Копировать систему", padding=(10, 0))
+        self.copy_button_dark = tk.Label(self.buttons_frame, text="Копировать систему", fg="white", padx=10)
         theme.register_alternate(
             (self.copy_button, self.copy_button_dark, self.copy_button_dark),
             {"column": 0, "row": 0, "sticky": "EW"}
@@ -187,8 +187,8 @@ class BioPatrol(tk.Frame, Module):
         self.copy_button.bind('<Button-1>', self.__copy)
         theme.button_bind(self.copy_button_dark, self.__copy)
 
-        self.delete_button = nb.Button(self.buttons_frame, text="На планете нет биосигналов!")
-        self.delete_button_dark = tk.Label(self.buttons_frame, text="На планете нет биосигналов!", fg="white")
+        self.delete_button = nb.Button(self.buttons_frame, text="На планете нет биосигналов!", padding=(10, 0))
+        self.delete_button_dark = tk.Label(self.buttons_frame, text="На планете нет биосигналов!", fg="white", padx=10)
         theme.register_alternate(
             (self.delete_button, self.delete_button_dark, self.delete_button_dark),
             {"column": 1, "row": 0, "sticky": "EW"}
