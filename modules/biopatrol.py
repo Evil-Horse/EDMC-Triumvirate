@@ -210,7 +210,7 @@ class BioPatrol(tk.Frame, Module):
         theme.button_bind(self.filter_button_dark, self.__create_filter_window)
 
         # упаковываем до данных по местоположению
-        self.set_status("Местоположение неизвестно. Требуется прыжок или перезапуск игры.")
+        self.set_status("Местоположение неизвестно.\nТребуется прыжок или перезапуск игры.")
         BasicThread(name="BioPatrolDataReader", target=self.load_data).start()
         self.grid(column=0, row=gridrow, sticky="NWSE")
 
@@ -266,7 +266,7 @@ class BioPatrol(tk.Frame, Module):
                 else:
                     self.__raw_data = raw_data
 
-            self.set_status("Данные импортированы. Требуется прыжок или перезапуск игры.")
+            self.set_status("Данные импортированы.\nТребуется прыжок или перезапуск игры.")
 
             for k, v in self.__bio_found.items():
                 planet = k
