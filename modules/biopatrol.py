@@ -27,6 +27,15 @@ def distance_between(a: Coords, b: Coords):
     return sqrt(dx**2 + dy**2 + dz**2)
 
 
+def get_priority_text(priority: int):
+    priority_text = None
+    match priority:
+        case 3: priority_text = "ПЕРВЫЙ В ГАЛАКТИКЕ"
+        case 2: priority_text = "Открытие региона"
+        case _: priority_text = ""
+    return priority_text
+
+
 class RegionFilterWindow(tk.Toplevel):
     CONFIG_KEY = "BioPatrol.regions_config"
 
@@ -434,11 +443,11 @@ class BioPatrol(tk.Frame, Module):
 
 
     def __update_switch_text(self, priority: int, bio_name: str):
-        match priority:
-            case 3: priority_text = "ПЕРВЫЙ В ГАЛАКТИКЕ! "
-            case 2: priority_text = "Открытие региона: "
-            case _: priority_text = ""
-        self.__switch_text_var.set(priority_text + bio_name)
+        priority_text = get_priority_text(priority)
+        if priority_text == "":
+            self.__switch_text_var.set(bio_name)
+        else:
+            self.__switch_text_var.set(f"{priority_text}: {bio_name}")
 
 
     @property
