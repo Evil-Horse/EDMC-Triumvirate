@@ -120,6 +120,7 @@ class BioPatrol(tk.Frame, Module):
         self.__priority = 0
         self.__selected_bio = ""
         self.cmdr = None
+        self.signals_in_system = {}
 
         self.IMG_PREV = tk.PhotoImage(
             file=Path(self.plugin_dir, "icons", "left_arrow.gif")
@@ -417,6 +418,24 @@ class BioPatrol(tk.Frame, Module):
                         self.__update_data(entry)
                 self.save_data()
 
+            elif event == "FSSBodySignals":
+                name = entry.data["BodyName"]
+                for signal in entry.data.get("Signals", []):
+                    if signal["Type"] == "$SAA_SignalType_Biological;":
+                        self.signals_in_system[name] = signal["Count"]
+
+            elif event == "FSSAllBodiesFound":
+                for species, species_data in self.__raw_data["bio"].items():
+                    for planet, planet_data in species_data["locations"].items():
+                        if planet_data["system"] != entry.data["SystemName"]
+                            continue
+
+                        if planet not in self.signals_in_system:
+                            del species_data["locations"][planet]
+
+                coords = self.data[self.pos]["coords"]
+                self.__update_data_coords(coords)
+                self.save_data()
 
     def on_dashboard_entry(self, cmdr, is_beta, entry):
         if self.cmdr != cmdr and cmdr is not None:
