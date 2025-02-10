@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from math import sqrt
 from threading import Lock
+from time import sleep
 from typing import Callable, Any
 
 from modules.lib.module import Module
@@ -228,6 +229,14 @@ class BioPatrol(tk.Frame, Module):
 
     def load_data(self):
         with self.__threadlock:
+            while True:
+                try:
+                    self.after(0, lambda: None)
+                except RuntimeError:        # tk isn't ready
+                    sleep(1)
+                else:
+                    break
+
             self.body = None
             try:
                 with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'r') as f:
