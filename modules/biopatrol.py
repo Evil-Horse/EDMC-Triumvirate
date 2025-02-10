@@ -19,7 +19,8 @@ import myNotebook as nb
 from theme import theme
 from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses, regions
 
-from .legacy import Reporter, URL_GOOGLE
+from modules.legacy import Reporter, URL_GOOGLE
+
 
 def distance_between(a: Coords, b: Coords):
     dx = a.x - b.x
@@ -111,7 +112,7 @@ class BioPatrol(tk.Frame, Module):
         self.data: list[dict] = []
         self.enabled_regions: list[str] = [region for region, enabled in RegionFilterWindow.load_config().items() if enabled]
         self.current_coords: Coords = None
-        self._enabled = True
+        self._enabled = False
         self.__threadlock = Lock()
         self.__region_filter_window: RegionFilterWindow = None
         self.__pos = 0
@@ -326,7 +327,7 @@ class BioPatrol(tk.Frame, Module):
                 region = locations[planet]["region"]
                 priority = locations[planet]["priority"]
 
-        if report == True:
+        if report is True:
             url_params = {
                 "entry.1220081267": self.cmdr,
                 "entry.82601913": region,
@@ -364,11 +365,14 @@ class BioPatrol(tk.Frame, Module):
 
 
     def on_journal_entry(self, entry: JournalEntry):
-        if not self._enabled:
+        required_events = ["Location", "FSDJump", "ScanOrganic", "SAASignalsFound"]
+        event = entry.data["event"]
+        if event not in required_events:
             return
 
         with self.__threadlock:
-            event = entry.data["event"]
+            if not self._enabled:       # на случай, если попытка чтения данных завершилась ошибкой
+                return
 
             if event in ("Location", "FSDJump"):
                 self.__update_data(entry)
