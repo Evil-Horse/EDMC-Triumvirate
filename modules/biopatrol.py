@@ -286,13 +286,14 @@ class BioPatrol(tk.Frame, Module):
                 else:
                     self.__raw_data = raw_data
 
-            self.set_status("Данные импортированы.\nТребуется прыжок или перезапуск игры.")
-
             for k, v in self.__bio_found.items():
                 planet = k
                 for bioname in v["signals"]:
                     genus = bioname.split()[0]
                     self.process_genus_bio(genus, bioname, planet)
+
+            self.set_status("Данные импортированы.\nТребуется прыжок или перезапуск игры.")
+            self._enabled = True
 
 
     def process_archive_data(self, raw_data: dict):
