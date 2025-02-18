@@ -427,7 +427,7 @@ class BioPatrol(tk.Frame, Module):
             elif event == "FSSAllBodiesFound":
                 for species, species_data in self.__raw_data["bio"].items():
                     for planet, planet_data in species_data["locations"].items():
-                        if planet_data["system"] != entry.data["SystemName"]
+                        if planet_data["system"] != entry.data["SystemName"]:
                             continue
 
                         if planet not in self.signals_in_system:
