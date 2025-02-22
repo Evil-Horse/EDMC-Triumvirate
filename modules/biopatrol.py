@@ -376,7 +376,7 @@ class BioPatrol(tk.Frame, Module):
 
 
     def on_journal_entry(self, entry: JournalEntry):
-        required_events = ["Location", "FSDJump", "ScanOrganic", "SAASignalsFound"]
+        required_events = ["Location", "FSDJump", "ScanOrganic", "SAASignalsFound", "FSSBodySignals", "FSSAllBodiesFound"]
         event = entry.data["event"]
         if event not in required_events:
             return
