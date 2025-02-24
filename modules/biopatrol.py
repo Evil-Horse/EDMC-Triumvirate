@@ -437,6 +437,8 @@ class BioPatrol(tk.Frame, Module):
                 self.__update_data_coords(coords)
                 self.save_data()
 
+                self.signals_in_system.clear()
+
     def on_dashboard_entry(self, cmdr, is_beta, entry):
         if self.cmdr != cmdr and cmdr is not None:
             self.cmdr = cmdr
