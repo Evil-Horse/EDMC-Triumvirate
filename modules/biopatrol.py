@@ -432,6 +432,10 @@ class BioPatrol(tk.Frame, Module):
 
                         if planet not in self.signals_in_system:
                             del species_data["locations"][planet]
+                            self.__bio_found[planet] = {
+                                "signalCount": 0,
+                                "signals": []
+                            }
 
                 coords = self.data[self.pos]["coords"]
                 self.__update_data_coords(coords)
@@ -670,6 +674,11 @@ class BioPatrol(tk.Frame, Module):
         for species, data in self.__raw_data["bio"].items():
             if planet in data["locations"]:
                 del data["locations"][planet]
+                self.__bio_found[planet] = {
+                    "signalCount": 0,
+                    "signals": []
+                }
+
                 self.__update_data_coords(coords)
                 self.save_data()
 
