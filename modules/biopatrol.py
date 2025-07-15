@@ -17,8 +17,8 @@ from modules.lib.context import global_context
 from modules.lib.thread import BasicThread
 from modules.lib.conf import config as plugin_config
 
-import myNotebook as nb
-from theme import theme
+import myNotebook as nb     # type: ignore
+from theme import theme     # type: ignore
 from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses, regions
 
 from modules.legacy import Reporter, URL_GOOGLE
