@@ -120,6 +120,7 @@ class BioPatrol(tk.Frame, Module):
         self.__pos = 0
         self.__priority = 0
         self.__selected_bio = ""
+        self.pinned_bio: str = None
         self.cmdr = None
         self.signals_in_system = {}
 
@@ -129,6 +130,12 @@ class BioPatrol(tk.Frame, Module):
         self.IMG_NEXT = tk.PhotoImage(
             file=Path(self.plugin_dir, "icons", "right_arrow.gif")
         )
+        self.IMG_PIN = tk.PhotoImage(
+            file=Path(self.plugin_dir, "icons", "pin.gif")
+        )
+        self.IMG_PINNED = tk.PhotoImage(
+            file=Path(self.plugin_dir, "icons", "pinned.gif")
+        )
 
         # заглушка/статус
         self.__dummy_var = tk.StringVar(self)
@@ -136,7 +143,7 @@ class BioPatrol(tk.Frame, Module):
 
         # переключатель видов
         self.switch_frame = tk.Frame(self)
-        self.switch_frame.grid_columnconfigure(1, weight=1)
+        self.switch_frame.grid_columnconfigure(2, weight=1)
 
         self.prev_button = nb.Button(self.switch_frame, image=self.IMG_PREV)
         self.prev_button_dark = tk.Label(self.switch_frame, image=self.IMG_PREV)
@@ -147,18 +154,29 @@ class BioPatrol(tk.Frame, Module):
         self.prev_button.bind('<Button-1>', self.__prev)
         theme.button_bind(self.prev_button_dark, self.__prev)
 
+        # TODO: кнопка в начало
+
+        self.__switch_text_var = tk.StringVar(self.switch_frame)
+        self.switch_text_label = tk.Label(self.switch_frame, textvariable=self.__switch_text_var)
+        self.switch_text_label.grid(column=2, row=0, padx=3)
+
+        self.pin_button = nb.Button(self.switch_frame, image=self.IMG_PIN)
+        self.pin_button_dark = tk.Label(self.switch_frame, image=self.IMG_PIN)
+        theme.register_alternate(
+            (self.pin_button, self.pin_button_dark, self.pin_button_dark),
+            {"column": 3, "row": 0}
+        )
+        self.pin_button.bind('<Button-1>', self.__on_pin_button_clicked)
+        theme.button_bind(self.pin_button_dark, self.__on_pin_button_clicked)
+
         self.next_button = nb.Button(self.switch_frame, image=self.IMG_NEXT)
         self.next_button_dark = tk.Label(self.switch_frame, image=self.IMG_NEXT)
         theme.register_alternate(
             (self.next_button, self.next_button_dark, self.next_button_dark),
-            {"column": 2, "row": 0}
+            {"column": 4, "row": 0}
         )
         self.next_button.bind('<Button-1>', self.__next)
         theme.button_bind(self.next_button_dark, self.__next)
-
-        self.__switch_text_var = tk.StringVar(self.switch_frame)
-        self.switch_text_label = tk.Label(self.switch_frame, textvariable=self.__switch_text_var)
-        self.switch_text_label.grid(column=1, row=0, padx=3)
 
         # регион локации и количество планет с видом
         self.region_frame = tk.Frame(self)
@@ -387,7 +405,9 @@ class BioPatrol(tk.Frame, Module):
 
             if remove_planet is True:
                 del data["locations"][planet]
-                self.pos = 0
+                # don't update ui on EDMC startup
+                if self._enabled:
+                    self.update_pos()
 
             # new codex entry detected, remove all from region
             if priority > 1:
@@ -486,7 +506,7 @@ class BioPatrol(tk.Frame, Module):
                     if bodyName in data["locations"] and species.split()[0] not in genuses:
                         del data["locations"][bodyName]
                         self.__update_data(entry)
-                        self.pos = 0
+                        self.update_pos()
                 self.save_data()
 
             elif event == "FSSBodySignals":
@@ -498,7 +518,6 @@ class BioPatrol(tk.Frame, Module):
 
             elif event == "FSSAllBodiesFound":
                 planets_to_remove = set()
-                reset = False
 
                 for species, species_data in self.__raw_data["bio"].items():
                     for planet, planet_data in species_data["locations"].items():
@@ -516,14 +535,12 @@ class BioPatrol(tk.Frame, Module):
 
                 for planet in planets_to_remove:
                     self.biofound_init_body(planet, 0)
-                    reset = True
                     for species, species_data in self.__raw_data["bio"].items():
                         if planet in species_data["locations"]:
                             del species_data["locations"][planet]
 
                 self.__update_data(entry)
-                if reset:
-                    self.pos = 0
+                self.update_pos()
                 self.save_data()
                 self.signals_in_system.clear()
 
@@ -692,12 +709,24 @@ class BioPatrol(tk.Frame, Module):
             })
         data.sort(key=lambda x: (-x["priority"], x["distance"]))
         self.data = data
+        self.update_pos()
+
+
+    def update_pos(self):
         if len(self.data) == 0:
             self.set_status("Либо все виды найдены, либо что-то сломалось.")
+            return
+        if not self.pinned_bio:
+            self.pos = 0
         else:
-            self.pos = next((i for i, bio in enumerate(self.data) if bio["species"] == self.selected_bio), 0)
-            self.show()
-
+            for i, bio in enumerate(self.data):
+                if bio["species"] == self.pinned_bio:
+                    self.pos = i
+                    break
+            else:
+                self.pinned_bio = None
+                self.pos = 0
+        self.show()
 
     @property
     def pos(self):
@@ -720,6 +749,14 @@ class BioPatrol(tk.Frame, Module):
         self.__update_buttons_configuration()
 
 
+    def __on_pin_button_clicked(self, event):
+        if self.pinned_bio == self.selected_bio:
+            self.pinned_bio = None
+        else:
+            self.pinned_bio = self.selected_bio
+        self.__update_buttons_configuration()
+
+
     def __prev(self, event):
         if str(event.widget["state"]) == tk.DISABLED:
             return
@@ -735,6 +772,12 @@ class BioPatrol(tk.Frame, Module):
     def __update_buttons_configuration(self):
         self.prev_button.configure(state="disabled" if self.pos == 0 else "normal")
         self.next_button.configure(state="disabled" if (self.pos == len(self.data) - 1) else "normal")
+        if self.pinned_bio == self.selected_bio:
+            self.pin_button.configure(image=self.IMG_PINNED)
+            self.pin_button_dark.configure(image=self.IMG_PINNED)
+        else:
+            self.pin_button.configure(image=self.IMG_PIN)
+            self.pin_button_dark.configure(image=self.IMG_PIN)
 
 
     def __copy(self, event):
