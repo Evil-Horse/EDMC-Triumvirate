@@ -124,18 +124,11 @@ class BioPatrol(tk.Frame, Module):
         self.cmdr = None
         self.signals_in_system = {}
 
-        self.IMG_PREV = tk.PhotoImage(
-            file=Path(self.plugin_dir, "icons", "left_arrow.gif")
-        )
-        self.IMG_NEXT = tk.PhotoImage(
-            file=Path(self.plugin_dir, "icons", "right_arrow.gif")
-        )
-        self.IMG_PIN = tk.PhotoImage(
-            file=Path(self.plugin_dir, "icons", "pin.gif")
-        )
-        self.IMG_PINNED = tk.PhotoImage(
-            file=Path(self.plugin_dir, "icons", "pinned.gif")
-        )
+        self.IMG_PREV = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "left_arrow.gif"))
+        self.IMG_NEXT = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "right_arrow.gif"))
+        self.IMG_PIN = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "pin.gif"))
+        self.IMG_PINNED = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "pinned.gif"))
+        self.IMG_TO_BEGINNING = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "to_beginning.gif"))
 
         # заглушка/статус
         self.__dummy_var = tk.StringVar(self)
@@ -154,7 +147,14 @@ class BioPatrol(tk.Frame, Module):
         self.prev_button.bind('<Button-1>', self.__prev)
         theme.button_bind(self.prev_button_dark, self.__prev)
 
-        # TODO: кнопка в начало
+        self.to_beginning_button = nb.Button(self.switch_frame, image=self.IMG_TO_BEGINNING)
+        self.to_beginning_button_dark = tk.Label(self.switch_frame, image=self.IMG_TO_BEGINNING)
+        theme.register_alternate(
+            (self.to_beginning_button, self.to_beginning_button_dark, self.to_beginning_button_dark),
+            {"column": 1, "row": 0}
+        )
+        self.to_beginning_button.bind('<Button-1>', self.__on_to_beginning_button_clicked)
+        theme.button_bind(self.to_beginning_button_dark, self.__on_to_beginning_button_clicked)
 
         self.__switch_text_var = tk.StringVar(self.switch_frame)
         self.switch_text_label = tk.Label(self.switch_frame, textvariable=self.__switch_text_var)
@@ -755,6 +755,10 @@ class BioPatrol(tk.Frame, Module):
         else:
             self.pinned_bio = self.selected_bio
         self.__update_buttons_configuration()
+
+
+    def __on_to_beginning_button_clicked(self, event):
+        self.pos = 0
 
 
     def __prev(self, event):
