@@ -771,7 +771,9 @@ class BioPatrol(tk.Frame, Module):
 
     def __update_buttons_configuration(self):
         self.prev_button.configure(state="disabled" if self.pos == 0 else "normal")
+        self.prev_button_dark.configure(state="disabled" if self.pos == 0 else "normal")
         self.next_button.configure(state="disabled" if (self.pos == len(self.data) - 1) else "normal")
+        self.next_button_dark.configure(state="disabled" if (self.pos == len(self.data) - 1) else "normal")
         if self.pinned_bio == self.selected_bio:
             self.pin_button.configure(image=self.IMG_PINNED)
             self.pin_button_dark.configure(image=self.IMG_PINNED)
