@@ -363,7 +363,7 @@ class BioPatrol(tk.Frame, Module):
                 "entry.1614339748": get_priority_text(priority),
                 "entry.393624172": bioname
             }
-            url = f'{URL_GOOGLE}/1FAIpQLSfp4rPNSOVf5V-LYLEUXCKomDBaHo92lPwfp9YJDrml2QGUQQ/formResponse?usp=pp_url&{"&".join([f"{k}={v}" for k, v in url_params.items()])}'
+            url = f'{URL_GOOGLE}/1FAIpQLSfp4rPNSOVf5V-LYLEUXCKomDBaHo92lPwfp9YJDrml2QGUQQ/formResponse?usp=pp_url&{"&".join([f"{k}={v}" for k, v in url_params.items()])}'  # noqa: E501
             Reporter(url).start()
 
         debug(f"Found {bioname} (genus: {genus}) at {planet} (priority: {priority})")
@@ -406,7 +406,7 @@ class BioPatrol(tk.Frame, Module):
                 for k, v in data["locations"].items():
                     if species == bioname:
                         if v["region"] != region:
-                            debug(f'>> Changing {species} prediction for {k} - found in {region}, downgrading priority in {v["region"]}')
+                            debug(f'>> Changing {species} prediction for {k} - found in {region}, downgrading priority in {v["region"]}')   # noqa: E501
                             v["priority"] = 2
                             continue
 
@@ -414,9 +414,9 @@ class BioPatrol(tk.Frame, Module):
     def biofound_init_body(self, body, signal_count=None):
         if body not in self.__bio_found:
             self.__bio_found[body] = {
-              "signalCount" : signal_count,
-              "signals" : [],
-              "genuses" : None
+                "signalCount": signal_count,
+                "signals": [],
+                "genuses": None
             }
 
     def biofound_set_genuses(self, body, genuses):
@@ -428,7 +428,7 @@ class BioPatrol(tk.Frame, Module):
 
 
     def on_journal_entry(self, entry: JournalEntry):
-        required_events = ["Location", "FSDJump", "ScanOrganic", "SAASignalsFound", "FSSBodySignals", "FSSAllBodiesFound", "CodexEntry"]
+        required_events = ["Location", "FSDJump", "ScanOrganic", "SAASignalsFound", "FSSBodySignals", "FSSAllBodiesFound", "CodexEntry"]    # noqa: E501
         event = entry.data["event"]
         if event not in required_events:
             return
