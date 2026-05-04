@@ -2,6 +2,7 @@ import os
 import re
 import gzip
 import json
+import sqlite3
 import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import askyesno, WARNING
@@ -140,7 +141,6 @@ class BioPatrol(tk.Frame, Module):
         self.pinned_bio: str = None
         self.cmdr = None
         # dict: (id64, bodyId) -> bodyName
-        self.bodies = {}
         self.signals_in_system = {}
         self.__live_data = False
         # this is needed to stop the processing of old logs upon reaching fresh data
@@ -292,10 +292,12 @@ class BioPatrol(tk.Frame, Module):
         self.filter_frame.grid_remove()
 
         # упаковываем до данных по местоположению
-        self.set_status("Местоположение неизвестно.\nТребуется прыжок или перезапуск игры.")
         BasicThread(name="BioPatrolDataReader", target=self.load_data).start()
         self.grid(column=0, row=gridrow, sticky="NWSE")
+        self.set_status("Местоположение неизвестно.\nТребуется прыжок или перезапуск игры.")
 
+        self.db = sqlite3.connect(Path(self.plugin_dir, "data", "biopatrol.db"), check_same_thread=False)
+        self.db.execute("PRAGMA foreign_keys = ON")
 
     def brab_fun(self):
         self.is_brab_fun = True
@@ -338,6 +340,7 @@ class BioPatrol(tk.Frame, Module):
             )
         ]
         debug(f"Game logs dir: {logsdir} ({len(logs)} files found)")
+        self.db.execute("DELETE FROM data_cmdrs")
 
         class BioPatrolJournalProcessor:
             def __init__(self, logs: list[Path], patrol: BioPatrol):
@@ -390,24 +393,87 @@ class BioPatrol(tk.Frame, Module):
 
         BioPatrolJournalProcessor(logs, self).run()
         debug("Finished reading old game logs")
-        self.bodies = {}
+
+
+    def filter_predictions_after_dss(self, system_id64, bodyid, genuses):
+        for i in self.db.execute("SELECT DISTINCT genus, body FROM predictions_data WHERE system_id64 = ? AND bodyid = ?", (system_id64, bodyid,)):
+            predicted_genus = i[0]
+            planet = i[1]
+            if predicted_genus not in genuses:
+                debug(f">> Removing {predicted_genus} prediction for {planet} - ruled out by DSS")
+                self.db.execute("UPDATE predictions_data SET status = -1 WHERE system_id64 = ? AND bodyid = ? AND genus = ?", (system_id64, bodyid, predicted_genus,))
 
 
     def open_discoveries(self):
-        try:
-            with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'r') as f:
-                self.__bio_found = json.load(f)
-        except Exception:
-            self.__bio_found = {}
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_cmdrs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fid TEXT NOT NULL,
+            name TEXT NOT NULL,
+            prev_id INT NOT NULL
+        )
+        ''')
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_systems (
+            id64 INT NOT NULL,
+            name TEXT NOT NULL,
+            cmdr_id INT NOT NULL,
+            PRIMARY KEY (id64, cmdr_id),
+            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
+        )
+        ''')
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_planets (
+            system_id64 INT NOT NULL,
+            bodyid INT NOT NULL,
+            name TEXT NOT NULL,
+            cmdr_id INT NOT NULL,
+            biosignals INT DEFAULT NULL,
+            PRIMARY KEY (system_id64, bodyid, cmdr_id),
+            FOREIGN KEY (system_id64, cmdr_id) REFERENCES data_systems(id64, cmdr_id) ON DELETE CASCADE
+        )
+        ''')
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_bios (
+            system_id64 INT NOT NULL,
+            bodyid INT NOT NULL,
+            genus TEXT NOT NULL,
+            species TEXT,
+            cmdr_id INT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, genus, cmdr_id),
+            FOREIGN KEY (system_id64, bodyid, cmdr_id) REFERENCES data_planets(system_id64, bodyid, cmdr_id) ON DELETE CASCADE
+        )
+        ''')
 
 
     def open_predictions(self):
-        try:
-            with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'r') as f:
-                return json.load(f)
-        except Exception:
-            self.set_status(f"Файл с предсказаниями не найден или повреждён (data/{self.FILENAME_FLAT})")
-            return {}
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS predictions_metadata (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+        ''')
+        # status:
+        # 0  - unknown
+        # 1  - confirmed
+        # -1 - falsified
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS predictions_data (
+            species TEXT NOT NULL,
+            genus TEXT NOT NULL,
+            system_id64 INT NOT NULL,
+            bodyid INT NOT NULL,
+            system TEXT NOT NULL,
+            body TEXT NOT NULL,
+            x FLOAT NOT NULL,
+            y FLOAT NOT NULL,
+            z FLOAT NOT NULL,
+            region TEXT NOT NULL,
+            priority INT NOT NULL,
+            status INT NOT NULL DEFAULT 0,
+            PRIMARY KEY (species, system_id64, bodyid)
+        )
+        ''')
 
 
     def unpack_predictions(self):
@@ -420,43 +486,43 @@ class BioPatrol(tk.Frame, Module):
 
 
     def update_predictions(self):
-        unpacked = self.open_predictions()
         archived = self.unpack_predictions()
+        archived_date = archived.get("timestamp", "1970-01-01")
 
-        unpacked_date = datetime.fromisoformat(unpacked.get("timestamp", "1970-01-01"))
-        archived_date = datetime.fromisoformat(archived.get("timestamp", "1970-01-01"))
+        self.open_predictions()
+        unpacked_date = self.db.execute("SELECT key FROM predictions_metadata WHERE key = 'timestamp'").fetchone()
+        if unpacked_date is None:
+            unpacked_date = ("1970-01-01",)
 
-        if archived and (unpacked_date < archived_date):
-            self.__raw_data = self.process_archive_data(archived)
+        # check if archive is newer
+        if archived and (unpacked_date[0] < archived_date):
+            self.process_archive_data(archived)
             self.save_data()
             return True
         else:
-            if unpacked:
-                self.__raw_data = unpacked
-                return False
-            else:
-                self._enabled = False
-                return None
+            return False
 
 
     def cleanup_predictions(self):
-        for k, v in self.__bio_found.items():
-            planet = k
+        self.set_status(f"Отфильтровываем находки КМДР...")
 
-            for species, data in self.__raw_data["bio"].items():
-                if planet not in data["locations"]:
-                    continue
+        for i in self.db.execute("SELECT system_id64, bodyid, name FROM data_planets GROUP BY system_id64, bodyid"):
+            system_id64 = i[0]
+            bodyid = i[1]
+            planet = i[2]
 
-                species_genus = species.split()[0]
-                known_genuses = self.__bio_found[planet].get("genuses", [])
+            actual_genuses = set()
+            for j in self.db.execute("SELECT genus, species, cmdr_id FROM data_bios WHERE system_id64 = ? AND bodyid = ?", (system_id64, bodyid,)):
+                genus = j[0]
+                signal = j[1]
+                cmdr_id = j[2]
 
-                if known_genuses is not None and species_genus not in known_genuses:
-                    debug(f">> Removing {species} prediction for {planet} - genus has been ruled out by DSS")
-                    del data["locations"][planet]
+                if signal is not None:
+                    self.process_genus_bio(genus, signal, system_id64, bodyid, cmdr_id)
 
-            for bioname in v["signals"]:
-                genus = bioname.split()[0]
-                self.process_genus_bio(genus, bioname, planet)
+                actual_genuses.add(genus)
+
+            self.filter_predictions_after_dss(system_id64, bodyid, actual_genuses)
 
 
     def load_data(self):
@@ -469,7 +535,6 @@ class BioPatrol(tk.Frame, Module):
                 else:
                     break
 
-            self.body = None
             self.open_discoveries()
 
             # {
@@ -484,13 +549,11 @@ class BioPatrol(tk.Frame, Module):
             # }
 
             predictions_updated = self.update_predictions()
-            if predictions_updated is None:
-                return
 
             self._enabled = True
 
-            if not self.__bio_found:
-                debug(f"{self.FILENAME_BIO} not found; reading old game logs")
+            if self.db.execute("SELECT COUNT(id) FROM data_cmdrs").fetchone()[0] == 0:
+                debug(f"Database not found; reading old game logs")
                 self.read_old_logs()
 
             self.cleanup_predictions()
@@ -501,41 +564,51 @@ class BioPatrol(tk.Frame, Module):
 
 
     def process_archive_data(self, raw_data: dict):
-        data = {
-            "timestamp": raw_data.get("timestamp", "1970-01-01"),
-            "bio": {}
-        }
+        # remove outdated predictions
+        self.db.execute("DELETE FROM predictions_data")
 
         for region, region_data in raw_data["bio"].items():
             for species, species_data in region_data.items():
-                priority = species_data["priority"]
-                if species not in data["bio"]:
-                    data["bio"][species] = {"locations": {}}
 
                 for location in species_data["locations"]:
-                    location["region"] = region
-                    location["priority"] = priority
-                    body = location["body"]
-                    del location["body"]
-                    data["bio"][species]["locations"][body] = location
+                    self.db.execute('''
+                    INSERT INTO predictions_data
+                        (species, genus, system_id64, bodyid, system, body, x, y, z, region, priority)
+                    VALUES
+                        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        species,
+                        species.split()[0],
+                        location["system_id64"],
+                        location["body_id64"] >> 55,
+                        location["system"],
+                        location["body"],
+                        location["x"],
+                        location["y"],
+                        location["z"],
+                        region,
+                        species_data["priority"],
+                        ))
 
             self.set_status(f"Обработан регион {region}")
 
-        return data
+        timestamp = raw_data.get("timestamp", "1970-01-01")
+        self.db.execute("INSERT OR REPLACE INTO predictions_metadata (key, value) VALUES (?, ?)", ("timestamp", timestamp))
 
 
     def save_data(self):
         if not self.__live_data:
             return
 
-        with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'w') as f:
-            json.dump(self.__raw_data, f, ensure_ascii=False)
-
-        with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'w') as f:
-            json.dump(self.__bio_found, f, ensure_ascii=False)
+        self.db.commit()
 
 
-    def process_genus_bio(self, genus, bioname, planet, report=False, entry_region=None):
+    def process_genus_bio(self, genus, bioname, system_id64, bodyid, cmdr_id=None, report=False, entry_region=None):
+        if cmdr_id is None:
+            cmdr_id = self.cmdr_id
+
+        planet = self.get_current_body(system_id64, bodyid, cmdr_id)
+
         # sanity check
         for codex_name, english_name in codex_to_english_variants.items():
             if bioname in (codex_name, english_name):
@@ -545,11 +618,10 @@ class BioPatrol(tk.Frame, Module):
 
         region = None
         priority = 1
-        if bioname in self.__raw_data["bio"]:
-            locations = self.__raw_data["bio"][bioname]["locations"]
-            if planet in locations:
-                region = locations[planet]["region"]
-                priority = locations[planet]["priority"]
+
+        res = self.db.execute("SELECT region, priority FROM predictions_data WHERE species = ? AND system_id64 = ? AND bodyid = ?", (bioname, system_id64, bodyid,)).fetchone()
+        if res is not None:
+            region, priority = res
 
         # We may know the region from CodexEntry event
         if entry_region is not None:
@@ -567,78 +639,79 @@ class BioPatrol(tk.Frame, Module):
             Reporter(url).start()
 
         debug(f"Found {bioname} (genus: {genus}) at {planet} (priority: {priority})")
-        for species, data in self.__raw_data["bio"].items():
-            if planet not in data["locations"]:
-                continue
 
-            remove_planet = False
-            # only one species per genus allowed
-            species_genus = species.split()[0]
-            if genus == species_genus and bioname != species:
-                debug(f">> Removing {species} prediction for {planet} - matching genus has been found")
-                remove_planet = True
+        # confirm prediction
+        self.db.execute("UPDATE predictions_data SET status = 1 WHERE system_id64 = ? AND bodyid = ? AND species = ?", (system_id64, bodyid, bioname, ))
 
-            # found all signals, clear planet from lists
-            signals_found = len(self.__bio_found[planet]["signals"])
-            signals_count = self.__bio_found[planet]["signalCount"]
-            if signals_found == signals_count:
-                debug(f">> Removing {species} prediction for {planet} - all {signals_count} signals discovered")
-                remove_planet = True
+        # only one species per genus allowed
+        self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ? AND genus = ? AND species != ?", (system_id64, bodyid, genus, bioname, ))
 
-            if remove_planet is True:
-                del data["locations"][planet]
-                # don't update ui on EDMC startup
-                if self._enabled:
-                    self.update_pos()
+        # all signals has been found
+        signals_found = self.db.execute("SELECT COUNT(DISTINCT(species)) FROM data_bios WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ? AND species IS NOT NULL", (system_id64, bodyid, cmdr_id, )).fetchone()[0]
 
-            # new codex entry detected, remove all from region
-            if priority > 1:
-                data_locations_new = {}
-                for k, v in data["locations"].items():
-                    if species == bioname and v["region"] == region:
-                        debug(f">> Removing {species} prediction for {k} - new codex entry in region {region}")
-                        continue
+        signals_count = self.db.execute("SELECT biosignals FROM data_planets WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (system_id64, bodyid, cmdr_id, )).fetchone()[0]
+        if signals_found == signals_count:
+            self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (system_id64, bodyid, ))
 
-                    data_locations_new[k] = v
+        # don't update ui on EDMC startup
+        if self._enabled:
+            self.update_pos()
 
-                data["locations"] = data_locations_new
+        # new regional codex entry
+        self.db.execute("UPDATE predictions_data SET priority = 1 WHERE priority = 2 AND species = ? AND region = ?", (bioname, region, ))
 
-            # new galactic entry detected
-            if priority > 2:
-                for k, v in data["locations"].items():
-                    if species == bioname:
-                        if v["region"] != region:
-                            debug(f'>> Changing {species} prediction for {k} - found in {region}, downgrading priority in {v["region"]}')
-                            v["priority"] = 2
-                            continue
+        # new galactic new codex entry
+        self.db.execute("UPDATE predictions_data SET priority = 1 WHERE priority = 3 AND species = ? AND region = ?", (bioname, region, ))
+        self.db.execute("UPDATE predictions_data SET priority = 2 WHERE priority = 3 AND species = ? AND region != ?", (bioname, region, ))
 
 
-    def biofound_init_body(self, body, signal_count=None):
-        if body not in self.__bio_found:
-            self.__bio_found[body] = {
-                "signalCount": signal_count,
-                "signals": [],
-                "genuses": None
-            }
-
-    def biofound_set_genuses(self, body, genuses):
-        self.__bio_found[body]["genuses"] = genuses
-
-    def biofound_add_signal(self, body, signal):
-        if signal not in self.__bio_found[body]["signals"]:
-            self.__bio_found[body]["signals"].append(signal)
+    def biofound_init_body(self, system_id64, bodyid, signal_count=None):
+        self.db.execute("UPDATE data_planets SET biosignals = ? WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (signal_count, system_id64, bodyid, self.cmdr_id, ))
 
 
-    def get_current_body(self, key):
-        if self.__live_data:
-            return self.body
-        else:
-            return self.bodies.get(key, None)
+    def biofound_set_genuses(self, system_id64, bodyid, genuses):
+        for i in genuses:
+            self.biofound_add_genus(system_id64, bodyid, i)
+
+
+    def biofound_add_genus(self, system_id64, bodyid, genus):
+        self.db.execute('''
+            INSERT OR IGNORE INTO
+                data_bios
+            (system_id64, bodyid, genus, cmdr_id)
+                VALUES
+            (?, ?, ?, ?)''', (system_id64, bodyid, genus, self.cmdr_id))
+
+
+    def biofound_add_signal(self, system_id64, bodyid, signal):
+        genus = signal.split()[0]
+        self.biofound_add_genus(system_id64, bodyid, genus)
+        self.db.execute("UPDATE data_bios SET species = ? WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ? AND genus = ?", (signal, system_id64, bodyid, self.cmdr_id, genus))
+
+
+    def get_current_body(self, system_id64, bodyid, cmdr_id):
+        res = self.db.execute("SELECT name FROM data_planets WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (system_id64, bodyid, cmdr_id)).fetchone()
+        return None if res is None else res[0]
+
+
+    def store_current_system(self, entry):
+        self.db.execute('''
+            INSERT OR IGNORE INTO
+                data_systems
+            (id64, name, cmdr_id)
+                VALUES
+            (?, ?, ?)
+        ''', (entry.data["SystemAddress"], entry.data["StarSystem"], self.cmdr_id))
 
 
     def store_current_body(self, entry, name):
-        if not self.__live_data:
-            self.bodies[(entry.data["SystemAddress"], entry.data["BodyID"])] = name
+        self.db.execute('''
+            INSERT OR IGNORE INTO
+                data_planets
+            (system_id64, bodyid, name, cmdr_id)
+                VALUES
+            (?, ?, ?, ?)
+        ''', (entry.data["SystemAddress"], entry.data["BodyID"], name, self.cmdr_id))
 
 
     def on_historic_entry(self, entry: BioPatrolJournalEntry):
@@ -653,7 +726,7 @@ class BioPatrol(tk.Frame, Module):
     def process_entry(self, entry):
         if self.__live_data:
             self.last_processed_timestamp = datetime.fromisoformat(entry.data["timestamp"])
-        required_events = ["Location", "FSDJump", "ScanOrganic", "SAASignalsFound", "FSSBodySignals", "FSSAllBodiesFound", "CodexEntry"]
+        required_events = ["NewCommander", "Commander", "Location", "FSDJump", "Scan", "ScanOrganic", "SAASignalsFound", "FSSBodySignals", "FSSAllBodiesFound", "CodexEntry", "SupercruiseExit"]
         if not self.__live_data:
             required_events += ["ApproachBody", "Touchdown", "Disembark"]
 
@@ -664,14 +737,34 @@ class BioPatrol(tk.Frame, Module):
         if not self._enabled:       # на случай, если попытка чтения данных завершилась ошибкой
             return
 
-        if event in ("Location", "FSDJump"):
+        if event == "NewCommander":
+            self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, 0)", (entry.data["FID"], entry.data["Name"]))
+
+        elif event == "Commander":
+            c_fid = entry.data["FID"]
+            c_name = entry.data["Name"]
+
+            row = self.db.execute("SELECT id, name, prev_id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
+            if row is None: # no such CMDR
+                self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, 0)", (c_fid, c_name,))
+            elif row[1] != c_name: # changed name
+                self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, ?)", (c_fid, c_name, row[0]))
+
+            row = self.db.execute("SELECT id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
+            self.cmdr_id = row[0]
+
+        elif event == "Scan":
+            self.store_current_system(entry)
+
+        elif event in ("Location", "FSDJump"):
             self.__update_data_wrap(entry)
+            self.store_current_system(entry)
 
             if event == "Location":
                 self.store_current_body(entry, entry.data["Body"])
 
         elif event == "ScanOrganic":
-            body = self.get_current_body((entry.data["SystemAddress"], entry.data["Body"]))
+            body = self.get_current_body(entry.data["SystemAddress"], entry.data["Body"], self.cmdr_id)
 
             genus = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
             if "Variant" not in entry.data:
@@ -681,11 +774,11 @@ class BioPatrol(tk.Frame, Module):
             if self.__live_data:
                 self.set_status(f"Scanned {bioname} at {body}")
 
-            self.biofound_init_body(body)
-            self.biofound_add_signal(body, bioname)
+            self.biofound_init_body(entry.data["SystemAddress"], entry.data["Body"])
+            self.biofound_add_signal(entry.data["SystemAddress"], entry.data["Body"], bioname)
 
             # update data
-            self.process_genus_bio(genus, bioname, body, report=True)
+            self.process_genus_bio(genus, bioname, entry.data["SystemAddress"], entry.data["Body"], report=True)
 
             self.save_data()
             self.__update_data_wrap(entry)
@@ -697,9 +790,7 @@ class BioPatrol(tk.Frame, Module):
             if entry.data["SubCategory"] != "$Codex_SubCategory_Organic_Structures;":
                 return
 
-            body = self.get_current_body((entry.data["SystemAddress"], entry.data["BodyID"]))
-            if body is None:
-                return
+            body = self.get_current_body(entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id)
 
             bioname = codex_to_english_variants.get(entry.data["Name"], entry.data["Name"])
             region = codex_to_english_regions.get(entry.data["Region"], entry.data["Region"])
@@ -709,11 +800,11 @@ class BioPatrol(tk.Frame, Module):
             if self.__live_data:
                 self.set_status(f"Scanned {bioname} at {body}")
 
-            self.biofound_init_body(body)
-            self.biofound_add_signal(body, bioname)
+            self.biofound_init_body(entry.data["SystemAddress"], entry.data["BodyID"])
+            self.biofound_add_signal(entry.data["SystemAddress"], entry.data["BodyID"], bioname)
 
             # update data
-            self.process_genus_bio(genus, bioname, body, report=True, entry_region=region)
+            self.process_genus_bio(genus, bioname, entry.data["SystemAddress"], entry.data["BodyID"], report=True, entry_region=region)
 
             self.save_data()
             self.__update_data_wrap(entry)
@@ -724,14 +815,13 @@ class BioPatrol(tk.Frame, Module):
 
             self.store_current_body(entry, bodyName)
 
-            self.biofound_init_body(bodyName, len(genuses))
-            self.biofound_set_genuses(bodyName, genuses)
+            self.biofound_init_body(entry.data["SystemAddress"], entry.data["BodyID"], len(genuses))
+            self.biofound_set_genuses(entry.data["SystemAddress"], entry.data["BodyID"], genuses)
 
-            for species, data in self.__raw_data["bio"].items():
-                if bodyName in data["locations"] and species.split()[0] not in genuses:
-                    del data["locations"][bodyName]
-                    self.__update_data_wrap(entry)
-                    self.update_pos()
+            self.filter_predictions_after_dss(entry.data["SystemAddress"], entry.data["BodyID"], genuses)
+
+            self.__update_data_wrap(entry)
+            self.update_pos()
             self.save_data()
 
         elif event == "FSSBodySignals":
@@ -739,39 +829,34 @@ class BioPatrol(tk.Frame, Module):
             for signal in entry.data.get("Signals", []):
                 if signal["Type"] == "$SAA_SignalType_Biological;":
                     self.signals_in_system[name] = signal["Count"]
-                    self.biofound_init_body(name, signal["Count"])
+                    self.biofound_init_body(entry.data["SystemAddress"], entry.data["BodyID"], signal["Count"])
 
         elif event == "FSSAllBodiesFound":
-            planets_to_remove = set()
+            for i in self.db.execute("SELECT DISTINCT bodyid, body FROM predictions_data WHERE system_id64 = ?", (entry.data["SystemAddress"], )):
+                bodyid = i[0]
+                planet = i[1]
+                if bodyid not in self.signals_in_system:
 
-            for species, species_data in self.__raw_data["bio"].items():
-                for planet, planet_data in species_data["locations"].items():
-                    if planet_data["system"] != entry.data["SystemName"]:
-                        continue
+                    j = self.db.execute("SELECT biosignals FROM data_planets WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (entry.data["SystemAddress"], bodyid, self.cmdr_id,)).fetchone()
+                    if j is not None:
+                        signalCount = j[0]
+                        if signalCount > 0:
+                            debug(f'>> Keeping {planet}: has {signalCount} signals')
+                            continue
 
-                    if planet not in self.signals_in_system:
-                        if planet in self.__bio_found:
-                            signalCount = self.__bio_found[planet].get("signalCount", 0)
-                            if signalCount > 0:
-                                debug(f'>> Keeping {planet}: has {signalCount} signals')
-                                continue
+                        debug(f'>> Removing {planet}: known to have no signals')
 
-                            debug(f'>> Removing {planet}: known to have no signals')
-
-                        planets_to_remove.add(planet)
-                        debug(f'>> Removing {planet}: has no signals')
-
-            for planet in planets_to_remove:
-                self.biofound_init_body(planet, 0)
-                for species, species_data in self.__raw_data["bio"].items():
-                    if planet in species_data["locations"]:
-                        del species_data["locations"][planet]
+                    debug(f'>> Removing {planet}: has no signals')
+                    self.biofound_init_body(entry.data["SystemAddress"], bodyid, 0)
+                    self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (entry.data["SystemAddress"], bodyid, ))
 
             self.__update_data_wrap(entry)
             self.update_pos()
             self.save_data()
             self.signals_in_system.clear()
 
+        elif event == "SupercruiseExit":
+            self.store_current_body(entry, entry.data["Body"])
         elif event == "ApproachBody":
             self.store_current_body(entry, entry.data["Body"])
         elif event in ("Touchdown", "Disembark"):
@@ -781,14 +866,6 @@ class BioPatrol(tk.Frame, Module):
     def on_dashboard_entry(self, cmdr, is_beta, entry):
         if self.cmdr != cmdr and cmdr is not None:
             self.cmdr = cmdr
-
-        if "BodyName" not in entry:
-            self.body = None
-            return
-
-        if self.body != entry["BodyName"]:
-            self.body = entry["BodyName"]
-
 
     def set_status(self, text: str):
         def __inner():
@@ -890,7 +967,7 @@ class BioPatrol(tk.Frame, Module):
 
 
     def get_species_left_to_discover(self):
-        return [bio_item for bio_item, data in self.__raw_data["bio"].items() if len(data["locations"]) > 0]
+        return [row[0] for row in self.db.execute("SELECT DISTINCT(species) FROM predictions_data WHERE status == 0")]
 
 
     def __update_data_wrap(self, entry):
@@ -937,7 +1014,18 @@ class BioPatrol(tk.Frame, Module):
         self.set_status("Пересчёт данных...")
         data = []
         for bio_item in self.get_species_left_to_discover():
-            closest_location = get_closest(current_coords, self.__raw_data["bio"][bio_item]["locations"])
+            locations = {}
+            for row in self.db.execute("SELECT body, system, x, y, z, region, priority FROM predictions_data WHERE status = 0 AND species = ?", (bio_item, )):
+                locations[row[0]] = {
+                    "system" : row[1],
+                    "x" : row[2],
+                    "y" : row[3],
+                    "z" : row[4],
+                    "region" : row[5],
+                    "priority" : row[6],
+                }
+
+            closest_location = get_closest(current_coords, locations)
             if closest_location is None:
                 continue
             system, body, distance, coords, priority, region, count = closest_location
@@ -1041,21 +1129,20 @@ class BioPatrol(tk.Frame, Module):
         planet = self.data[self.pos]["closest_location"]
         coords = self.data[self.pos]["coords"]
 
-        if planet not in self.__bio_found:
+        row = self.db.execute("SELECT biosignals FROM data_planets WHERE name = ? AND cmdr_id = ?", (planet, self.cmdr_id, )).fetchone()
+        if row is None:
             self.set_status(f"Сначала просканируйте {planet} с помощью DSS.")
             self.after(3000, self.show)
             return
 
-        for species, data in self.__raw_data["bio"].items():
-            if planet in data["locations"]:
-                del data["locations"][planet]
-                self.biofound_init_body(planet, 0)
+        self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND planet = ?", (planet, ))
+        self.biofound_init_body(planet, 0)
 
-                self.__update_data_coords(coords)
-                self.save_data()
+        self.__update_data_coords(coords)
+        self.save_data()
 
-                self.set_status(f"Планета {planet} удалена из списка.")
-                self.after(3000, self.show)
+        self.set_status(f"Планета {planet} удалена из списка.")
+        self.after(3000, self.show)
 
 
     def __create_filter_window(self, event):
@@ -1098,7 +1185,6 @@ class BioPatrol(tk.Frame, Module):
             # this will block JournalProcessor, so the whole plugin will be waiting for us to finish
             # (won't affect EDMC and other plugins)
             with self.__threadlock:
-                self.__bio_found = {}
                 self.__live_data = False
                 self.read_old_logs()
                 self.cleanup_predictions()
