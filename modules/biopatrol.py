@@ -856,6 +856,7 @@ class BioPatrol(tk.Frame, Module):
             self.signals_in_system.clear()
 
         elif event == "SupercruiseExit":
+            self.store_current_system(entry)
             self.store_current_body(entry, entry.data["Body"])
         elif event == "ApproachBody":
             self.store_current_body(entry, entry.data["Body"])
