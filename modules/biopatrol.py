@@ -13,6 +13,7 @@ from threading import Lock
 from time import sleep
 from typing import Callable, Any
 from PIL import Image
+from enum import Enum
 
 from .debug import debug
 from modules.lib.module import Module
@@ -25,6 +26,7 @@ from modules.lib.conf import base_config as _edmc_config, config as plugin_confi
 import myNotebook as nb     # type: ignore
 from theme import theme     # type: ignore
 from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses, codex_to_english_regions, regions
+from modules.sectors import split_ids, get_procgen_name, get_sector, get_boxel, get_children
 
 from modules.legacy import Reporter, URL_GOOGLE
 
@@ -43,6 +45,76 @@ def get_priority_text(priority: int):
         case 2: priority_text = "Открытие региона"
         case _: priority_text = ""
     return priority_text
+
+
+class YobaStatus(Enum):
+    IDLE = 0
+    CALIBRATING = 1
+    RUNNING = 2
+
+
+class YobaWindow(tk.Toplevel):
+    def __init__(self, parent: tk.Misc, callback: Callable[[dict[str, bool]], Any], system_data):
+        super().__init__(parent)
+        self.callback = callback
+
+        self.frame = tk.Frame(self)
+
+        self.title_label = tk.Label(self.frame, text="Your Outstanding Boxel Analyzer")
+        self.title_label.grid(row=0, column=0, sticky="NWSE")
+
+        system_name = system_data["name"]
+        system_pgname = system_data["pgname"]
+
+        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(system_data["id64"])
+        system_pgname = get_procgen_name(sector_id, masscode_id, boxel_id, system_id)
+        system_boxel = f'{get_sector(sector_id)} {get_boxel(masscode_id, boxel_id)}'
+
+        text = f"Текущая система: {system_name}\n"
+        if system_name != system_pgname:
+            text += f"Procgen имя: {system_pgname}\n"
+        text += f"Текущий боксель: {system_boxel}"
+        self.label = tk.Label(self.frame, text=text)
+        self.label.grid(row=2, column=0, sticky="NWSE")
+
+        self.depth_frame = tk.Frame(self.frame)
+
+        self.yoba_depth = tk.IntVar(value=0)
+        self.yoba_exclude_known = tk.IntVar(value=0)
+        self.depth_header = tk.Label(self.depth_frame, text="Исследование вложенных бокселей:")
+        self.depth0 = tk.Radiobutton(self.depth_frame, text="Только текущий боксель", value=0, variable=self.yoba_depth)
+        self.depth1 = tk.Radiobutton(self.depth_frame, text="Глубина 1 боксель", value=1, variable=self.yoba_depth)
+        self.depth2 = tk.Radiobutton(self.depth_frame, text="Глубина 2 бокселя", value=2, variable=self.yoba_depth)
+        self.depth3 = tk.Radiobutton(self.depth_frame, text="Глубина 3 бокселя", value=3, variable=self.yoba_depth)
+        self.exclude_known = tk.Checkbutton(self.depth_frame, text="Исключить исследованные системы", variable=self.yoba_exclude_known)
+
+        if masscode_id < 3:
+            self.depth3.configure(state="disabled")
+        if masscode_id < 2:
+            self.depth2.configure(state="disabled")
+        if masscode_id < 1:
+            self.depth1.configure(state="disabled")
+
+        self.depth_header.pack()
+        self.depth0.pack()
+        self.depth1.pack()
+        self.depth2.pack()
+        self.depth3.pack()
+
+        self.depth_frame.grid(row=3, column=0, sticky="NWSE")
+
+        self.save_button = nb.Button(self.frame, text="Сохранить")
+        self.save_button.bind("<Button-1>", self.__save)
+        self.save_button.grid(row=4, column=0, sticky="NWSE")
+
+        self.frame.pack()
+
+    def __save(self, event):
+        obj = {
+            "depth" : self.yoba_depth.get(),
+            "exclude_known" : self.yoba_exclude_known.get()
+        }
+        self.callback(obj)
 
 
 class RegionFilterWindow(tk.Toplevel):
@@ -124,6 +196,7 @@ class BioPatrol(tk.Frame, Module):
     FILENAME_RAW = 'bio.json.gz'
     FILENAME_FLAT = 'bio-flat.json'
     FILENAME_BIO = 'bio-found.json'
+    FILENAME_BOXELS = 'boxels.json'
 
     def __init__(self, parent, gridrow):
         super().__init__(parent)
@@ -143,6 +216,13 @@ class BioPatrol(tk.Frame, Module):
         # dict: (id64, bodyId) -> bodyName
         self.signals_in_system = {}
         self.__live_data = False
+        self.__yoba_window: YobaWindow = None
+        self.cmdr_id = None
+        self.current_system_id64 = None
+        self.yoba_current_boxel = None
+        self.__yoba_calibrating = False
+        self.__yoba_boxels = None
+
         # this is needed to stop the processing of old logs upon reaching fresh data
         self.last_processed_timestamp: datetime = None
         self.biopatrol = tk.Frame(self)
@@ -292,6 +372,90 @@ class BioPatrol(tk.Frame, Module):
         self.buttons_frame.grid_remove()
         self.filter_frame.grid_remove()
 
+        # Boxel Explorer
+        self.yoba = tk.Frame(self)
+
+        self.yoba_start_frame = tk.Frame(self.yoba)
+        self.yoba_start_frame.grid_columnconfigure(0, weight=1)
+        self.__yoba_start_var = tk.StringVar(self.yoba_start_frame)
+        self.yoba_start_label = tk.Label(self.yoba_start_frame, textvariable=self.__yoba_start_var)
+        self.yoba_start_label.grid(column=0, row=0, sticky="W")
+
+        self.yoba_start_button = nb.Button(self.yoba_start_frame, text="YOBA")
+        self.yoba_start_button_dark = tk.Label(self.yoba_start_frame, text="YOBA", fg="white")
+        theme.register_alternate(
+            (self.yoba_start_button, self.yoba_start_button_dark, self.yoba_start_button_dark),
+            {"column": 1, "row": 0, "sticky": "EW"}
+        )
+
+        self.yoba_start_button.bind('<Button-1>', self.__yoba_window_create)
+        theme.button_bind(self.yoba_start_button_dark, self.__yoba_window_create)
+
+        self.yoba_stop_frame = tk.Frame(self.yoba)
+        self.yoba_stop_frame.grid_columnconfigure(0, weight=1)
+        self.__yoba_stop_var = tk.StringVar(self.yoba_stop_frame)
+        self.yoba_stop_label = tk.Label(self.yoba_stop_frame, textvariable=self.__yoba_stop_var)
+        self.yoba_stop_label.grid(column=0, row=0, sticky="W")
+
+        self.yoba_stop_button = nb.Button(self.yoba_stop_frame, text="unYOBA")
+        self.yoba_stop_button_dark = tk.Label(self.yoba_stop_frame, text="unYOBA", fg="white")
+        theme.register_alternate(
+            (self.yoba_stop_button, self.yoba_stop_button_dark, self.yoba_stop_button_dark),
+            {"column": 1, "row": 0, "sticky": "EW"}
+        )
+
+        self.yoba_stop_button.bind('<Button-1>', self.__yoba_abort)
+        theme.button_bind(self.yoba_stop_button_dark, self.__yoba_abort)
+
+        self.yoba_calibrate_frame = tk.Frame(self.yoba)
+        self.yoba_calibrate_frame.grid_columnconfigure(0, weight=1)
+        self.__yoba_calibrate_var = tk.StringVar(self.yoba_calibrate_frame)
+        self.yoba_calibrate_label = tk.Label(self.yoba_calibrate_frame, textvariable=self.__yoba_calibrate_var)
+        self.yoba_calibrate_label.grid(column=0, row=0, sticky="W")
+
+        self.yoba_calibrate_button = nb.Button(self.yoba_calibrate_frame, text="Калибровка")
+        self.yoba_calibrate_button_dark = tk.Label(self.yoba_calibrate_frame, text="Калибровка", fg="white")
+        theme.register_alternate(
+            (self.yoba_calibrate_button, self.yoba_calibrate_button_dark, self.yoba_calibrate_button_dark),
+            {"column": 1, "row": 0, "sticky": "EW"}
+        )
+        self.yoba_calibrate_button.bind('<Button-1>', self.__yoba_calibrate)
+        theme.button_bind(self.yoba_calibrate_button_dark, self.__yoba_calibrate)
+
+        self.yoba_boxel_frame = tk.Frame(self.yoba)
+        self.yoba_boxel_frame.grid_columnconfigure(0, weight=1)
+        self.__yoba_boxel_var = tk.StringVar(self.yoba_boxel_frame)
+        self.yoba_boxel_label = tk.Label(self.yoba_boxel_frame, textvariable=self.__yoba_boxel_var)
+        self.yoba_boxel_label.grid(column=0, row=0, sticky="W")
+
+        self.yoba_boxel_button = nb.Button(self.yoba_boxel_frame, text="Пропустить боксель")
+        self.yoba_boxel_button_dark = tk.Label(self.yoba_boxel_frame, text="Пропустить боксель", fg="white")
+        theme.register_alternate(
+            (self.yoba_boxel_button, self.yoba_boxel_button_dark, self.yoba_boxel_button_dark),
+            {"column": 1, "row": 0, "sticky": "EW"}
+        )
+        self.yoba_boxel_button.bind('<Button-1>', self.__yoba_next_boxel)
+        theme.button_bind(self.yoba_boxel_button_dark, self.__yoba_next_boxel)
+
+        self.yoba_next_frame = tk.Frame(self.yoba)
+        self.yoba_next_frame.grid_columnconfigure(0, weight=1)
+        self.__yoba_next_system_var = tk.StringVar(self.yoba_next_frame)
+        self.yoba_next_system = tk.Label(self.yoba_next_frame, textvariable=self.__yoba_next_system_var)
+        self.yoba_next_system.grid(column=0, row=0, sticky="W")
+
+        self.yoba_copy = nb.Button(self.yoba_next_frame, text="Копировать систему")
+        self.yoba_copy_dark = tk.Label(self.yoba_next_frame, text="Копировать систему", fg="white")
+        theme.register_alternate(
+            (self.yoba_copy, self.yoba_copy_dark, self.yoba_copy_dark),
+            {"column": 1, "row": 0, "sticky": "EW"}
+        )
+        self.yoba_copy.bind('<Button-1>', self.__yoba_copy_button)
+        theme.button_bind(self.yoba_copy_dark, self.__yoba_copy_button)
+
+        self.yoba.grid_columnconfigure(0, weight=1)
+        self.yoba.grid(row=1, sticky="NWSE")
+        BasicThread(name="YobaDataReader", target=self.yoba_load).start()
+
         # упаковываем до данных по местоположению
         BasicThread(name="BioPatrolDataReader", target=self.load_data).start()
         self.grid(column=0, row=gridrow, sticky="NWSE")
@@ -421,6 +585,10 @@ class BioPatrol(tk.Frame, Module):
             id64 INT NOT NULL,
             name TEXT NOT NULL,
             cmdr_id INT NOT NULL,
+            procgen_sector_id INT NOT NULL,
+            procgen_masscode_id INT NOT NULL,
+            procgen_boxel_id INT NOT NULL,
+            procgen_system_id INT NOT NULL,
             PRIMARY KEY (id64, cmdr_id),
             FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
@@ -696,15 +864,25 @@ class BioPatrol(tk.Frame, Module):
         res = self.db.execute("SELECT name FROM data_planets WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (system_id64, bodyid, cmdr_id)).fetchone()
         return None if res is None else res[0]
 
+    def get_system(self, id64, cmdr_id):
+        row = self.db.execute("SELECT name FROM data_systems WHERE id64 = ? AND cmdr_id = ?", (id64, cmdr_id,))
+        if row is None:
+            return None
+        else:
+            return row.fetchone()[0]
 
     def store_current_system(self, entry):
+        # store some procgen data
+        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(entry.data["SystemAddress"])
+        self.current_system_id64 = entry.data["SystemAddress"]
+
         self.db.execute('''
             INSERT OR IGNORE INTO
                 data_systems
-            (id64, name, cmdr_id)
+            (id64, name, cmdr_id, procgen_sector_id, procgen_masscode_id, procgen_boxel_id, procgen_system_id)
                 VALUES
-            (?, ?, ?)
-        ''', (entry.data["SystemAddress"], entry.data["StarSystem"], self.cmdr_id))
+            (?, ?, ?, ?, ?, ?, ?)
+        ''', (entry.data["SystemAddress"], entry.data["StarSystem"], self.cmdr_id, sector_id, masscode_id, boxel_id, system_id,))
 
 
     def store_current_body(self, entry, name):
@@ -729,7 +907,7 @@ class BioPatrol(tk.Frame, Module):
     def process_entry(self, entry):
         if self.__live_data:
             self.last_processed_timestamp = datetime.fromisoformat(entry.data["timestamp"])
-        required_events = ["NewCommander", "Commander", "Location", "FSDJump", "Scan", "ScanOrganic", "SAASignalsFound", "FSSBodySignals", "FSSAllBodiesFound", "CodexEntry", "SupercruiseExit"]
+        required_events = ["NewCommander", "Commander", "Location", "FSDJump", "Scan", "ScanOrganic", "SAASignalsFound", "FSSBodySignals", "FSSAllBodiesFound", "CodexEntry", "SupercruiseExit", "FSDTarget"]
         if not self.__live_data:
             required_events += ["ApproachBody", "Touchdown", "Disembark"]
 
@@ -755,6 +933,9 @@ class BioPatrol(tk.Frame, Module):
 
             row = self.db.execute("SELECT id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
             self.cmdr_id = row[0]
+
+            self.yoba_update_status()
+            self.yoba_update()
 
         elif event == "Scan":
             self.store_current_system(entry)
@@ -866,6 +1047,22 @@ class BioPatrol(tk.Frame, Module):
         elif event in ("Touchdown", "Disembark"):
             if entry.data["OnPlanet"]:
                 self.store_current_body(entry, entry.data["Body"])
+        elif event == "FSDTarget":
+            if self.yoba_calibrating:
+                # sanity check
+                target_id64 = entry.data["SystemAddress"]
+                boxel_data = self.yoba_boxels[self.yoba_current_boxel]
+
+                sector_id, masscode_id, boxel_id, system_id, _ = split_ids(target_id64)
+                if sector_id == boxel_data["_sector"] and masscode_id == boxel_data["_masscode"] and boxel_id == boxel_data["_boxel"]:
+                    if boxel_data["start"] is None or system_id < boxel_data["start"]:
+                        boxel_data["start"] = system_id
+                        self.yoba_update()
+
+                    if boxel_data["finish"] is None or system_id > boxel_data["finish"]:
+                        boxel_data["finish"] = system_id
+                        self.yoba_update()
+
 
     def on_dashboard_entry(self, cmdr, is_beta, entry):
         if self.cmdr != cmdr and cmdr is not None:
@@ -1167,6 +1364,266 @@ class BioPatrol(tk.Frame, Module):
         self.__region_filter_window = None
         if self.current_coords:
             self.__update_data_coords(self.current_coords)
+
+
+    @property
+    def yoba_boxels(self):
+        return self.__yoba_boxels
+
+
+    @yoba_boxels.setter
+    def yoba_boxels(self, value):
+        if value == self.__yoba_boxels:
+            return
+        self.__yoba_boxels = value
+        self.yoba_update_status()
+
+
+    @property
+    def yoba_calibrating(self):
+        return self.__yoba_calibrating
+
+
+    @yoba_calibrating.setter
+    def yoba_calibrating(self, value):
+        if value == self.__yoba_calibrating:
+            return
+        self.__yoba_calibrating = value
+        self.yoba_update_status()
+
+
+    def yoba_load(self):
+        try:
+            with open(Path(self.plugin_dir, "data", self.FILENAME_BOXELS), 'r') as f:
+                self.yoba_boxels = json.load(f)
+        except Exception:
+            self.yoba_boxels = None
+
+        self.yoba_update_status()
+
+
+    def yoba_save(self):
+        with open(Path(self.plugin_dir, "data", self.FILENAME_BOXELS), 'w') as f:
+            if self.yoba_boxels is not None:
+                json.dump(self.yoba_boxels, f, ensure_ascii=False)
+
+        self.yoba_update()
+
+
+    def yoba_update_status(self):
+        if self.cmdr_id is None:
+            self.yoba_set_status(YobaStatus.IDLE)
+            return
+
+        if self.__yoba_boxels is None:
+            self.yoba_set_status(YobaStatus.IDLE)
+            return
+
+        if self.__yoba_calibrating:
+            self.yoba_set_status(YobaStatus.CALIBRATING)
+        else:
+            self.yoba_set_status(YobaStatus.RUNNING)
+
+
+    def yoba_update(self):
+        if self.cmdr_id is None:
+            return
+
+        if self.yoba_boxels is None:
+            return
+
+        for boxel, data in self.yoba_boxels.items():
+            if data["surveyed"] == True:
+                continue
+
+            self.yoba_current_boxel = boxel
+            break
+        else:
+            self.__yoba_finish()
+            return
+
+        boxel_data = self.yoba_boxels[self.yoba_current_boxel]
+        if boxel_data["start"] is None or boxel_data["finish"] is None:
+            self.yoba_calibrating = True
+
+        start = boxel_data["start"] if boxel_data["start"] is not None else "?"
+        finish = boxel_data["finish"] if boxel_data["finish"] is not None else "?"
+
+        if self.yoba_calibrating:
+            self.__yoba_stop_var.set(f"Боксель {self.yoba_current_boxel}")
+
+            # always start with zero, except for h masscode
+            if boxel_data["_masscode"] != 7:
+                boxel_data["start"] = 0
+
+            self.__yoba_calibrate_var.set(f'Калибровка: {start}-{finish}')
+        else:
+            self.__yoba_stop_var.set(f"Боксель {self.yoba_current_boxel}")
+
+            # getting systems
+            known_systems = set()
+            for row in self.db.execute("SELECT procgen_system_id FROM data_systems WHERE procgen_sector_id = ? AND procgen_masscode_id = ? AND procgen_boxel_id = ? AND cmdr_id = ?",
+                                            (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], self.cmdr_id)):
+                known_systems.add(row[0])
+
+            first_unknown = None
+            for i in range(start, finish + 1):
+                if i not in known_systems:
+                    first_unknown = i
+                    break
+
+            boxelmap_string = ""
+            boxelmap_range = 10
+            boxelmap_ellipsis_1 = False
+            boxelmap_ellipsis_2 = False
+            for i in range(start, finish + 1):
+                if first_unknown - i > boxelmap_range:
+                    boxelmap_ellipsis_1 = True
+                    continue
+
+                if i - first_unknown > boxelmap_range:
+                    boxelmap_ellipsis_2 = True
+                    continue
+
+                if i == first_unknown:
+                    boxelmap_string += "▲"
+                    continue
+
+                if i in known_systems:
+                    boxelmap_string += "█"
+                else:
+                    boxelmap_string += "▓"
+
+            if boxelmap_ellipsis_1:
+                boxelmap_string = f"…{boxelmap_string}"
+
+            if boxelmap_ellipsis_2:
+                boxelmap_string = f"{boxelmap_string}…"
+            self.__yoba_boxel_var.set(f'{start} [{boxelmap_string}] {finish}')
+            self.__yoba_next_system_var.set(f'{get_procgen_name(boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], first_unknown)}')
+
+
+    def yoba_set_status(self, status):
+        self.yoba_status = status
+
+        match status:
+            case YobaStatus.IDLE:
+                self.yoba_start_frame.grid(row=0, sticky="NWSE")
+                self.yoba_stop_frame.grid_remove()
+                self.yoba_calibrate_frame.grid_remove()
+                self.yoba_boxel_frame.grid_remove()
+                self.yoba_next_frame.grid_remove()
+            case YobaStatus.CALIBRATING:
+                self.yoba_start_frame.grid_remove()
+                self.yoba_stop_frame.grid(row=0, sticky="NWSE")
+                self.yoba_calibrate_frame.grid(row=1, sticky="NWSE")
+                self.yoba_boxel_frame.grid_remove()
+                self.yoba_next_frame.grid_remove()
+            case YobaStatus.RUNNING:
+                self.yoba_start_frame.grid_remove()
+                self.yoba_stop_frame.grid(row=0, sticky="NWSE")
+                self.yoba_calibrate_frame.grid_remove()
+                self.yoba_boxel_frame.grid(row=1, sticky="NWSE")
+                self.yoba_next_frame.grid(row=2, sticky="NWSE")
+
+        self.yoba_save()
+
+    def yoba_setup_boxel(self, settings):
+        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(self.current_system_id64)
+
+        yoba_boxels = {}
+        parents = []
+        children = []
+
+        parents.append((masscode_id, boxel_id))
+        for i in range(settings["depth"] + 1):
+            for parent in parents:
+                parent_masscode, parent_boxel = parent
+
+                name = f'{get_sector(sector_id)} {get_boxel(parent_masscode, parent_boxel)}'
+                obj = {
+                    "_sector" : sector_id,
+                    "_masscode" : parent_masscode,
+                    "_boxel" : parent_boxel,
+                    "surveyed" : False,
+                    "start" : None,
+                    "finish" : None
+                }
+                yoba_boxels[name] = obj
+
+                if i < settings["depth"]:
+                    for child in get_children(parent_masscode, parent_boxel):
+                        child_masscode, child_boxel = child
+                        children.append((child_masscode, child_boxel))
+
+            parents = children.copy()
+            children.clear()
+
+        self.yoba_boxels = yoba_boxels
+
+
+    def __yoba_calibrate(self, event: tk.Event):
+        boxel_data = self.yoba_boxels[self.yoba_current_boxel]
+        if boxel_data["start"] is None or boxel_data["finish"] is None:
+            return
+
+        self.yoba_calibrating = False
+
+
+    def __yoba_next_boxel(self, event: tk.Event):
+        self.yoba_boxels[self.yoba_current_boxel]["surveyed"] = True
+        self.yoba_save()
+
+
+    def __yoba_abort(self, event: tk.Event):
+        self.yoba_boxels = None
+        self.yoba_calibrating = False
+
+        self.__yoba_start_var.set("Исследование прервано")
+        self.yoba_save()
+
+
+    def __yoba_finish(self):
+        self.yoba_boxels = None
+        self.yoba_calibrating = False
+
+        self.__yoba_start_var.set("Исследование завершено")
+        self.yoba_save()
+
+
+    def __yoba_window_create(self, event: tk.Event):
+        if self.__yoba_window is not None:
+            return
+        if self.current_system_id64 is None:
+            return
+        if self.yoba_boxels is not None:
+            return
+
+        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(self.current_system_id64)
+        system_data = {
+            "id64" : self.current_system_id64,
+            "name" : self.get_system(self.current_system_id64, self.cmdr_id),
+            "pgname" : get_procgen_name(sector_id, masscode_id, boxel_id, system_id)
+        }
+
+        self.__yoba_window = YobaWindow(self, self.__yoba_window_callback, system_data)
+        self.__yoba_window.protocol("WM_DELETE_WINDOW", self.__yoba_window_closed)
+
+
+    def __yoba_window_closed(self):
+        self.__yoba_window.destroy()
+        self.__yoba_window = None
+
+
+    def __yoba_window_callback(self, settings):
+        self.yoba_setup_boxel(settings)
+
+        self.__yoba_window.destroy()
+        self.__yoba_window = None
+
+
+    def __yoba_copy_button(self, event):
+        copyclip(self.__yoba_next_system_var.get())
 
 
     def __on_old_logs_processing_requested(self, event: tk.Event):
