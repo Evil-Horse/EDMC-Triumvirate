@@ -145,6 +145,7 @@ class BioPatrol(tk.Frame, Module):
         self.__live_data = False
         # this is needed to stop the processing of old logs upon reaching fresh data
         self.last_processed_timestamp: datetime = None
+        self.biopatrol = tk.Frame(self)
 
         self.IMG_PREV = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "left_arrow.gif"))
         self.IMG_NEXT = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "right_arrow.gif"))
@@ -157,10 +158,10 @@ class BioPatrol(tk.Frame, Module):
 
         # заглушка/статус
         self.__dummy_var = tk.StringVar(self)
-        self.dummy_label = tk.Label(self, textvariable=self.__dummy_var)
+        self.dummy_label = tk.Label(self.biopatrol, textvariable=self.__dummy_var)
 
         # переключатель видов
-        self.switch_frame = tk.Frame(self)
+        self.switch_frame = tk.Frame(self.biopatrol)
         self.switch_frame.grid_columnconfigure(2, weight=1)
 
         self.prev_button = nb.Button(self.switch_frame, image=self.IMG_PREV)
@@ -204,7 +205,7 @@ class BioPatrol(tk.Frame, Module):
         theme.button_bind(self.next_button_dark, self.__next)
 
         # регион локации и количество планет с видом
-        self.region_frame = tk.Frame(self)
+        self.region_frame = tk.Frame(self.biopatrol)
         self.region_frame.grid_columnconfigure(0, weight=1)
 
         self.__region_var = tk.StringVar(self.region_frame)
@@ -218,7 +219,7 @@ class BioPatrol(tk.Frame, Module):
         self.locations_count_label.grid(column=1, row=0, sticky="E")
 
         # ближайшая локация и расстояние до неё
-        self.closest_location_frame = tk.Frame(self)
+        self.closest_location_frame = tk.Frame(self.biopatrol)
         self.closest_location_frame.grid_columnconfigure(0, weight=1)
 
         self.__closest_location_var = tk.StringVar(self.closest_location_frame)
@@ -232,7 +233,7 @@ class BioPatrol(tk.Frame, Module):
         self.distance_label.grid(column=1, row=0, sticky="E")
 
         # кнопки удаления локации и копирования системы
-        self.buttons_frame = tk.Frame(self)
+        self.buttons_frame = tk.Frame(self.biopatrol)
         self.buttons_frame.grid_columnconfigure((0, 1), weight=1, uniform="equal")
 
         self.copy_button = nb.Button(self.buttons_frame, text="Копировать систему", padding=(10, 0))
@@ -255,7 +256,7 @@ class BioPatrol(tk.Frame, Module):
 
         # кнопка фильтра по регионам
         # кнопка обработки старых логов
-        self.filter_frame = tk.Frame(self)
+        self.filter_frame = tk.Frame(self.biopatrol)
         self.filter_frame.grid_columnconfigure(0, weight=1)
 
         self.filter_button = nb.Button(self.filter_frame, text="Фильтр регионов")
@@ -294,6 +295,8 @@ class BioPatrol(tk.Frame, Module):
         # упаковываем до данных по местоположению
         BasicThread(name="BioPatrolDataReader", target=self.load_data).start()
         self.grid(column=0, row=gridrow, sticky="NWSE")
+        self.biopatrol.grid_columnconfigure(0, weight=1)
+        self.biopatrol.grid(row=0, sticky="NWSE")
         self.set_status("Местоположение неизвестно.\nТребуется прыжок или перезапуск игры.")
 
         self.db = sqlite3.connect(Path(self.plugin_dir, "data", "biopatrol.db"), check_same_thread=False)
