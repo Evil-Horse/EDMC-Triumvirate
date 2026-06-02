@@ -605,6 +605,7 @@ class BioPatrol(tk.Frame, Module):
             procgen_masscode_id INT NOT NULL,
             procgen_boxel_id INT NOT NULL,
             procgen_system_id INT NOT NULL,
+            fss_complete INT DEFAULT 0,
             PRIMARY KEY (id64, cmdr_id),
             FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
@@ -1050,6 +1051,8 @@ class BioPatrol(tk.Frame, Module):
                     self.biofound_init_body(entry.data["SystemAddress"], bodyid, 0)
                     self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (entry.data["SystemAddress"], bodyid, ))
 
+            self.db.execute("UPDATE data_systems SET fss_complete = 1 WHERE id64 = ? AND cmdr_id = ?", (entry.data["SystemAddress"], self.cmdr_id,))
+
             self.__update_data_wrap(entry)
             self.update_pos()
             self.save_data()
@@ -1483,13 +1486,16 @@ class BioPatrol(tk.Frame, Module):
 
             # getting systems
             known_systems = set()
-            for row in self.db.execute("SELECT procgen_system_id FROM data_systems WHERE procgen_sector_id = ? AND procgen_masscode_id = ? AND procgen_boxel_id = ? AND cmdr_id = ?",
+            scanned_systems = set()
+            for row in self.db.execute("SELECT procgen_system_id, fss_complete FROM data_systems WHERE procgen_sector_id = ? AND procgen_masscode_id = ? AND procgen_boxel_id = ? AND cmdr_id = ?",
                                             (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], self.cmdr_id)):
                 known_systems.add(row[0])
+                if row[1] == 1:
+                    scanned_systems.add(row[0])
 
             first_unknown = None
             for i in range(start, finish + 1):
-                if i not in known_systems:
+                if i not in scanned_systems:
                     first_unknown = i
                     break
             else:
@@ -1512,10 +1518,12 @@ class BioPatrol(tk.Frame, Module):
                     boxelmap_string += "▲"
                     continue
 
-                if i in known_systems:
-                    boxelmap_string += "█"
+                if i not in known_systems:
+                    boxelmap_string += "█" # not visited, fully shaded block
+                elif i not in scanned_systems:
+                    boxelmap_string += "▓" # visited but unscanned, dark shade
                 else:
-                    boxelmap_string += "▓"
+                    boxelmap_string += "▒" # scanned, medium shade
 
             if boxelmap_ellipsis_1:
                 boxelmap_string = f"…{boxelmap_string}"
