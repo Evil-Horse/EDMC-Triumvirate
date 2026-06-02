@@ -439,6 +439,20 @@ class BioPatrol(tk.Frame, Module):
         self.yoba_boxel_button.bind('<Button-1>', self.__yoba_next_boxel)
         theme.button_bind(self.yoba_boxel_button_dark, self.__yoba_next_boxel)
 
+        self.yoba_calibrate2_frame = tk.Frame(self.yoba)
+        self.yoba_calibrate2_frame.grid_columnconfigure(0, weight=1)
+        self.yoba_calibrate_instructions_label = tk.Label(self.yoba_calibrate2_frame, text="Выделяйте системы бокселя в цель")
+        self.yoba_calibrate_instructions_label.grid(column=0, row=0, sticky="W")
+
+        self.yoba_copy_boxel_button = nb.Button(self.yoba_calibrate2_frame, text="Копировать боксель")
+        self.yoba_copy_boxel_button_dark = tk.Label(self.yoba_calibrate2_frame, text="Копировать боксель", fg="white")
+        theme.register_alternate(
+            (self.yoba_copy_boxel_button, self.yoba_copy_boxel_button_dark, self.yoba_copy_boxel_button_dark),
+            {"column": 1, "row": 0, "sticky": "EW"}
+        )
+        self.yoba_copy_boxel_button.bind('<Button-1>', self.__yoba_copy_boxel)
+        theme.button_bind(self.yoba_copy_boxel_button_dark, self.__yoba_copy_boxel)
+
         self.yoba_next_frame = tk.Frame(self.yoba)
         self.yoba_next_frame.grid_columnconfigure(0, weight=1)
         self.__yoba_next_system_var = tk.StringVar(self.yoba_next_frame)
@@ -1512,21 +1526,30 @@ class BioPatrol(tk.Frame, Module):
             case YobaStatus.IDLE:
                 self.yoba_start_frame.grid(row=0, sticky="NWSE")
                 self.yoba_stop_frame.grid_remove()
+
                 self.yoba_calibrate_frame.grid_remove()
                 self.yoba_boxel_frame.grid_remove()
+
                 self.yoba_next_frame.grid_remove()
+                self.yoba_calibrate2_frame.grid_remove()
             case YobaStatus.CALIBRATING:
                 self.yoba_start_frame.grid_remove()
                 self.yoba_stop_frame.grid(row=0, sticky="NWSE")
+
                 self.yoba_calibrate_frame.grid(row=1, sticky="NWSE")
                 self.yoba_boxel_frame.grid_remove()
+
                 self.yoba_next_frame.grid_remove()
+                self.yoba_calibrate2_frame.grid(row=2, sticky="NWSE")
             case YobaStatus.RUNNING:
                 self.yoba_start_frame.grid_remove()
                 self.yoba_stop_frame.grid(row=0, sticky="NWSE")
+
                 self.yoba_calibrate_frame.grid_remove()
                 self.yoba_boxel_frame.grid(row=1, sticky="NWSE")
+
                 self.yoba_next_frame.grid(row=2, sticky="NWSE")
+                self.yoba_calibrate2_frame.grid_remove()
 
         self.yoba_save()
 
@@ -1575,6 +1598,10 @@ class BioPatrol(tk.Frame, Module):
     def __yoba_next_boxel(self, event: tk.Event):
         self.yoba_boxels[self.yoba_current_boxel]["surveyed"] = True
         self.yoba_save()
+
+
+    def __yoba_copy_boxel(self, event: tk.Event):
+        copyclip(f'{self.yoba_current_boxel}-')
 
 
     def __yoba_abort(self, event: tk.Event):
