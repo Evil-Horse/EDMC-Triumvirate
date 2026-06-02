@@ -1492,6 +1492,8 @@ class BioPatrol(tk.Frame, Module):
                 if i not in known_systems:
                     first_unknown = i
                     break
+            else:
+                self.yoba_skip_boxel()
 
             boxelmap_string = ""
             boxelmap_range = 10
@@ -1592,6 +1594,11 @@ class BioPatrol(tk.Frame, Module):
         self.yoba_boxels = yoba_boxels
 
 
+    def yoba_skip_boxel(self):
+        self.yoba_boxels[self.yoba_current_boxel]["surveyed"] = True
+        self.yoba_save()
+
+
     def __yoba_calibrate(self, event: tk.Event):
         boxel_data = self.yoba_boxels[self.yoba_current_boxel]
         if boxel_data["start"] is None or boxel_data["finish"] is None:
@@ -1601,8 +1608,7 @@ class BioPatrol(tk.Frame, Module):
 
 
     def __yoba_next_boxel(self, event: tk.Event):
-        self.yoba_boxels[self.yoba_current_boxel]["surveyed"] = True
-        self.yoba_save()
+        self.yoba_skip_boxel()
 
 
     def __yoba_copy_boxel(self, event: tk.Event):
