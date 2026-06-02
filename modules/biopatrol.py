@@ -233,6 +233,8 @@ class BioPatrol(tk.Frame, Module):
         self.IMG_PINNED = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "pinned.gif"))
         self.IMG_TO_BEGINNING = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "to_beginning.gif"))
         self.IMG_BRABFUN = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "brabfun.png"))
+        self.IMG_YOBA_START = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "51de0d93.png"))
+        self.IMG_YOBA_STOP = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "40845c5c.png"))
 
         self.grid_columnconfigure(0, weight=1)
 
@@ -381,8 +383,8 @@ class BioPatrol(tk.Frame, Module):
         self.yoba_start_label = tk.Label(self.yoba_start_frame, textvariable=self.__yoba_start_var)
         self.yoba_start_label.grid(column=0, row=0, sticky="W")
 
-        self.yoba_start_button = nb.Button(self.yoba_start_frame, text="YOBA")
-        self.yoba_start_button_dark = tk.Label(self.yoba_start_frame, text="YOBA", fg="white")
+        self.yoba_start_button = nb.Button(self.yoba_start_frame, image=self.IMG_YOBA_START)
+        self.yoba_start_button_dark = tk.Label(self.yoba_start_frame, image=self.IMG_YOBA_START)
         theme.register_alternate(
             (self.yoba_start_button, self.yoba_start_button_dark, self.yoba_start_button_dark),
             {"column": 1, "row": 0, "sticky": "EW"}
@@ -397,8 +399,8 @@ class BioPatrol(tk.Frame, Module):
         self.yoba_stop_label = tk.Label(self.yoba_stop_frame, textvariable=self.__yoba_stop_var)
         self.yoba_stop_label.grid(column=0, row=0, sticky="W")
 
-        self.yoba_stop_button = nb.Button(self.yoba_stop_frame, text="unYOBA")
-        self.yoba_stop_button_dark = tk.Label(self.yoba_stop_frame, text="unYOBA", fg="white")
+        self.yoba_stop_button = nb.Button(self.yoba_stop_frame, image=self.IMG_YOBA_STOP)
+        self.yoba_stop_button_dark = tk.Label(self.yoba_stop_frame, image=self.IMG_YOBA_STOP)
         theme.register_alternate(
             (self.yoba_stop_button, self.yoba_stop_button_dark, self.yoba_stop_button_dark),
             {"column": 1, "row": 0, "sticky": "EW"}
