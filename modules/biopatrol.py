@@ -1472,6 +1472,11 @@ class BioPatrol(tk.Frame, Module):
             if boxel_data["_masscode"] != 7:
                 boxel_data["start"] = 0
 
+            # initialize with current system
+            sector_id, masscode_id, boxel_id, system_id, _ = split_ids(self.current_system_id64)
+            if sector_id == boxel_data["_sector"] and masscode_id == boxel_data["_masscode"] and boxel_id == boxel_data["_boxel"]:
+                boxel_data["start"] = boxel_data["finish"] = system_id
+
             self.__yoba_calibrate_var.set(f'Калибровка: {start}-{finish}')
         else:
             self.__yoba_stop_var.set(f"Боксель {self.yoba_current_boxel}")
