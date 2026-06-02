@@ -1430,6 +1430,9 @@ class BioPatrol(tk.Frame, Module):
 
 
     def yoba_update_status(self):
+        if not self.__live_data:
+            return
+
         if self.cmdr_id is None:
             self.yoba_set_status(YobaStatus.IDLE)
             return
@@ -1445,6 +1448,9 @@ class BioPatrol(tk.Frame, Module):
 
 
     def yoba_update(self):
+        if not self.__live_data:
+            return
+
         if self.cmdr_id is None:
             return
 
