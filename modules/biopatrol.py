@@ -192,6 +192,27 @@ class BioPatrolJournalEntry:
         self.coords = coords
 
 
+class BiopatrolDB:
+    def __init__(self):
+        self.db_path = Path(global_context.plugin_dir, "data", "biopatrol.db")
+        self.db_lock = Lock()
+        self.db_con = sqlite3.connect(self.db_path, check_same_thread=False)
+        self.db_con.execute("PRAGMA foreign_keys = ON")
+
+    def __del__(self):
+        self.commit()
+
+    def execute(self, query, params = None):
+        with self.db_lock:
+            if params is None:
+                return self.db_con.execute(query)
+            else:
+                return self.db_con.execute(query, params)
+
+    def commit(self):
+        with self.db_lock:
+            self.db_con.commit()
+
 class BioPatrol(tk.Frame, Module):
     FILENAME_RAW = 'bio.json.gz'
     FILENAME_FLAT = 'bio-flat.json'
@@ -487,8 +508,7 @@ class BioPatrol(tk.Frame, Module):
         self.grid(column=0, row=gridrow, sticky="NWSE")
         self.set_status("Местоположение неизвестно.\nТребуется прыжок или перезапуск игры.")
 
-        self.db = sqlite3.connect(Path(self.plugin_dir, "data", "biopatrol.db"), check_same_thread=False)
-        self.db.execute("PRAGMA foreign_keys = ON")
+        self.db = BiopatrolDB()
 
     def brab_fun(self):
         self.is_brab_fun = True
