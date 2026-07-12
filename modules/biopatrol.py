@@ -516,7 +516,7 @@ class BioPatrol(tk.Frame, Module):
         logsdir = Path(_edmc_config.get_str("journaldir") or logsdir_default)
         logs = [
             logfile
-            for logfile in logsdir.iterdir()
+            for logfile in sorted(logsdir.iterdir())
             if (
                 logfile.is_file()
                 and re.match(pattern, logfile.name) is not None
