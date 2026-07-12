@@ -198,33 +198,7 @@ class BioPatrol(tk.Frame, Module):
     FILENAME_BIO = 'bio-found.json'
     FILENAME_BOXELS = 'boxels.json'
 
-    def __init__(self, parent, gridrow):
-        super().__init__(parent)
-
-        self.plugin_dir = global_context.plugin_dir
-        self.data: list[dict] = []
-        self.enabled_regions: list[str] = [region for region, enabled in RegionFilterWindow.load_config().items() if enabled]
-        self.current_coords: Coords = None
-        self._enabled = False
-        self.__threadlock = Lock()
-        self.__region_filter_window: RegionFilterWindow = None
-        self.__pos = 0
-        self.__priority = 0
-        self.__selected_bio = ""
-        self.pinned_bio: str = None
-        self.cmdr = None
-        # dict: (id64, bodyId) -> bodyName
-        self.signals_in_system = {}
-        self.__live_data = False
-        self.__yoba_window: YobaWindow = None
-        self.cmdr_id = None
-        self.current_system_id64 = None
-        self.yoba_current_boxel = None
-        self.__yoba_calibrating = False
-        self.__yoba_boxels = None
-
-        # this is needed to stop the processing of old logs upon reaching fresh data
-        self.last_processed_timestamp: datetime = None
+    def _biopatrol_init_ui(self):
         self.biopatrol = tk.Frame(self)
 
         self.IMG_PREV = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "left_arrow.gif"))
@@ -233,10 +207,6 @@ class BioPatrol(tk.Frame, Module):
         self.IMG_PINNED = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "pinned.gif"))
         self.IMG_TO_BEGINNING = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "to_beginning.gif"))
         self.IMG_BRABFUN = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "brabfun.png"))
-        self.IMG_YOBA_START = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "51de0d93.png"))
-        self.IMG_YOBA_STOP = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "40845c5c.png"))
-
-        self.grid_columnconfigure(0, weight=1)
 
         # заглушка/статус
         self.__dummy_var = tk.StringVar(self)
@@ -374,8 +344,15 @@ class BioPatrol(tk.Frame, Module):
         self.buttons_frame.grid_remove()
         self.filter_frame.grid_remove()
 
+        self.biopatrol.grid_columnconfigure(0, weight=1)
+        self.biopatrol.grid(row=0, sticky="NWSE")
+
+    def _yoba_init_ui(self):
         # Boxel Explorer
         self.yoba = tk.Frame(self)
+
+        self.IMG_YOBA_START = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "51de0d93.png"))
+        self.IMG_YOBA_STOP = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "40845c5c.png"))
 
         self.yoba_start_frame = tk.Frame(self.yoba)
         self.yoba_start_frame.grid_columnconfigure(0, weight=1)
@@ -470,13 +447,44 @@ class BioPatrol(tk.Frame, Module):
 
         self.yoba.grid_columnconfigure(0, weight=1)
         self.yoba.grid(row=1, sticky="NWSE")
+
+    def __init__(self, parent, gridrow):
+        super().__init__(parent)
+
+        self.plugin_dir = global_context.plugin_dir
+        self.data: list[dict] = []
+        self.enabled_regions: list[str] = [region for region, enabled in RegionFilterWindow.load_config().items() if enabled]
+        self.current_coords: Coords = None
+        self._enabled = False
+        self.__threadlock = Lock()
+        self.__region_filter_window: RegionFilterWindow = None
+        self.__pos = 0
+        self.__priority = 0
+        self.__selected_bio = ""
+        self.pinned_bio: str = None
+        self.cmdr = None
+        # dict: (id64, bodyId) -> bodyName
+        self.signals_in_system = {}
+        self.__live_data = False
+        self.__yoba_window: YobaWindow = None
+        self.cmdr_id = None
+        self.current_system_id64 = None
+        self.yoba_current_boxel = None
+        self.__yoba_calibrating = False
+        self.__yoba_boxels = None
+
+        # this is needed to stop the processing of old logs upon reaching fresh data
+        self.last_processed_timestamp: datetime = None
+
+        self.grid_columnconfigure(0, weight=1)
+        self._biopatrol_init_ui()
+        self._yoba_init_ui()
+
         BasicThread(name="YobaDataReader", target=self.yoba_load).start()
 
         # упаковываем до данных по местоположению
         BasicThread(name="BioPatrolDataReader", target=self.load_data).start()
         self.grid(column=0, row=gridrow, sticky="NWSE")
-        self.biopatrol.grid_columnconfigure(0, weight=1)
-        self.biopatrol.grid(row=0, sticky="NWSE")
         self.set_status("Местоположение неизвестно.\nТребуется прыжок или перезапуск игры.")
 
         self.db = sqlite3.connect(Path(self.plugin_dir, "data", "biopatrol.db"), check_same_thread=False)
