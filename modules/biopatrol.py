@@ -929,48 +929,23 @@ class BioPatrol(tk.Frame, Module):
             self.process_entry(entry)
 
 
-    def process_entry(self, entry):
-        if self.__live_data:
-            self.last_processed_timestamp = datetime.fromisoformat(entry.data["timestamp"])
-        required_events = ["NewCommander", "Commander", "Location", "FSDJump", "Scan", "ScanOrganic", "SAASignalsFound", "FSSBodySignals", "FSSAllBodiesFound", "CodexEntry", "SupercruiseExit", "FSDTarget"]
-        if not self.__live_data:
-            required_events += ["ApproachBody", "Touchdown", "Disembark"]
+    def biopatrol_process_entry(self, entry):
+        required_events = [
+            "Location",
+            "FSDJump",
+            "ScanOrganic",
+            "CodexEntry",
+            "SAASignalsFound",
+            "FSSBodySignals",
+            "FSSAllBodiesFound"
+        ]
 
         event = entry.data["event"]
         if event not in required_events:
             return
 
-        if not self._enabled:       # на случай, если попытка чтения данных завершилась ошибкой
-            return
-
-        if event == "NewCommander":
-            self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, 0)", (entry.data["FID"], entry.data["Name"]))
-
-        elif event == "Commander":
-            c_fid = entry.data["FID"]
-            c_name = entry.data["Name"]
-
-            row = self.db.execute("SELECT id, name, prev_id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
-            if row is None: # no such CMDR
-                self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, 0)", (c_fid, c_name,))
-            elif row[1] != c_name: # changed name
-                self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, ?)", (c_fid, c_name, row[0]))
-
-            row = self.db.execute("SELECT id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
-            self.cmdr_id = row[0]
-
-            self.yoba_update_status()
-            self.yoba_update()
-
-        elif event == "Scan":
-            self.store_current_system(entry)
-
-        elif event in ("Location", "FSDJump"):
+        if event in ("Location", "FSDJump"):
             self.__update_data_wrap(entry)
-            self.store_current_system(entry)
-
-            if event == "Location":
-                self.store_current_body(entry, entry.data["Body"])
 
         elif event == "ScanOrganic":
             body = self.get_current_body(entry.data["SystemAddress"], entry.data["Body"], self.cmdr_id)
@@ -1018,11 +993,9 @@ class BioPatrol(tk.Frame, Module):
             self.save_data()
             self.__update_data_wrap(entry)
 
+
         elif event == "SAASignalsFound" and entry.data.get("Genuses"):
             genuses = [codex_to_english_genuses.get(i["Genus"], i["Genus"]) for i in entry.data["Genuses"]]
-            bodyName = entry.data["BodyName"]
-
-            self.store_current_body(entry, bodyName)
 
             self.biofound_init_body(entry.data["SystemAddress"], entry.data["BodyID"], len(genuses))
             self.biofound_set_genuses(entry.data["SystemAddress"], entry.data["BodyID"], genuses)
@@ -1059,21 +1032,26 @@ class BioPatrol(tk.Frame, Module):
                     self.biofound_init_body(entry.data["SystemAddress"], bodyid, 0)
                     self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (entry.data["SystemAddress"], bodyid, ))
 
-            self.db.execute("UPDATE data_systems SET fss_complete = 1 WHERE id64 = ? AND cmdr_id = ?", (entry.data["SystemAddress"], self.cmdr_id,))
-
             self.__update_data_wrap(entry)
             self.update_pos()
             self.save_data()
             self.signals_in_system.clear()
 
-        elif event == "SupercruiseExit":
-            self.store_current_system(entry)
-            self.store_current_body(entry, entry.data["Body"])
-        elif event == "ApproachBody":
-            self.store_current_body(entry, entry.data["Body"])
-        elif event in ("Touchdown", "Disembark"):
-            if entry.data["OnPlanet"]:
-                self.store_current_body(entry, entry.data["Body"])
+
+    def yoba_process_entry(self, entry):
+        required_events = [
+            "Commander",
+            "FSDTarget"
+        ]
+
+        event = entry.data["event"]
+        if event not in required_events:
+            return
+
+        if event == "Commander":
+            self.yoba_update_status()
+            self.yoba_update()
+
         elif event == "FSDTarget":
             if self.yoba_calibrating:
                 # sanity check
@@ -1089,6 +1067,79 @@ class BioPatrol(tk.Frame, Module):
                     if boxel_data["finish"] is None or system_id > boxel_data["finish"]:
                         boxel_data["finish"] = system_id
                         self.yoba_update()
+
+
+    def process_entry(self, entry):
+        if self.__live_data:
+            self.last_processed_timestamp = datetime.fromisoformat(entry.data["timestamp"])
+        required_events = [
+            "NewCommander",
+            "Commander",
+            "Scan",
+            "Location",
+            "FSDJump",
+            "SAASignalsFound",
+            "FSSAllBodiesFound",
+            "SupercruiseExit"
+        ]
+        if not self.__live_data:
+            required_events += [
+                "ApproachBody",
+                "Touchdown",
+                "Disembark"
+            ]
+
+        event = entry.data["event"]
+        if event not in required_events:
+            return
+
+        if not self._enabled:       # на случай, если попытка чтения данных завершилась ошибкой
+            return
+
+        if event == "NewCommander":
+            self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, 0)", (entry.data["FID"], entry.data["Name"]))
+
+        elif event == "Commander":
+            c_fid = entry.data["FID"]
+            c_name = entry.data["Name"]
+
+            row = self.db.execute("SELECT id, name, prev_id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
+            if row is None: # no such CMDR
+                self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, 0)", (c_fid, c_name,))
+            elif row[1] != c_name: # changed name
+                self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, ?)", (c_fid, c_name, row[0]))
+
+            row = self.db.execute("SELECT id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
+            self.cmdr_id = row[0]
+
+        elif event == "Scan":
+            self.store_current_system(entry)
+
+        elif event in ("Location", "FSDJump"):
+            self.store_current_system(entry)
+
+            if event == "Location":
+                self.store_current_body(entry, entry.data["Body"])
+
+        elif event == "SAASignalsFound" and entry.data.get("Genuses"):
+            bodyName = entry.data["BodyName"]
+
+            self.store_current_body(entry, bodyName)
+
+        elif event == "FSSAllBodiesFound":
+            self.db.execute("UPDATE data_systems SET fss_complete = 1 WHERE id64 = ? AND cmdr_id = ?", (entry.data["SystemAddress"], self.cmdr_id,))
+
+        elif event == "SupercruiseExit":
+            self.store_current_system(entry)
+            self.store_current_body(entry, entry.data["Body"])
+        elif event == "ApproachBody":
+            self.store_current_body(entry, entry.data["Body"])
+        elif event in ("Touchdown", "Disembark"):
+            if entry.data["OnPlanet"]:
+                self.store_current_body(entry, entry.data["Body"])
+
+        self.biopatrol_process_entry(entry)
+        self.yoba_process_entry(entry)
 
 
     def on_dashboard_entry(self, cmdr, is_beta, entry):
