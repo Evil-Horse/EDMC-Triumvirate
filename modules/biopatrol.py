@@ -706,7 +706,7 @@ class BioPatrol(tk.Frame, Module):
         archived_date = archived.get("timestamp", "1970-01-01")
 
         self.open_predictions()
-        unpacked_date = self.db.execute("SELECT key FROM predictions_metadata WHERE key = 'timestamp'").fetchone()
+        unpacked_date = self.db.execute("SELECT value FROM predictions_metadata WHERE key = 'timestamp'").fetchone()
         if unpacked_date is None:
             unpacked_date = ("1970-01-01",)
 
