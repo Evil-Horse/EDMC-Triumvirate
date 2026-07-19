@@ -1099,6 +1099,7 @@ class BioPatrol(tk.Frame, Module):
             "Location",
             "FSDJump",
             "SAASignalsFound",
+            "FSSBodySignals",
             "FSSAllBodiesFound",
             "SupercruiseExit"
         ]
@@ -1134,6 +1135,7 @@ class BioPatrol(tk.Frame, Module):
 
         elif event == "Scan":
             self.store_current_system(entry)
+            self.store_current_body(entry, entry.data["BodyName"])
 
         elif event in ("Location", "FSDJump"):
             self.store_current_system(entry)
@@ -1145,6 +1147,9 @@ class BioPatrol(tk.Frame, Module):
             bodyName = entry.data["BodyName"]
 
             self.store_current_body(entry, bodyName)
+
+        elif event == "FSSBodySignals":
+            self.store_current_body(entry, entry.data["BodyName"])
 
         elif event == "FSSAllBodiesFound":
             self.db.execute("UPDATE data_systems SET fss_complete = 1 WHERE id64 = ? AND cmdr_id = ?", (entry.data["SystemAddress"], self.cmdr_id,))
