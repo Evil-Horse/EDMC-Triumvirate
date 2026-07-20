@@ -1038,19 +1038,15 @@ class BioPatrol(tk.Frame, Module):
                 bodyid = i[0]
                 planet = i[1]
                 if bodyid not in self.signals_in_system:
-
-                    j = self.db.execute("SELECT biosignals FROM data_planets WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (entry.data["SystemAddress"], bodyid, self.cmdr_id,)).fetchone()
-                    if j is not None:
-                        signalCount = j[0]
-                        if signalCount > 0:
-                            debug(f'>> Keeping {planet}: has {signalCount} signals')
-                            continue
-
+                    signalCount = self.db.execute("SELECT biosignals FROM data_planets WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (entry.data["SystemAddress"], bodyid, self.cmdr_id,)).fetchone()[0]
+                    if signalCount is None:
+                        debug(f'>> Removing {planet}: has no signals')
+                        self.biofound_init_body(entry.data["SystemAddress"], bodyid, 0)
+                        self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (entry.data["SystemAddress"], bodyid, ))
+                    elif signalCount == 0:
                         debug(f'>> Removing {planet}: known to have no signals')
-
-                    debug(f'>> Removing {planet}: has no signals')
-                    self.biofound_init_body(entry.data["SystemAddress"], bodyid, 0)
-                    self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (entry.data["SystemAddress"], bodyid, ))
+                    else:
+                        debug(f'>> Keeping {planet}: has {signalCount} signals')
 
             self.__update_data_wrap(entry)
             self.update_pos()
