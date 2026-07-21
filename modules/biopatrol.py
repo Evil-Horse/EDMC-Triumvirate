@@ -1278,12 +1278,20 @@ class BioPatrol(tk.Frame, Module):
 
 
     def __update_data(self, entry: JournalEntry):
-        current_coords = entry.coords
-        if None in [entry.coords.x, entry.coords.y, entry.coords.z] and "StarPos" in entry.data:
-            starpos = entry.data["StarPos"]
-            current_coords = Coords(starpos[0], starpos[1], starpos[2])
+        current_coords = None
+        if None in [entry.coords.x, entry.coords.y, entry.coords.z]:
+            # couldn't fetch anything
+            if "StarPos" in entry.data:
+                starpos = entry.data["StarPos"]
+                current_coords = Coords(starpos[0], starpos[1], starpos[2])
+            else:
+                current_coords = None
+        else:
+            current_coords = entry.coords
+
         self.current_coords = current_coords
-        self.__update_data_coords(self.current_coords)
+        if self.current_coords:
+            self.__update_data_coords(self.current_coords)
 
 
     def __update_data_coords(self, current_coords: Coords):
