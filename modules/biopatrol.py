@@ -485,7 +485,6 @@ class BioPatrol(tk.Frame, Module):
         self.pinned_bio: str = None
         self.cmdr = None
         # dict: (id64, bodyId) -> bodyName
-        self.signals_in_system = {}
         self.__live_data = False
         self.__yoba_window: YobaWindow = None
         self.cmdr_id = None
@@ -626,38 +625,84 @@ class BioPatrol(tk.Frame, Module):
         ''')
         self.db.execute('''
         CREATE TABLE IF NOT EXISTS data_systems (
-            id64 INT NOT NULL,
+            id64 INT PRIMARY KEY,
             name TEXT NOT NULL,
-            cmdr_id INT NOT NULL,
+            x FLOAT NOT NULL,
+            y FLOAT NOT NULL,
+            z FLOAT NOT NULL,
             procgen_sector_id INT NOT NULL,
             procgen_masscode_id INT NOT NULL,
             procgen_boxel_id INT NOT NULL,
-            procgen_system_id INT NOT NULL,
-            fss_complete INT DEFAULT 0,
+            procgen_system_id INT NOT NULL
+        )
+        ''')
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_fss (
+            id64 INT NOT NULL,
+            cmdr_id INT NOT NULL,
+            body_count INT NOT NULL,
             PRIMARY KEY (id64, cmdr_id),
+            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE,
             FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
         self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_planets (
-            system_id64 INT NOT NULL,
-            bodyid INT NOT NULL,
-            name TEXT NOT NULL,
+        CREATE TABLE IF NOT EXISTS data_fss_completed (
+            id64 INT NOT NULL,
             cmdr_id INT NOT NULL,
-            biosignals INT DEFAULT NULL,
-            PRIMARY KEY (system_id64, bodyid, cmdr_id),
-            FOREIGN KEY (system_id64, cmdr_id) REFERENCES data_systems(id64, cmdr_id) ON DELETE CASCADE
+            PRIMARY KEY (id64, cmdr_id),
+            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE,
+            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
         self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_bios (
+        CREATE TABLE IF NOT EXISTS data_bodies (
             system_id64 INT NOT NULL,
             bodyid INT NOT NULL,
-            genus TEXT NOT NULL,
-            species TEXT,
+            name TEXT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid),
+            FOREIGN KEY (system_id64) REFERENCES data_systems(id64) ON DELETE CASCADE
+        )
+        ''')
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_body_fss_signals (
+            system_id64 INT NOT NULL,
+            bodyid INT NOT NULL,
+            type TEXT NOT NULL,
+            count INT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, type),
+            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE
+        )
+        ''')
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_body_bio_signals (
+            system_id64 INT NOT NULL,
+            bodyid INT NOT NULL,
+            signal TEXT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, signal),
+            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE
+        )
+        ''')
+        self.db.execute('''
+            CREATE TABLE IF NOT EXISTS data_bios (
+            system_id64 INT NOT NULL,
+            bodyid INT NOT NULL,
+            signal TEXT NOT NULL,
+            species TEXT NOT NULL,
             cmdr_id INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, genus, cmdr_id),
-            FOREIGN KEY (system_id64, bodyid, cmdr_id) REFERENCES data_planets(system_id64, bodyid, cmdr_id) ON DELETE CASCADE
+            PRIMARY KEY (system_id64, bodyid, signal, cmdr_id),
+            FOREIGN KEY (system_id64, bodyid, signal) REFERENCES data_body_bio_signals(system_id64, bodyid, signal) ON DELETE CASCADE,
+            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
+        )
+        ''')
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_dss_completed (
+            system_id64 INT NOT NULL,
+            bodyid INT NOT NULL,
+            cmdr_id INT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, cmdr_id),
+            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
+            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
 
@@ -722,23 +767,20 @@ class BioPatrol(tk.Frame, Module):
     def cleanup_predictions(self):
         self.set_status(f"Отфильтровываем находки КМДР...")
 
-        for i in self.db.execute("SELECT system_id64, bodyid, name FROM data_planets GROUP BY system_id64, bodyid"):
-            system_id64 = i[0]
-            bodyid = i[1]
-            planet = i[2]
+        for i in self.db.execute("SELECT signal, species, system_id64, bodyid, cmdr_id FROM data_bios"):
+            self.process_genus_bio(i[0], i[1], i[2], i[3], i[4])
 
-            actual_genuses = set()
-            for j in self.db.execute("SELECT genus, species, cmdr_id FROM data_bios WHERE system_id64 = ? AND bodyid = ?", (system_id64, bodyid,)):
-                genus = j[0]
-                signal = j[1]
-                cmdr_id = j[2]
+        for i in self.db.execute("SELECT system_id64, bodyid, count FROM data_body_fss_signals WHERE type = '$SAA_SignalType_Biological;'"):
+            system = i[0]
+            body = i[1]
+            bio_count = i[2]
 
-                if signal is not None:
-                    self.process_genus_bio(genus, signal, system_id64, bodyid, cmdr_id)
+            bio_signals = set()
+            for j in self.db.execute("SELECT system_id64, bodyid, signal FROM data_body_bio_signals WHERE system_id64 = ? AND bodyid = ?", (system, body, )):
+                bio_signals.add(j[2])
 
-                actual_genuses.add(genus)
-
-            self.filter_predictions_after_dss(system_id64, bodyid, actual_genuses)
+            if len(bio_signals) == bio_count:
+                self.filter_predictions_after_dss(system, body, bio_signals)
 
 
     def load_data(self):
@@ -823,7 +865,7 @@ class BioPatrol(tk.Frame, Module):
         if cmdr_id is None:
             cmdr_id = self.cmdr_id
 
-        planet = self.get_current_body(system_id64, bodyid, cmdr_id)
+        planet = self.get_current_body(system_id64, bodyid)
 
         # sanity check
         for codex_name, english_name in codex_to_english_variants.items():
@@ -865,8 +907,8 @@ class BioPatrol(tk.Frame, Module):
         # all signals has been found
         signals_found = self.db.execute("SELECT COUNT(DISTINCT(species)) FROM data_bios WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ? AND species IS NOT NULL", (system_id64, bodyid, cmdr_id, )).fetchone()[0]
 
-        signals_count = self.db.execute("SELECT biosignals FROM data_planets WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (system_id64, bodyid, cmdr_id, )).fetchone()[0]
-        if signals_found == signals_count:
+        signals_count = self.db.execute("SELECT count FROM data_body_fss_signals WHERE system_id64 = ? AND bodyid = ? AND type = '$SAA_SignalType_Biological;'", (system_id64, bodyid, )).fetchone()
+        if signals_count is not None and signals_found == signals_count:
             self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (system_id64, bodyid, ))
 
         # don't update ui on EDMC startup
@@ -881,32 +923,8 @@ class BioPatrol(tk.Frame, Module):
         self.db.execute("UPDATE predictions_data SET priority = 2 WHERE priority = 3 AND species = ? AND region != ?", (bioname, region, ))
 
 
-    def biofound_init_body(self, system_id64, bodyid, signal_count=None):
-        self.db.execute("UPDATE data_planets SET biosignals = ? WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (signal_count, system_id64, bodyid, self.cmdr_id, ))
-
-
-    def biofound_set_genuses(self, system_id64, bodyid, genuses):
-        for i in genuses:
-            self.biofound_add_genus(system_id64, bodyid, i)
-
-
-    def biofound_add_genus(self, system_id64, bodyid, genus):
-        self.db.execute('''
-            INSERT OR IGNORE INTO
-                data_bios
-            (system_id64, bodyid, genus, cmdr_id)
-                VALUES
-            (?, ?, ?, ?)''', (system_id64, bodyid, genus, self.cmdr_id))
-
-
-    def biofound_add_signal(self, system_id64, bodyid, signal):
-        genus = signal.split()[0]
-        self.biofound_add_genus(system_id64, bodyid, genus)
-        self.db.execute("UPDATE data_bios SET species = ? WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ? AND genus = ?", (signal, system_id64, bodyid, self.cmdr_id, genus))
-
-
-    def get_current_body(self, system_id64, bodyid, cmdr_id):
-        res = self.db.execute("SELECT name FROM data_planets WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (system_id64, bodyid, cmdr_id)).fetchone()
+    def get_current_body(self, system_id64, bodyid):
+        res = self.db.execute("SELECT name FROM data_bodies WHERE system_id64 = ? AND bodyid = ?", (system_id64, bodyid, )).fetchone()
         return None if res is None else res[0]
 
     def get_system(self, id64, cmdr_id):
@@ -924,20 +942,20 @@ class BioPatrol(tk.Frame, Module):
         self.db.execute('''
             INSERT OR IGNORE INTO
                 data_systems
-            (id64, name, cmdr_id, procgen_sector_id, procgen_masscode_id, procgen_boxel_id, procgen_system_id)
+            (id64, name, x, y, z, procgen_sector_id, procgen_masscode_id, procgen_boxel_id, procgen_system_id)
                 VALUES
-            (?, ?, ?, ?, ?, ?, ?)
-        ''', (entry.data["SystemAddress"], entry.data["StarSystem"], self.cmdr_id, sector_id, masscode_id, boxel_id, system_id,))
+            (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (entry.data["SystemAddress"], entry.data["StarSystem"], entry.data["StarPos"][0], entry.data["StarPos"][1], entry.data["StarPos"][2], sector_id, masscode_id, boxel_id, system_id, ))
 
 
     def store_current_body(self, entry, name):
         self.db.execute('''
             INSERT OR IGNORE INTO
-                data_planets
-            (system_id64, bodyid, name, cmdr_id)
+                data_bodies
+            (system_id64, bodyid, name)
                 VALUES
-            (?, ?, ?, ?)
-        ''', (entry.data["SystemAddress"], entry.data["BodyID"], name, self.cmdr_id))
+            (?, ?, ?)
+        ''', (entry.data["SystemAddress"], entry.data["BodyID"], name))
 
 
     def on_historic_entry(self, entry: BioPatrolJournalEntry):
@@ -968,7 +986,7 @@ class BioPatrol(tk.Frame, Module):
             self.__update_data_wrap(entry)
 
         elif event == "ScanOrganic":
-            body = self.get_current_body(entry.data["SystemAddress"], entry.data["Body"], self.cmdr_id)
+            body = self.get_current_body(entry.data["SystemAddress"], entry.data["Body"])
 
             genus = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
             if "Variant" not in entry.data:
@@ -977,9 +995,6 @@ class BioPatrol(tk.Frame, Module):
             bioname = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
             if self.__live_data:
                 self.set_status(f"Scanned {bioname} at {body}")
-
-            self.biofound_init_body(entry.data["SystemAddress"], entry.data["Body"])
-            self.biofound_add_signal(entry.data["SystemAddress"], entry.data["Body"], bioname)
 
             # update data
             self.process_genus_bio(genus, bioname, entry.data["SystemAddress"], entry.data["Body"], report=True)
@@ -1017,41 +1032,30 @@ class BioPatrol(tk.Frame, Module):
         elif event == "SAASignalsFound" and entry.data.get("Genuses"):
             genuses = [codex_to_english_genuses.get(i["Genus"], i["Genus"]) for i in entry.data["Genuses"]]
 
-            self.biofound_init_body(entry.data["SystemAddress"], entry.data["BodyID"], len(genuses))
-            self.biofound_set_genuses(entry.data["SystemAddress"], entry.data["BodyID"], genuses)
-
             self.filter_predictions_after_dss(entry.data["SystemAddress"], entry.data["BodyID"], genuses)
 
             self.__update_data_wrap(entry)
             self.update_pos()
             self.save_data()
 
-        elif event == "FSSBodySignals":
-            name = entry.data["BodyName"]
-            for signal in entry.data.get("Signals", []):
-                if signal["Type"] == "$SAA_SignalType_Biological;":
-                    self.signals_in_system[name] = signal["Count"]
-                    self.biofound_init_body(entry.data["SystemAddress"], entry.data["BodyID"], signal["Count"])
-
         elif event == "FSSAllBodiesFound":
+            # TODO do not remove signals on autoscanned planets
             for i in self.db.execute("SELECT DISTINCT bodyid, body FROM predictions_data WHERE system_id64 = ?", (entry.data["SystemAddress"], )):
                 bodyid = i[0]
                 planet = i[1]
-                if bodyid not in self.signals_in_system:
-                    signalCount = self.db.execute("SELECT biosignals FROM data_planets WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (entry.data["SystemAddress"], bodyid, self.cmdr_id,)).fetchone()[0]
-                    if signalCount is None:
-                        debug(f'>> Removing {planet}: has no signals')
-                        self.biofound_init_body(entry.data["SystemAddress"], bodyid, 0)
-                        self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (entry.data["SystemAddress"], bodyid, ))
-                    elif signalCount == 0:
-                        debug(f'>> Removing {planet}: known to have no signals')
-                    else:
-                        debug(f'>> Keeping {planet}: has {signalCount} signals')
+
+                signalCount = self.db.execute("SELECT count FROM data_body_fss_signals WHERE system_id64 = ? AND bodyid = ? AND type = '$SAA_SignalType_Biological;'", ((entry.data["SystemAddress"], bodyid, ))).fetchone()
+                if signalCount is None:
+                    debug(f'>> Removing {planet}: has no signals')
+                    self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (entry.data["SystemAddress"], bodyid, ))
+                elif signalCount[0] == 0:
+                    debug(f'>> Removing {planet}: known to have no signals')
+                else:
+                    debug(f'>> Keeping {planet}: has {signalCount[0]} signals')
 
             self.__update_data_wrap(entry)
             self.update_pos()
             self.save_data()
-            self.signals_in_system.clear()
 
 
     def yoba_process_entry(self, entry):
@@ -1089,22 +1093,34 @@ class BioPatrol(tk.Frame, Module):
         if self.__live_data:
             self.last_processed_timestamp = datetime.fromisoformat(entry.data["timestamp"])
         required_events = [
+            # cmdr
             "NewCommander",
             "Commander",
-            "Scan",
+
+            # systems
             "Location",
             "FSDJump",
-            "SAASignalsFound",
+            "CarrierJump",
+
+            # system, fss
+            "FSSDiscoveryScan",
+
+            # bodies, fss
+            "Scan",
             "FSSBodySignals",
+
+            # system, fss done
             "FSSAllBodiesFound",
-            "SupercruiseExit"
+
+            # bodies, dss
+            "SAASignalsFound",
+
+            # biological event
+            "ScanOrganic",
+
+            # bodies, misc
+            "Disembark"
         ]
-        if not self.__live_data:
-            required_events += [
-                "ApproachBody",
-                "Touchdown",
-                "Disembark"
-            ]
 
         event = entry.data["event"]
         if event not in required_events:
@@ -1129,35 +1145,72 @@ class BioPatrol(tk.Frame, Module):
             row = self.db.execute("SELECT id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
             self.cmdr_id = row[0]
 
+        elif event in ("Location", "FSDJump", "CarrierJump"):
+            self.store_current_system(entry)
+
+        elif event == "FSSDiscoveryScan":
+            try:
+                self.db.execute("INSERT OR IGNORE INTO data_fss (id64, cmdr_id, body_count) VALUES (?, ?, ?)", (entry.data["SystemAddress"], self.cmdr_id, entry.data["BodyCount"], ))
+            except sqlite3.IntegrityError:
+                # We don't know system coordinates if we're in Multi-Crew, skip this event
+                debug(f"System {entry.data["SystemName"]} (id {entry.data["SystemAddress"]}): FSSDiscoveryScan was in Multi-Crew")
+
         elif event == "Scan":
-            self.store_current_system(entry)
-            self.store_current_body(entry, entry.data["BodyName"])
-
-        elif event in ("Location", "FSDJump"):
-            self.store_current_system(entry)
-
-            if event == "Location":
-                self.store_current_body(entry, entry.data["Body"])
-
-        elif event == "SAASignalsFound" and entry.data.get("Genuses"):
-            bodyName = entry.data["BodyName"]
-
-            self.store_current_body(entry, bodyName)
+            try:
+                self.store_current_body(entry, entry.data["BodyName"])
+            except sqlite3.IntegrityError:
+                # We don't know system coordinates if we're in Multi-Crew, skip this event
+                debug(f"Body {entry.data["BodyName"]} in system {entry.data["StarSystem"]} (id {entry.data["SystemAddress"]}/{entry.data["BodyID"]}): Scan was in Multi-Crew")
 
         elif event == "FSSBodySignals":
-            self.store_current_body(entry, entry.data["BodyName"])
+            # this event comes BEFORE "Scan", for Braben reasons
+            try:
+                self.store_current_body(entry, entry.data["BodyName"])
+                for i in entry.data["Signals"]:
+                    self.db.execute("INSERT OR IGNORE INTO data_body_fss_signals (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"]))
+            except sqlite3.IntegrityError:
+                # We don't know system coordinates if we're in Multi-Crew, skip this event
+                debug(f"Body {entry.data["BodyName"]} (id {entry.data["SystemAddress"]}/{entry.data["BodyID"]}): FSSBodySignals was in Multi-Crew")
 
         elif event == "FSSAllBodiesFound":
-            self.db.execute("UPDATE data_systems SET fss_complete = 1 WHERE id64 = ? AND cmdr_id = ?", (entry.data["SystemAddress"], self.cmdr_id,))
+            try:
+                self.db.execute("INSERT OR IGNORE INTO data_fss_completed (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
+            except sqlite3.IntegrityError:
+                # We don't know system coordinates if we're in Multi-Crew, skip this event
+                debug(f"System {entry.data["SystemName"]} (id {entry.data["SystemAddress"]}): FSSAllBodiesFound was in Multi-Crew")
 
-        elif event == "SupercruiseExit":
-            self.store_current_system(entry)
+        elif event == "SAAScanComplete":
+            self.db.execute("INSERT OR IGNORE INTO data_dss_completed (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+
+        elif event == "SAASignalsFound":
+            # this event comes BEFORE "Scan", for Braben reasons
+            try:
+                self.store_current_body(entry, entry.data["BodyName"])
+
+                # spare event, in case if body was autoscanned
+                for i in entry.data["Signals"]:
+                    self.db.execute("INSERT OR IGNORE INTO data_body_fss_signals (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"]))
+
+                for i in entry.data.get("Genuses", []):
+                    signal = codex_to_english_genuses.get(i["Genus"], i["Genus"])
+                    self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, ))
+            except sqlite3.IntegrityError:
+                # We don't know system coordinates if we're in Multi-Crew, skip this event
+                debug(f"Body {entry.data["BodyName"]} (id {entry.data["SystemAddress"]}/{entry.data["BodyID"]}): SAASignalsFound was in Multi-Crew")
+
+        elif event == "ScanOrganic":
+            if "Variant" in entry.data:
+                signal = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
+                species = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
+
+                # in case we skipped DSS
+                self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, ))
+
+                self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
+
+        elif event == "Disembark":
+            # this is in case when body is already known (Bubble?)
             self.store_current_body(entry, entry.data["Body"])
-        elif event == "ApproachBody":
-            self.store_current_body(entry, entry.data["Body"])
-        elif event in ("Touchdown", "Disembark"):
-            if entry.data["OnPlanet"]:
-                self.store_current_body(entry, entry.data["Body"])
 
         self.biopatrol_process_entry(entry)
         self.yoba_process_entry(entry)
