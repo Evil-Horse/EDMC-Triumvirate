@@ -627,13 +627,19 @@ class BioPatrol(tk.Frame, Module):
         CREATE TABLE IF NOT EXISTS data_systems (
             id64 INT PRIMARY KEY,
             name TEXT NOT NULL,
-            x FLOAT NOT NULL,
-            y FLOAT NOT NULL,
-            z FLOAT NOT NULL,
             procgen_sector_id INT NOT NULL,
             procgen_masscode_id INT NOT NULL,
             procgen_boxel_id INT NOT NULL,
             procgen_system_id INT NOT NULL
+        )
+        ''')
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_systems_coordinates (
+            id64 INT PRIMARY KEY,
+            x FLOAT NOT NULL,
+            y FLOAT NOT NULL,
+            z FLOAT NOT NULL,
+            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE
         )
         ''')
         self.db.execute('''
@@ -944,18 +950,27 @@ class BioPatrol(tk.Frame, Module):
         else:
             return row.fetchone()[0]
 
-    def store_current_system(self, entry):
+    def store_current_system(self, id64, name):
         # store some procgen data
-        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(entry.data["SystemAddress"])
-        self.current_system_id64 = entry.data["SystemAddress"]
-
+        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(id64)
+        self.current_system_id64 = id64
         self.db.execute('''
             INSERT OR IGNORE INTO
                 data_systems
-            (id64, name, x, y, z, procgen_sector_id, procgen_masscode_id, procgen_boxel_id, procgen_system_id)
+            (id64, name, procgen_sector_id, procgen_masscode_id, procgen_boxel_id, procgen_system_id)
                 VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (entry.data["SystemAddress"], entry.data["StarSystem"], entry.data["StarPos"][0], entry.data["StarPos"][1], entry.data["StarPos"][2], sector_id, masscode_id, boxel_id, system_id, ))
+            (?, ?, ?, ?, ?, ?)
+        ''', (id64, name, sector_id, masscode_id, boxel_id, system_id, ))
+
+
+    def store_system_coords(self, entry):
+        self.db.execute('''
+            INSERT OR IGNORE INTO
+                data_systems_coordinates
+            (id64, x, y, z)
+                VALUES
+            (?, ?, ?, ?)
+        ''', (entry.data["SystemAddress"], entry.data["StarPos"][0], entry.data["StarPos"][1], entry.data["StarPos"][2], ))
 
 
     def store_current_body(self, entry, name):
@@ -1160,45 +1175,36 @@ class BioPatrol(tk.Frame, Module):
             self.cmdr_id = row[0]
 
         elif event in ("Location", "FSDJump", "CarrierJump"):
-            self.store_current_system(entry)
+            self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
+            self.store_system_coords(entry)
 
         elif event == "FSSDiscoveryScan":
-            try:
-                self.db.execute("INSERT OR IGNORE INTO data_fss (id64, cmdr_id, body_count) VALUES (?, ?, ?)", (entry.data["SystemAddress"], self.cmdr_id, entry.data["BodyCount"], ))
-            except sqlite3.IntegrityError:
-                # We don't know system coordinates if we're in Multi-Crew, skip this event
-                debug(f"System {entry.data["SystemName"]} (id {entry.data["SystemAddress"]}): FSSDiscoveryScan was in Multi-Crew")
+            debug(entry.data)
+            self.store_current_system(entry.data["SystemAddress"], entry.data["SystemName"])
+
+            self.db.execute("INSERT OR IGNORE INTO data_fss (id64, cmdr_id, body_count) VALUES (?, ?, ?)", (entry.data["SystemAddress"], self.cmdr_id, entry.data["BodyCount"], ))
 
         elif event == "Scan":
-            try:
-                self.store_current_body(entry, entry.data["BodyName"])
+            self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
 
-                # mark body as scanned
-                if entry.data["ScanType"] in ('Detailed'):
-                    self.db.execute("INSERT OR IGNORE INTO data_fss_completed_bodies (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
-            except sqlite3.IntegrityError:
-                # We don't know system coordinates if we're in Multi-Crew, skip this event
-                debug(f"Body {entry.data["BodyName"]} in system {entry.data["StarSystem"]} (id {entry.data["SystemAddress"]}/{entry.data["BodyID"]}): Scan was in Multi-Crew")
+            self.store_current_body(entry, entry.data["BodyName"])
+
+            # mark body as scanned
+            if entry.data["ScanType"] in ('Detailed'):
+                self.db.execute("INSERT OR IGNORE INTO data_fss_completed_bodies (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "FSSBodySignals":
             # this event comes BEFORE "Scan", for Braben reasons
-            try:
-                self.store_current_body(entry, entry.data["BodyName"])
-                for i in entry.data["Signals"]:
-                    self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"]))
+            self.store_current_body(entry, entry.data["BodyName"])
 
-                # mark body as scanned
-                self.db.execute("INSERT OR IGNORE INTO data_fss_completed_bodies (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
-            except sqlite3.IntegrityError:
-                # We don't know system coordinates if we're in Multi-Crew, skip this event
-                debug(f"Body {entry.data["BodyName"]} (id {entry.data["SystemAddress"]}/{entry.data["BodyID"]}): FSSBodySignals was in Multi-Crew")
+            for i in entry.data["Signals"]:
+                self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"]))
+
+            # mark body as scanned
+            self.db.execute("INSERT OR IGNORE INTO data_fss_completed_bodies (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "FSSAllBodiesFound":
-            try:
-                self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
-            except sqlite3.IntegrityError:
-                # We don't know system coordinates if we're in Multi-Crew, skip this event
-                debug(f"System {entry.data["SystemName"]} (id {entry.data["SystemAddress"]}): FSSAllBodiesFound was in Multi-Crew")
+            self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
 
         elif event == "SAAScanComplete":
             self.db.execute("INSERT OR IGNORE INTO data_dss_completed (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
