@@ -946,8 +946,8 @@ class BioPatrol(tk.Frame, Module):
         res = self.db.execute("SELECT name FROM data_bodies WHERE system_id64 = ? AND bodyid = ?", (system_id64, bodyid, )).fetchone()
         return None if res is None else res[0]
 
-    def get_system(self, id64, cmdr_id):
-        row = self.db.execute("SELECT name FROM data_systems WHERE id64 = ? AND cmdr_id = ?", (id64, cmdr_id,))
+    def get_system(self, id64):
+        row = self.db.execute("SELECT name FROM data_systems WHERE id64 = ?", (id64, ))
         if row is None:
             return None
         else:
@@ -1037,7 +1037,7 @@ class BioPatrol(tk.Frame, Module):
             if entry.data["SubCategory"] != "$Codex_SubCategory_Organic_Structures;":
                 return
 
-            body = self.get_current_body(entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id)
+            body = self.get_current_body(entry.data["SystemAddress"], entry.data["BodyID"])
 
             bioname = codex_to_english_variants.get(entry.data["Name"], entry.data["Name"])
             region = codex_to_english_regions.get(entry.data["Region"], entry.data["Region"])
@@ -1046,9 +1046,6 @@ class BioPatrol(tk.Frame, Module):
             genus = bioname.split()[0]
             if self.__live_data:
                 self.set_status(f"Scanned {bioname} at {body}")
-
-            self.biofound_init_body(entry.data["SystemAddress"], entry.data["BodyID"])
-            self.biofound_add_signal(entry.data["SystemAddress"], entry.data["BodyID"], bioname)
 
             # update data
             self.process_genus_bio(genus, bioname, entry.data["SystemAddress"], entry.data["BodyID"], report=True, entry_region=region)
@@ -1832,7 +1829,7 @@ class BioPatrol(tk.Frame, Module):
         sector_id, masscode_id, boxel_id, system_id, _ = split_ids(self.current_system_id64)
         system_data = {
             "id64" : self.current_system_id64,
-            "name" : self.get_system(self.current_system_id64, self.cmdr_id),
+            "name" : self.get_system(self.current_system_id64),
             "pgname" : get_procgen_name(sector_id, masscode_id, boxel_id, system_id)
         }
 
