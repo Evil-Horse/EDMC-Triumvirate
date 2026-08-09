@@ -686,8 +686,10 @@ class BioPatrol(tk.Frame, Module):
             bodyid INT NOT NULL,
             type TEXT NOT NULL,
             count INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, type),
-            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE
+            cmdr_id INT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, type, cmdr_id),
+            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
+            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
         self.db.execute('''
@@ -695,8 +697,10 @@ class BioPatrol(tk.Frame, Module):
             system_id64 INT NOT NULL,
             bodyid INT NOT NULL,
             signal TEXT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, signal),
-            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE
+            cmdr_id INT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, signal, cmdr_id),
+            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
+            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
         self.db.execute('''
@@ -707,8 +711,7 @@ class BioPatrol(tk.Frame, Module):
             species TEXT NOT NULL,
             cmdr_id INT NOT NULL,
             PRIMARY KEY (system_id64, bodyid, signal, cmdr_id),
-            FOREIGN KEY (system_id64, bodyid, signal) REFERENCES data_body_bio_signals(system_id64, bodyid, signal) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
+            FOREIGN KEY (system_id64, bodyid, signal, cmdr_id) REFERENCES data_body_bio_signals(system_id64, bodyid, signal, cmdr_id) ON DELETE CASCADE
         )
         ''')
         self.db.execute('''
@@ -1231,7 +1234,7 @@ class BioPatrol(tk.Frame, Module):
                 species = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
 
                 # in case we skipped DSS
-                self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, ))
+                self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, self.cmdr_id, ))
 
                 self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
 
