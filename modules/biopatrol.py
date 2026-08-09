@@ -1142,6 +1142,7 @@ class BioPatrol(tk.Frame, Module):
             "FSSAllBodiesFound",
 
             # bodies, dss
+            "SAAScanComplete",
             "SAASignalsFound",
 
             # biological event
@@ -1205,7 +1206,7 @@ class BioPatrol(tk.Frame, Module):
             self.store_current_body(entry, entry.data["BodyName"])
 
             for i in entry.data["Signals"]:
-                self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"]))
+                self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], self.cmdr_id, ))
 
             # mark body as scanned
             self.db.execute("INSERT OR IGNORE INTO data_fss_completed_bodies (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
@@ -1214,7 +1215,10 @@ class BioPatrol(tk.Frame, Module):
             self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
 
         elif event == "SAAScanComplete":
-            self.db.execute("INSERT OR IGNORE INTO data_dss_completed (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+            # this event comes BEFORE "Scan", for Braben reasons
+            self.store_current_body(entry, entry.data["BodyName"])
+
+            self.db.execute("INSERT OR IGNORE INTO data_dss_completed (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "SAASignalsFound":
             # this event comes BEFORE "Scan", for Braben reasons
@@ -1223,11 +1227,11 @@ class BioPatrol(tk.Frame, Module):
 
                 # spare event, in case if body was autoscanned
                 for i in entry.data["Signals"]:
-                    self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"]))
+                    self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], self.cmdr_id))
 
                 for i in entry.data.get("Genuses", []):
                     signal = codex_to_english_genuses.get(i["Genus"], i["Genus"])
-                    self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, ))
+                    self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, self.cmdr_id, ))
             except sqlite3.IntegrityError:
                 # We don't know system coordinates if we're in Multi-Crew, skip this event
                 debug(f"Body {entry.data["BodyName"]} (id {entry.data["SystemAddress"]}/{entry.data["BodyID"]}): SAASignalsFound was in Multi-Crew")
@@ -1688,18 +1692,114 @@ class BioPatrol(tk.Frame, Module):
             self.__yoba_stop_var.set(f"Боксель {self.yoba_current_boxel}")
 
             # getting systems
-            known_systems = set()
-            scanned_systems = set()
-            for row in self.db.execute("SELECT procgen_system_id, fss_complete FROM data_systems WHERE procgen_sector_id = ? AND procgen_masscode_id = ? AND procgen_boxel_id = ? AND cmdr_id = ?",
-                                            (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], self.cmdr_id)):
-                known_systems.add(row[0])
-                if row[1] == 1:
-                    scanned_systems.add(row[0])
+            knowledge_levels = {}
+            for i in range(start, finish + 1):
+                knowledge_levels[i] = 0
+
+                fss_count = self.db.execute('''
+                SELECT data_fss.body_count
+                FROM data_systems
+                INNER JOIN data_fss ON data_fss.id64 = data_systems.id64
+                WHERE procgen_sector_id = ?
+                  AND procgen_masscode_id = ?
+                  AND procgen_boxel_id = ?
+                  AND procgen_system_id = ?
+                  AND data_fss.cmdr_id = ?
+                ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )).fetchone()
+                if fss_count is None:
+                    continue
+
+                # there was HONK, knowledge level 1
+                knowledge_levels[i] = 1
+
+                fss_complete = self.db.execute('''
+                SELECT data_systems.id64
+                FROM data_systems
+                INNER JOIN data_fss_completed_systems ON data_fss_completed_systems.id64 = data_systems.id64
+                WHERE procgen_sector_id = ?
+                  AND procgen_masscode_id = ?
+                  AND procgen_boxel_id = ?
+                  AND procgen_system_id = ?
+                  AND data_fss_completed_systems.cmdr_id = ?
+                ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )).fetchone()
+                if fss_complete is None:
+                    continue
+
+                # system fully FSS'ed, knowledge level 2
+                knowledge_levels[i] = 2
+
+                for j in self.db.execute('''
+                SELECT
+                    data_fss_body_signals.system_id64,
+                    data_fss_body_signals.bodyid,
+                    data_fss_body_signals.cmdr_id,
+                    data_bodies.name,
+                    data_fss_body_signals.type,
+                    data_fss_body_signals.count AS fss_count,
+                    COUNT(data_body_bio_signals.signal) AS dss_count
+                FROM data_bodies
+                INNER JOIN data_systems ON data_bodies.system_id64 = data_systems.id64
+                INNER JOIN
+                    data_fss_body_signals
+                 ON data_bodies.system_id64 = data_fss_body_signals.system_id64
+                AND data_bodies.bodyid = data_fss_body_signals.bodyid
+                LEFT JOIN
+                    data_body_bio_signals
+                 ON data_bodies.system_id64 = data_body_bio_signals.system_id64
+                AND data_bodies.bodyid = data_body_bio_signals.bodyid
+                AND data_fss_body_signals.cmdr_id = data_body_bio_signals.cmdr_id
+                WHERE data_fss_body_signals.type = '$SAA_SignalType_Biological;'
+                  AND procgen_sector_id = ?
+                  AND procgen_masscode_id = ?
+                  AND procgen_boxel_id = ?
+                  AND procgen_system_id = ?
+                  AND data_fss_body_signals.cmdr_id = ?
+                GROUP BY data_body_bio_signals.system_id64, data_body_bio_signals.bodyid, data_body_bio_signals.cmdr_id
+                ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )):
+                    fss_bio_count = j[5]
+                    dss_bio_count = j[6]
+
+                    if fss_bio_count != dss_bio_count:
+                        break
+                else:
+                    knowledge_levels[i] = 3
+
+                for j in self.db.execute('''
+                SELECT
+                    data_bodies.system_id64,
+                    data_bodies.bodyid,
+                    data_bodies.name,
+                    data_body_bio_signals.signal,
+                    data_bios.species
+                FROM data_bodies
+                INNER JOIN data_systems ON data_bodies.system_id64 = data_systems.id64
+                INNER JOIN
+                    data_body_bio_signals
+                 ON data_bodies.system_id64 = data_body_bio_signals.system_id64
+                AND data_bodies.bodyid = data_body_bio_signals.bodyid
+                LEFT JOIN
+                    data_bios
+                 ON data_body_bio_signals.system_id64 = data_bios.system_id64
+                AND data_body_bio_signals.bodyid = data_bios.bodyid
+                AND data_body_bio_signals.signal = data_bios.signal
+                WHERE procgen_sector_id = ?
+                  AND procgen_masscode_id = ?
+                  AND procgen_boxel_id = ?
+                  AND procgen_system_id = ?
+                  AND data_bios.cmdr_id = ?
+                ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )):
+                    signal = j[3]
+                    species = j[4]
+
+                    if species is None:
+                        break
+                else:
+                    knowledge_levels[i] = 4
 
             first_unknown = None
-            for i in range(start, finish + 1):
-                if i not in scanned_systems:
-                    first_unknown = i
+            for system in sorted(knowledge_levels):
+                if knowledge_levels[system] != 4:
+                    first_unknown = system
                     break
             else:
                 self.yoba_skip_boxel()
@@ -1718,21 +1818,27 @@ class BioPatrol(tk.Frame, Module):
                     continue
 
                 if i == first_unknown:
-                    boxelmap_string += "▲"
+                    boxelmap_string += "▼"
                     continue
 
-                if i not in known_systems:
+                if knowledge_levels[i] == 0:
                     boxelmap_string += "█" # not visited, fully shaded block
-                elif i not in scanned_systems:
-                    boxelmap_string += "▓" # visited but unscanned, dark shade
-                else:
-                    boxelmap_string += "▒" # scanned, medium shade
+                elif knowledge_levels[i] == 1:
+                    boxelmap_string += "▓" # not FSS'ed, dark shade
+                elif knowledge_levels[i] == 2:
+                    boxelmap_string += "▒" # not DSS'ed, medium shade
+                elif knowledge_levels[i] == 3:
+                    boxelmap_string += "░" # biosignals not collected, light shade
+                elif knowledge_levels[i] == 4:
+                    boxelmap_string += " " # fully scanned, space
 
             if boxelmap_ellipsis_1:
                 boxelmap_string = f"…{boxelmap_string}"
 
             if boxelmap_ellipsis_2:
                 boxelmap_string = f"{boxelmap_string}…"
+
+
             self.__yoba_boxel_var.set(f'{start} [{boxelmap_string}] {finish}')
             self.__yoba_next_system_var.set(f'{get_procgen_name(boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], first_unknown)}')
 
