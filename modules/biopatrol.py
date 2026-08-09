@@ -1148,7 +1148,14 @@ class BioPatrol(tk.Frame, Module):
             "ScanOrganic",
 
             # bodies, misc
-            "Disembark"
+            "Disembark",
+
+            # for biopatrol
+            "CodexEntry",
+            "SupercruiseExit",
+
+            # for YOBA
+            "FSDTarget"
         ]
 
         event = entry.data["event"]
@@ -1235,8 +1242,25 @@ class BioPatrol(tk.Frame, Module):
 
                 self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
 
+        elif event == "CodexEntry":
+            if "BodyID" not in entry.data:
+                return
+
+            if entry.data["SubCategory"] != "$Codex_SubCategory_Organic_Structures;":
+                return
+
+            species = codex_to_english_variants.get(entry.data["Name"], entry.data["Name"])
+            signal = species.split()[0]
+
+            self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, self.cmdr_id))
+            self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, species, self.cmdr_id))
+
         elif event == "Disembark":
             # this is in case when body is already known (Bubble?)
+            self.store_current_body(entry, entry.data["Body"])
+
+        elif event == "SupercruiseExit":
+            self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
             self.store_current_body(entry, entry.data["Body"])
 
         self.biopatrol_process_entry(entry)
