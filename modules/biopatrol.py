@@ -466,6 +466,12 @@ class BioPatrol(tk.Frame, Module):
         self.yoba_copy.bind('<Button-1>', self.__yoba_copy_button)
         theme.button_bind(self.yoba_copy_dark, self.__yoba_copy_button)
 
+        self.yoba_state_frame = tk.Frame(self.yoba)
+        self.yoba_state_frame.grid_columnconfigure(0, weight=1)
+        self.__yoba_state_var = tk.StringVar(self.yoba_state_frame)
+        self.yoba_state = tk.Label(self.yoba_state_frame, textvariable=self.__yoba_state_var)
+        self.yoba_state.grid(column=0, row=0, sticky="W")
+
         self.yoba.grid_columnconfigure(0, weight=1)
         self.yoba.grid(row=1, sticky="NWSE")
 
@@ -1090,6 +1096,12 @@ class BioPatrol(tk.Frame, Module):
     def yoba_process_entry(self, entry):
         required_events = [
             "Commander",
+            "FSSDiscoveryScan",
+            "FSSAllBodiesFound",
+            "FSSBodySignals",
+            "SAASignalsFound",
+            "ScanOrganic",
+            "CodexEntry",
             "FSDTarget"
         ]
 
@@ -1099,6 +1111,14 @@ class BioPatrol(tk.Frame, Module):
 
         if event == "Commander":
             self.yoba_update_status()
+            self.yoba_update()
+
+        if event in ["FSSDiscoveryScan",
+            "FSSAllBodiesFound",
+            "FSSBodySignals",
+            "SAASignalsFound",
+            "ScanOrganic",
+            "CodexEntry"]:
             self.yoba_update()
 
         elif event == "FSDTarget":
@@ -1693,6 +1713,7 @@ class BioPatrol(tk.Frame, Module):
 
             # getting systems
             knowledge_levels = {}
+            user_message = None
             for i in range(start, finish + 1):
                 knowledge_levels[i] = 0
 
@@ -1707,6 +1728,8 @@ class BioPatrol(tk.Frame, Module):
                   AND data_fss.cmdr_id = ?
                 ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )).fetchone()
                 if fss_count is None:
+                    if user_message is None:
+                        user_message = f"{self.yoba_current_boxel}-{i}: отсутствует DiscoveryScan"
                     continue
 
                 # there was HONK, knowledge level 1
@@ -1723,6 +1746,8 @@ class BioPatrol(tk.Frame, Module):
                   AND data_fss_completed_systems.cmdr_id = ?
                 ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )).fetchone()
                 if fss_complete is None:
+                    if user_message is None:
+                        user_message = f"{self.yoba_current_boxel}-{i}: отсутствует FSS"
                     continue
 
                 # system fully FSS'ed, knowledge level 2
@@ -1756,10 +1781,13 @@ class BioPatrol(tk.Frame, Module):
                   AND data_fss_body_signals.cmdr_id = ?
                 GROUP BY data_body_bio_signals.system_id64, data_body_bio_signals.bodyid, data_body_bio_signals.cmdr_id
                 ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )):
+                    body_name = j[4]
                     fss_bio_count = j[5]
                     dss_bio_count = j[6]
 
                     if fss_bio_count != dss_bio_count:
+                        if user_message is None:
+                            user_message = f"{body_name}: отсутствует DSS"
                         break
                 else:
                     knowledge_levels[i] = 3
@@ -1788,10 +1816,13 @@ class BioPatrol(tk.Frame, Module):
                   AND procgen_system_id = ?
                   AND data_bios.cmdr_id = ?
                 ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )):
+                    body_name = j[2]
                     signal = j[3]
                     species = j[4]
 
                     if species is None:
+                        if user_message is None:
+                            user_message = f"{body_name}: не просканирован {signal}"
                         break
                 else:
                     knowledge_levels[i] = 4
@@ -1803,6 +1834,7 @@ class BioPatrol(tk.Frame, Module):
                     break
             else:
                 self.yoba_skip_boxel()
+                return
 
             boxelmap_string = ""
             boxelmap_range = 10
@@ -1838,9 +1870,9 @@ class BioPatrol(tk.Frame, Module):
             if boxelmap_ellipsis_2:
                 boxelmap_string = f"{boxelmap_string}…"
 
-
             self.__yoba_boxel_var.set(f'{start} [{boxelmap_string}] {finish}')
             self.__yoba_next_system_var.set(f'{get_procgen_name(boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], first_unknown)}')
+            self.__yoba_state_var.set(user_message)
 
 
     def yoba_set_status(self, status):
@@ -1856,6 +1888,8 @@ class BioPatrol(tk.Frame, Module):
 
                 self.yoba_next_frame.grid_remove()
                 self.yoba_calibrate2_frame.grid_remove()
+
+                self.yoba_state_frame.grid_remove()
             case YobaStatus.CALIBRATING:
                 self.yoba_start_frame.grid_remove()
                 self.yoba_stop_frame.grid(row=0, sticky="NWSE")
@@ -1865,6 +1899,8 @@ class BioPatrol(tk.Frame, Module):
 
                 self.yoba_next_frame.grid_remove()
                 self.yoba_calibrate2_frame.grid(row=2, sticky="NWSE")
+
+                self.yoba_state_frame.grid_remove()
             case YobaStatus.RUNNING:
                 self.yoba_start_frame.grid_remove()
                 self.yoba_stop_frame.grid(row=0, sticky="NWSE")
@@ -1874,6 +1910,8 @@ class BioPatrol(tk.Frame, Module):
 
                 self.yoba_next_frame.grid(row=2, sticky="NWSE")
                 self.yoba_calibrate2_frame.grid_remove()
+
+                self.yoba_state_frame.grid(row=3, sticky="NWSE")
 
         self.yoba_save()
 
