@@ -1098,6 +1098,7 @@ class BioPatrol(tk.Frame, Module):
             "Commander",
             "FSSDiscoveryScan",
             "FSSAllBodiesFound",
+            "NavBeaconScan",
             "FSSBodySignals",
             "SAASignalsFound",
             "ScanOrganic",
@@ -1115,6 +1116,7 @@ class BioPatrol(tk.Frame, Module):
 
         if event in ["FSSDiscoveryScan",
             "FSSAllBodiesFound",
+            "NavBeaconScan",
             "FSSBodySignals",
             "SAASignalsFound",
             "ScanOrganic",
@@ -1160,6 +1162,7 @@ class BioPatrol(tk.Frame, Module):
 
             # system, fss done
             "FSSAllBodiesFound",
+            "NavBeaconScan",
 
             # bodies, dss
             "SAAScanComplete",
@@ -1232,6 +1235,11 @@ class BioPatrol(tk.Frame, Module):
             self.db.execute("INSERT OR IGNORE INTO data_fss_completed_bodies (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "FSSAllBodiesFound":
+            self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
+
+        elif event == "NavBeaconScan":
+            # for Braben reasons, there are no subsequent "Scan" events for bodies scanned using navigation beacon
+            # treat system as FSS completed but do not guarantee all body signals will be known
             self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
 
         elif event == "SAAScanComplete":
@@ -1728,8 +1736,10 @@ class BioPatrol(tk.Frame, Module):
                   AND data_fss.cmdr_id = ?
                 ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )).fetchone()
                 if fss_count is None:
+                    message = f"{self.yoba_current_boxel}-{i}: отсутствует DiscoveryScan"
+                    debug(message)
                     if user_message is None:
-                        user_message = f"{self.yoba_current_boxel}-{i}: отсутствует DiscoveryScan"
+                        user_message = message
                     continue
 
                 # there was HONK, knowledge level 1
@@ -1746,13 +1756,17 @@ class BioPatrol(tk.Frame, Module):
                   AND data_fss_completed_systems.cmdr_id = ?
                 ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )).fetchone()
                 if fss_complete is None:
+                    message = f"{self.yoba_current_boxel}-{i}: отсутствует FSS"
+                    debug(message)
                     if user_message is None:
-                        user_message = f"{self.yoba_current_boxel}-{i}: отсутствует FSS"
+                        user_message = message
                     continue
 
                 # system fully FSS'ed, knowledge level 2
                 knowledge_levels[i] = 2
 
+                all_dss_completed = True
+                all_bio_completed = True
                 for j in self.db.execute('''
                 SELECT
                     data_fss_body_signals.system_id64,
@@ -1779,53 +1793,71 @@ class BioPatrol(tk.Frame, Module):
                   AND procgen_boxel_id = ?
                   AND procgen_system_id = ?
                   AND data_fss_body_signals.cmdr_id = ?
-                GROUP BY data_body_bio_signals.system_id64, data_body_bio_signals.bodyid, data_body_bio_signals.cmdr_id
+                GROUP BY data_fss_body_signals.system_id64, data_fss_body_signals.bodyid, data_fss_body_signals.cmdr_id
                 ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )):
-                    body_name = j[4]
+                    body_name = j[3]
                     fss_bio_count = j[5]
                     dss_bio_count = j[6]
 
+                    message = f"{body_name}: отсутствует DSS"
+                    debug(f"Сигнал {body_name} DSS: {fss_bio_count == dss_bio_count}")
                     if fss_bio_count != dss_bio_count:
+                        debug(message)
                         if user_message is None:
-                            user_message = f"{body_name}: отсутствует DSS"
+                            user_message = message
+                        all_dss_completed &= False
                         break
-                else:
-                    knowledge_levels[i] = 3
 
-                for j in self.db.execute('''
-                SELECT
-                    data_bodies.system_id64,
-                    data_bodies.bodyid,
-                    data_bodies.name,
-                    data_body_bio_signals.signal,
-                    data_bios.species
-                FROM data_bodies
-                INNER JOIN data_systems ON data_bodies.system_id64 = data_systems.id64
-                INNER JOIN
-                    data_body_bio_signals
-                 ON data_bodies.system_id64 = data_body_bio_signals.system_id64
-                AND data_bodies.bodyid = data_body_bio_signals.bodyid
-                LEFT JOIN
-                    data_bios
-                 ON data_body_bio_signals.system_id64 = data_bios.system_id64
-                AND data_body_bio_signals.bodyid = data_bios.bodyid
-                AND data_body_bio_signals.signal = data_bios.signal
-                WHERE procgen_sector_id = ?
-                  AND procgen_masscode_id = ?
-                  AND procgen_boxel_id = ?
-                  AND procgen_system_id = ?
-                  AND data_bios.cmdr_id = ?
-                ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )):
-                    body_name = j[2]
-                    signal = j[3]
-                    species = j[4]
-
-                    if species is None:
-                        if user_message is None:
+                    for k in self.db.execute('''
+                    SELECT
+                        data_bodies.system_id64,
+                        data_bodies.bodyid,
+                        data_bodies.name,
+                        data_body_bio_signals.signal,
+                        data_bios.species
+                    FROM data_bodies
+                    INNER JOIN data_systems ON data_bodies.system_id64 = data_systems.id64
+                    INNER JOIN
+                        data_body_bio_signals
+                    ON data_bodies.system_id64 = data_body_bio_signals.system_id64
+                    AND data_bodies.bodyid = data_body_bio_signals.bodyid
+                    LEFT JOIN
+                        data_bios
+                    ON data_body_bio_signals.system_id64 = data_bios.system_id64
+                    AND data_body_bio_signals.bodyid = data_bios.bodyid
+                    AND data_body_bio_signals.signal = data_bios.signal
+                    WHERE procgen_sector_id = ?
+                    AND procgen_masscode_id = ?
+                    AND procgen_boxel_id = ?
+                    AND procgen_system_id = ?
+                    AND data_body_bio_signals.cmdr_id = ?
+                    AND data_bodies.bodyid = ?
+                    ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, j[1], )):
+                        signal = k[3]
+                        species = k[4]
+                        debug(f"Сигнал {signal} на {body_name} просканирован: {species is not None}")
+                        if species is None:
                             user_message = f"{body_name}: не просканирован {signal}"
+                            debug(message)
+                            if user_message is None:
+                                user_message = message
+                            all_bio_completed &= False
+                            break
+
+                    if not all_bio_completed:
                         break
+
+                if all_dss_completed:
+                    knowledge_levels[i] = 3
                 else:
+                    continue
+
+                if all_bio_completed:
                     knowledge_levels[i] = 4
+                else:
+                    continue
+
+            debug(f"knowledge levels for systems: {knowledge_levels}")
 
             first_unknown = None
             for system in sorted(knowledge_levels):
