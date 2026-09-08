@@ -26,7 +26,7 @@ from modules.lib.conf import base_config as _edmc_config, config as plugin_confi
 import myNotebook as nb     # type: ignore
 from theme import theme     # type: ignore
 from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses, codex_to_english_regions, regions
-from modules.sectors import split_ids, get_procgen_name, get_sector, get_boxel, get_children
+from modules.sectors import merge_ids, split_ids, get_procgen_name, get_sector, get_boxel, get_children
 
 from modules.legacy import Reporter, URL_GOOGLE
 
@@ -1719,51 +1719,43 @@ class BioPatrol(tk.Frame, Module):
         else:
             self.__yoba_stop_var.set(f"Боксель {self.yoba_current_boxel}")
 
-            # getting systems
-            knowledge_levels = {}
-            user_message = None
-            for i in range(start, finish + 1):
-                knowledge_levels[i] = 0
+            def analyze_system(id64):
+                level = 0
+                user_message = None
 
                 fss_count = self.db.execute('''
                 SELECT data_fss.body_count
                 FROM data_systems
                 INNER JOIN data_fss ON data_fss.id64 = data_systems.id64
-                WHERE procgen_sector_id = ?
-                  AND procgen_masscode_id = ?
-                  AND procgen_boxel_id = ?
-                  AND procgen_system_id = ?
+                WHERE data_systems.id64 = ?
                   AND data_fss.cmdr_id = ?
-                ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )).fetchone()
+                ''', (id64, self.cmdr_id, )).fetchone()
                 if fss_count is None:
                     message = f"{self.yoba_current_boxel}-{i}: отсутствует DiscoveryScan"
                     debug(message)
                     if user_message is None:
                         user_message = message
-                    continue
+                    return level, user_message
 
                 # there was HONK, knowledge level 1
-                knowledge_levels[i] = 1
+                level = 1
 
                 fss_complete = self.db.execute('''
                 SELECT data_systems.id64
                 FROM data_systems
                 INNER JOIN data_fss_completed_systems ON data_fss_completed_systems.id64 = data_systems.id64
-                WHERE procgen_sector_id = ?
-                  AND procgen_masscode_id = ?
-                  AND procgen_boxel_id = ?
-                  AND procgen_system_id = ?
+                WHERE data_systems.id64 = ?
                   AND data_fss_completed_systems.cmdr_id = ?
-                ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )).fetchone()
+                ''', (id64, self.cmdr_id, )).fetchone()
                 if fss_complete is None:
                     message = f"{self.yoba_current_boxel}-{i}: отсутствует FSS"
                     debug(message)
                     if user_message is None:
                         user_message = message
-                    continue
+                    return level, user_message
 
                 # system fully FSS'ed, knowledge level 2
-                knowledge_levels[i] = 2
+                level = 2
 
                 all_dss_completed = True
                 all_bio_completed = True
@@ -1788,13 +1780,10 @@ class BioPatrol(tk.Frame, Module):
                 AND data_bodies.bodyid = data_body_bio_signals.bodyid
                 AND data_fss_body_signals.cmdr_id = data_body_bio_signals.cmdr_id
                 WHERE data_fss_body_signals.type = '$SAA_SignalType_Biological;'
-                  AND procgen_sector_id = ?
-                  AND procgen_masscode_id = ?
-                  AND procgen_boxel_id = ?
-                  AND procgen_system_id = ?
+                  AND data_systems.id64 = ?
                   AND data_fss_body_signals.cmdr_id = ?
                 GROUP BY data_fss_body_signals.system_id64, data_fss_body_signals.bodyid, data_fss_body_signals.cmdr_id
-                ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, )):
+                ''', (id64, self.cmdr_id, )):
                     body_name = j[3]
                     fss_bio_count = j[5]
                     dss_bio_count = j[6]
@@ -1806,7 +1795,7 @@ class BioPatrol(tk.Frame, Module):
                         if user_message is None:
                             user_message = message
                         all_dss_completed &= False
-                        break
+                        return level, user_message
 
                     for k in self.db.execute('''
                     SELECT
@@ -1826,13 +1815,10 @@ class BioPatrol(tk.Frame, Module):
                     ON data_body_bio_signals.system_id64 = data_bios.system_id64
                     AND data_body_bio_signals.bodyid = data_bios.bodyid
                     AND data_body_bio_signals.signal = data_bios.signal
-                    WHERE procgen_sector_id = ?
-                    AND procgen_masscode_id = ?
-                    AND procgen_boxel_id = ?
-                    AND procgen_system_id = ?
+                    WHERE data_systems.id64 = ?
                     AND data_body_bio_signals.cmdr_id = ?
                     AND data_bodies.bodyid = ?
-                    ''', (boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, self.cmdr_id, j[1], )):
+                    ''', (id64, self.cmdr_id, j[1], )):
                         signal = k[3]
                         species = k[4]
                         debug(f"Сигнал {signal} на {body_name} просканирован: {species is not None}")
@@ -1842,22 +1828,29 @@ class BioPatrol(tk.Frame, Module):
                             if user_message is None:
                                 user_message = message
                             all_bio_completed &= False
-                            break
+                            return level, user_message
 
                     if not all_bio_completed:
-                        break
+                        return level, user_message
 
                 if all_dss_completed:
-                    knowledge_levels[i] = 3
-                else:
-                    continue
+                    level = 3
 
                 if all_bio_completed:
-                    knowledge_levels[i] = 4
-                else:
-                    continue
+                    level = 4
 
-            debug(f"knowledge levels for systems: {knowledge_levels}")
+                return level, user_message
+
+            # getting systems
+            knowledge_levels = {}
+            user_message = None
+            for i in range(start, finish + 1):
+                system_id64 = merge_ids(boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, 0)
+                level, msg = analyze_system(system_id64)
+
+                knowledge_levels[i] = level
+                if user_message is None:
+                    user_message = msg
 
             first_unknown = None
             for system in sorted(knowledge_levels):

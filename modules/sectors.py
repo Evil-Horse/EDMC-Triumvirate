@@ -1,5 +1,43 @@
 from modules.edtslib import pgnames
 
+def merge_ids(sector_offset, masscode, boxel_offset, system_id, body_id):
+    id64 = system_id
+
+    boxel_x = boxel_offset & 0x7f
+    boxel_y = (boxel_offset >> 7) & 0x7f
+    boxel_z = (boxel_offset >> 14) & 0x7f
+
+    sector_x = sector_offset & 0x7f
+    sector_y = (sector_offset >> 7) & 0x7f
+    sector_z = (sector_offset >> 14) & 0x7f
+
+    # x
+    id64 <<= 7
+    id64 |= sector_offset & 0x7f
+
+    id64 <<= 7 - masscode
+    id64 |= boxel_offset & 0x7f
+
+    # y
+    id64 <<= 6
+    id64 |= (sector_offset >> 7) & 0x3f
+
+    id64 <<= 7 - masscode
+    id64 |= (boxel_offset >> 7) & 0x7f
+
+    # z
+    id64 <<= 7
+    id64 |= (sector_offset >> 14) & 0x7f
+
+    id64 <<= 7 - masscode
+    id64 |= (boxel_offset >> 14) & 0x7f
+
+    id64 <<= 3
+    id64 |= masscode
+
+    id64 |= (body_id << 55)
+    return id64
+
 def split_ids(id64):
     # filter out body id in case of any given
     body_id = id64 >> 55
