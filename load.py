@@ -210,7 +210,7 @@ def plugin_stop():
     this.bgs_module.stop()
     logger.debug("Joining threads...")
     thread.BasicThread.join_all()
-    logger.dubug("Done, exiting.")
+    logger.debug("Done, exiting.")
 
 
 def kill_notification():
