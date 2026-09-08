@@ -199,9 +199,6 @@ class BiopatrolDB:
         self.db_con = sqlite3.connect(self.db_path, check_same_thread=False)
         self.db_con.execute("PRAGMA foreign_keys = ON")
 
-    def __del__(self):
-        self.commit()
-
     def execute(self, query, params = None):
         with self.db_lock:
             if params is None:
@@ -514,6 +511,9 @@ class BioPatrol(tk.Frame, Module):
         self.set_status("Местоположение неизвестно.\nТребуется прыжок или перезапуск игры.")
 
         self.db = BiopatrolDB()
+
+    def close(self):
+        self.db.commit()
 
     def brab_fun(self):
         self.is_brab_fun = True
