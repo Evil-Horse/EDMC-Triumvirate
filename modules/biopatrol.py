@@ -434,6 +434,15 @@ class BioPatrol(tk.Frame, Module):
         self.yoba_boxel_button.bind('<Button-1>', self.__yoba_next_boxel)
         theme.button_bind(self.yoba_boxel_button_dark, self.__yoba_next_boxel)
 
+        self.yoba_boxel_button2 = nb.Button(self.yoba_calibrate_frame, text="Нет систем")
+        self.yoba_boxel_button2_dark = tk.Label(self.yoba_calibrate_frame, text="Нет системы", fg="white")
+        theme.register_alternate(
+            (self.yoba_boxel_button2, self.yoba_boxel_button2_dark, self.yoba_boxel_button2_dark),
+            {"column": 2, "row": 0, "sticky": "EW"}
+        )
+        self.yoba_boxel_button2.bind('<Button-1>', self.__yoba_next_boxel)
+        theme.button_bind(self.yoba_boxel_button2_dark, self.__yoba_next_boxel)
+
         self.yoba_calibrate2_frame = tk.Frame(self.yoba)
         self.yoba_calibrate2_frame.grid_columnconfigure(0, weight=1)
         self.yoba_calibrate_instructions_label = tk.Label(self.yoba_calibrate2_frame, text="Выделяйте системы бокселя в цель")
