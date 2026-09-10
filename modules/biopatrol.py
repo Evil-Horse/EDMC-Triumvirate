@@ -1259,19 +1259,15 @@ class BioPatrol(tk.Frame, Module):
 
         elif event == "SAASignalsFound":
             # this event comes BEFORE "Scan", for Braben reasons
-            try:
-                self.store_current_body(entry, entry.data["BodyName"])
+            self.store_current_body(entry, entry.data["BodyName"])
 
-                # spare event, in case if body was autoscanned
-                for i in entry.data["Signals"]:
-                    self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], self.cmdr_id))
+            # spare event, in case if body was autoscanned
+            for i in entry.data["Signals"]:
+                self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], self.cmdr_id))
 
-                for i in entry.data.get("Genuses", []):
-                    signal = codex_to_english_genuses.get(i["Genus"], i["Genus"])
-                    self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, self.cmdr_id, ))
-            except sqlite3.IntegrityError:
-                # We don't know system coordinates if we're in Multi-Crew, skip this event
-                debug(f"Body {entry.data["BodyName"]} (id {entry.data["SystemAddress"]}/{entry.data["BodyID"]}): SAASignalsFound was in Multi-Crew")
+            for i in entry.data.get("Genuses", []):
+                signal = codex_to_english_genuses.get(i["Genus"], i["Genus"])
+                self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, self.cmdr_id, ))
 
         elif event == "ScanOrganic":
             if "Variant" in entry.data:
