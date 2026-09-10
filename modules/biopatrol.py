@@ -1765,7 +1765,7 @@ class BioPatrol(tk.Frame, Module):
                 elif knowledge_levels[i] == 3:
                     boxelmap_string += "░" # biosignals not collected, light shade
                 elif knowledge_levels[i] == 4:
-                    boxelmap_string += " " # fully scanned, space
+                    boxelmap_string += " " # fully scanned, en space (U+2002)
 
             if boxelmap_ellipsis_1:
                 boxelmap_string = f"…{boxelmap_string}"
