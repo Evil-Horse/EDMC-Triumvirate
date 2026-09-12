@@ -1,4 +1,4 @@
-from modules.edtslib import pgnames
+from modules.lib.edtslib import pgnames
 
 def merge_ids(sector_offset, masscode, boxel_offset, system_id, body_id):
     id64 = system_id

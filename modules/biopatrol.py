@@ -26,8 +26,8 @@ from modules.lib.conf import base_config as _edmc_config, config as plugin_confi
 
 import myNotebook as nb     # type: ignore
 from theme import theme     # type: ignore
-from modules.bio_dicts import codex_genuses, codex_species, codex_variants, codex_to_english_regions, regions
-from modules.sectors import merge_ids, split_ids, get_procgen_name, get_sector, get_boxel, get_children
+from modules.lib.bio_dicts import codex_genuses, codex_species, codex_variants, codex_to_english_regions, regions
+from modules.lib.sectors import merge_ids, split_ids, get_procgen_name, get_sector, get_boxel, get_children
 
 from modules.legacy import Reporter, URL_GOOGLE
 
@@ -86,7 +86,7 @@ class YobaStatus(Enum):
 
 
 class YobaWindow(tk.Toplevel):
-    def __init__(self, parent: tk.Misc, callback: Callable[[dict[str, bool]], Any], system_data):
+    def __init__(self, parent: tk.Misc, callback: Callable[[dict[str, int]], Any], system_data):
         super().__init__(parent)
         self.callback = callback
 
