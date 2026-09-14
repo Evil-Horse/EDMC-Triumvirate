@@ -1956,7 +1956,15 @@ class BioPatrol(tk.Frame, Module):
                 AND data_fss_body_signals.type = '$SAA_SignalType_Biological;'
                 GROUP BY data_bodies.system_id64, data_bodies.bodyid;
                 ''', (id64, body_id, self.cmdr_id)).fetchone()
-                if body_query is None or body_query[3] < body_query[4]:
+                if body_query is None:
+                    message = f"{body_name}: отсутствует DSS"
+                    debug(message)
+                    if user_message is None:
+                        user_message = message
+                    all_dss_completed &= False
+                    return level, user_message
+
+                elif body_query[3] < body_query[4]:
                     message = f"{body_name}: отсутствует DSS (не все виды)"
                     debug(message)
                     if user_message is None:
