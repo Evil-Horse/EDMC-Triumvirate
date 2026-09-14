@@ -1899,77 +1899,97 @@ class BioPatrol(tk.Frame, Module):
         all_bio_completed = True
         for j in self.db.execute('''
         SELECT
-            data_fss_body_signals.system_id64,
-            data_fss_body_signals.bodyid,
-            data_fss_body_signals.cmdr_id,
+            data_body_scans.system_id64,
+            data_body_scans.bodyid,
             data_bodies.name,
-            data_fss_body_signals.type,
-            data_fss_body_signals.count AS fss_count,
-            COUNT(data_body_bio_signals.signal) AS dss_count
+            data_body_scans.cmdr_id,
+            MAX(data_body_scans.scan_level) AS level
         FROM data_bodies
-        INNER JOIN data_systems ON data_bodies.system_id64 = data_systems.id64
-        INNER JOIN
-            data_fss_body_signals
-            ON data_bodies.system_id64 = data_fss_body_signals.system_id64
-        AND data_bodies.bodyid = data_fss_body_signals.bodyid
-        LEFT JOIN
-            data_body_bio_signals
-            ON data_bodies.system_id64 = data_body_bio_signals.system_id64
-        AND data_bodies.bodyid = data_body_bio_signals.bodyid
-        AND data_fss_body_signals.cmdr_id = data_body_bio_signals.cmdr_id
-        WHERE data_fss_body_signals.type = '$SAA_SignalType_Biological;'
-            AND data_systems.id64 = ?
-            AND data_fss_body_signals.cmdr_id = ?
-        GROUP BY data_fss_body_signals.system_id64, data_fss_body_signals.bodyid, data_fss_body_signals.cmdr_id
-        ''', (id64, self.cmdr_id, )):
-            body_name = j[3]
-            fss_bio_count = j[5]
-            dss_bio_count = j[6]
+        INNER JOIN data_body_scans ON
+            data_bodies.system_id64 == data_body_scans.system_id64
+        AND data_bodies.bodyid == data_body_scans.bodyid
+        WHERE
+            data_bodies.system_id64 = ?
+        AND data_body_scans.cmdr_id = ?
+        GROUP BY data_body_scans.bodyid
+        ''', (id64, self.cmdr_id)):
+            body_id = j[1]
+            body_name = j[2]
+            body_scan_level = j[4]
 
-            message = f"{body_name}: отсутствует DSS"
-            debug(f"Сигнал {body_name} DSS: {fss_bio_count == dss_bio_count}")
-            if fss_bio_count != dss_bio_count:
+            if body_scan_level == 0:
+                message = f"{body_name}: отсутствует DSS (нав. маяк)"
                 debug(message)
                 if user_message is None:
                     user_message = message
                 all_dss_completed &= False
                 return level, user_message
 
-            for k in self.db.execute('''
-            SELECT
-                data_bodies.system_id64,
-                data_bodies.bodyid,
-                data_bodies.name,
-                data_body_bio_signals.signal,
-                data_bios.species
-            FROM data_bodies
-            INNER JOIN data_systems ON data_bodies.system_id64 = data_systems.id64
-            INNER JOIN
-                data_body_bio_signals
-            ON data_bodies.system_id64 = data_body_bio_signals.system_id64
-            AND data_bodies.bodyid = data_body_bio_signals.bodyid
-            LEFT JOIN
-                data_bios
-            ON data_body_bio_signals.system_id64 = data_bios.system_id64
-            AND data_body_bio_signals.bodyid = data_bios.bodyid
-            AND data_body_bio_signals.signal = data_bios.signal
-            WHERE data_systems.id64 = ?
-            AND data_body_bio_signals.cmdr_id = ?
-            AND data_bodies.bodyid = ?
-            ''', (id64, self.cmdr_id, j[1], )):
-                signal = k[3]
-                species = k[4]
-                debug(f"Сигнал {signal} на {body_name} просканирован: {species is not None}")
-                if species is None:
-                    user_message = f"{body_name}: не просканирован {signal}"
+            if body_scan_level == 1:
+                body_query = self.db.execute('''
+                SELECT
+                    data_bodies.system_id64,
+                    data_bodies.bodyid,
+                    data_bodies.name,
+                    data_fss_body_signals.count,
+                    COUNT(data_bios.species)
+                FROM data_bodies
+                INNER JOIN
+                    data_fss_body_signals
+                ON data_bodies.system_id64 = data_fss_body_signals.system_id64
+                AND data_bodies.bodyid = data_fss_body_signals.bodyid
+                INNER JOIN
+                    data_bios
+                ON data_fss_body_signals.system_id64 = data_bios.system_id64
+                AND data_fss_body_signals.bodyid = data_bios.bodyid
+                AND data_fss_body_signals.cmdr_id = data_bios.cmdr_id
+                WHERE
+                    data_bodies.system_id64 = ?
+                AND data_bodies.bodyid = ?
+                AND data_fss_body_signals.cmdr_id = ?
+                AND data_fss_body_signals.type = '$SAA_SignalType_Biological;'
+                GROUP BY data_bodies.system_id64, data_bodies.bodyid;
+                ''', (id64, body_id, self.cmdr_id)).fetchone()
+                if body_query is None or body_query[3] < body_query[4]:
+                    message = f"{body_name}: отсутствует DSS (не все виды)"
                     debug(message)
                     if user_message is None:
                         user_message = message
-                    all_bio_completed &= False
+                    all_dss_completed &= False
                     return level, user_message
 
-            if not all_bio_completed:
-                return level, user_message
+            if body_scan_level == 2:
+                for k in self.db.execute('''
+                SELECT
+                    data_bodies.system_id64,
+                    data_bodies.bodyid,
+                    data_bodies.name,
+                    data_body_bio_signals.signal,
+                    data_bios.species
+                FROM data_bodies
+                INNER JOIN
+                    data_body_bio_signals
+                ON data_bodies.system_id64 = data_body_bio_signals.system_id64
+                AND data_bodies.bodyid = data_body_bio_signals.bodyid
+                LEFT JOIN
+                    data_bios
+                ON data_body_bio_signals.system_id64 = data_bios.system_id64
+                AND data_body_bio_signals.bodyid = data_bios.bodyid
+                AND data_body_bio_signals.signal = data_bios.signal
+                WHERE data_bodies.system_id64 = ?
+                AND data_bodies.bodyid = ?
+                AND data_body_bio_signals.cmdr_id = ?
+                ''', (id64, self.cmdr_id, j[1], )):
+                    signal = k[3]
+                    species = k[4]
+                    debug(f"Сигнал {signal} на {body_name} просканирован: {species is not None}")
+                    if species is None:
+                        user_message = f"{body_name}: не просканирован {signal}"
+                        debug(message)
+                        if user_message is None:
+                            user_message = message
+                        all_bio_completed &= False
+                        return level, user_message
 
         if all_dss_completed:
             level = 3
