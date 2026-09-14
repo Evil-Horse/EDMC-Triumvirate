@@ -1241,6 +1241,8 @@ class BioPatrol(tk.Frame, Module):
             self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "FSSAllBodiesFound":
+            # in case of Multi-Crew, for Braben Reasons
+            self.store_current_system(entry.data["SystemAddress"], entry.data["SystemName"])
             self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
 
         elif event == "NavBeaconScan":
