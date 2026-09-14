@@ -1222,6 +1222,10 @@ class BioPatrol(tk.Frame, Module):
             self.store_current_body(entry, entry.data["BodyName"])
             self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
+            # DSS does not make sense for non-landable body
+            if "Landable" not in entry.data or entry.data["Landable"] == False:
+                self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+
             # mark body as scanned
             if entry.data["ScanType"] in ('Detailed'):
                 self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
