@@ -676,12 +676,14 @@ class BioPatrol(tk.Frame, Module):
             FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
+        # scan_level: 0 - Auto/NavBeaconDetail, 1 - Detailed (FSS), 2 - SAAScanComplete (DSS)
         self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_fss_completed_bodies (
+        CREATE TABLE IF NOT EXISTS data_body_scans (
             system_id64 INT NOT NULL,
             bodyid INT NOT NULL,
             cmdr_id INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, cmdr_id),
+            scan_level INT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, cmdr_id, scan_level),
             FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
             FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
@@ -727,16 +729,6 @@ class BioPatrol(tk.Frame, Module):
             cmdr_id INT NOT NULL,
             PRIMARY KEY (system_id64, bodyid, signal, cmdr_id),
             FOREIGN KEY (system_id64, bodyid, signal, cmdr_id) REFERENCES data_body_bio_signals(system_id64, bodyid, signal, cmdr_id) ON DELETE CASCADE
-        )
-        ''')
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_dss_completed (
-            system_id64 INT NOT NULL,
-            bodyid INT NOT NULL,
-            cmdr_id INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, cmdr_id),
-            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
 
@@ -1083,8 +1075,8 @@ class BioPatrol(tk.Frame, Module):
                 bodyid = i[0]
                 planet = i[1]
 
-                isScanned = self.db.execute("SELECT system_id64, bodyid FROM data_fss_completed_bodies WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (entry.data["SystemAddress"], bodyid, self.cmdr_id, )).fetchone()
-                if isScanned is None:
+                isScanned = self.db.execute("SELECT MAX(scan_level) FROM data_body_scans WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (entry.data["SystemAddress"], bodyid, self.cmdr_id, )).fetchone()
+                if isScanned is None or isScanned == 0:
                     debug(f'>> Skipping {planet}: has not been scanned yet')
                     continue
 
@@ -1228,10 +1220,11 @@ class BioPatrol(tk.Frame, Module):
             self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
 
             self.store_current_body(entry, entry.data["BodyName"])
+            self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
             # mark body as scanned
             if entry.data["ScanType"] in ('Detailed'):
-                self.db.execute("INSERT OR IGNORE INTO data_fss_completed_bodies (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+                self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "FSSBodySignals":
             # this event comes BEFORE "Scan", for Braben reasons
@@ -1241,7 +1234,7 @@ class BioPatrol(tk.Frame, Module):
                 self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], self.cmdr_id, ))
 
             # mark body as scanned
-            self.db.execute("INSERT OR IGNORE INTO data_fss_completed_bodies (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+            self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "FSSAllBodiesFound":
             self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
@@ -1255,7 +1248,7 @@ class BioPatrol(tk.Frame, Module):
             # this event comes BEFORE "Scan", for Braben reasons
             self.store_current_body(entry, entry.data["BodyName"])
 
-            self.db.execute("INSERT OR IGNORE INTO data_dss_completed (system_id64, bodyid, cmdr_id) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+            self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "SAASignalsFound":
             # this event comes BEFORE "Scan", for Braben reasons
