@@ -1924,7 +1924,7 @@ class BioPatrol(tk.Frame, Module):
             body_scan_level = j[4]
 
             if body_scan_level == 0:
-                message = f"{body_name}: отсутствует DSS (нав. маяк)"
+                message = f"{body_name}: отсутствует DSS (автоскан/маяк)"
                 debug(message)
                 if user_message is None:
                     user_message = message
