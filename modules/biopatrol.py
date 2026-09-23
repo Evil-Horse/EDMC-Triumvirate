@@ -1988,7 +1988,8 @@ class BioPatrol(tk.Frame, Module):
                 ''', (id64, self.cmdr_id, j[1], )):
                     signal = k[3]
                     species = k[4]
-                    debug(f"Сигнал {signal} на {body_name} просканирован: {species is not None}")
+                    message = f"Сигнал {signal} на {body_name} просканирован: {species is not None}"
+                    debug(message)
                     if species is None:
                         user_message = f"{body_name}: не просканирован {signal}"
                         debug(message)
