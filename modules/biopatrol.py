@@ -1983,8 +1983,8 @@ class BioPatrol(tk.Frame, Module):
                 AND data_body_bio_signals.bodyid = data_bios.bodyid
                 AND data_body_bio_signals.signal = data_bios.signal
                 WHERE data_bodies.system_id64 = ?
-                AND data_bodies.bodyid = ?
                 AND data_body_bio_signals.cmdr_id = ?
+                AND data_bodies.bodyid = ?
                 ''', (id64, self.cmdr_id, j[1], )):
                     signal = k[3]
                     species = k[4]
