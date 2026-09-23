@@ -1761,15 +1761,15 @@ class BioPatrol(tk.Frame, Module):
                     continue
 
                 if knowledge_levels[i] == 0:
-                    boxelmap_string += "█" # not visited, fully shaded block
+                    boxelmap_string += " " # not visited, en space (U+2002)
                 elif knowledge_levels[i] == 1:
-                    boxelmap_string += "▓" # not FSS'ed, dark shade
+                    boxelmap_string += "░" # not FSS'ed, light shade
                 elif knowledge_levels[i] == 2:
                     boxelmap_string += "▒" # not DSS'ed, medium shade
                 elif knowledge_levels[i] == 3:
-                    boxelmap_string += "░" # biosignals not collected, light shade
+                    boxelmap_string += "▓" # biosignals not collected, dark shade
                 elif knowledge_levels[i] == 4:
-                    boxelmap_string += " " # fully scanned, en space (U+2002)
+                    boxelmap_string += "█" # fully scanned, fully shaded block
 
             if boxelmap_ellipsis_1:
                 boxelmap_string = f"…{boxelmap_string}"
