@@ -720,6 +720,7 @@ class BioPatrol(tk.Frame, Module):
             FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
+        # state: 0 - Known (CodexEntry), 1 - Logged, 2 - Analyzed, 3 - Possibly Sold, 4 - Sold
         self.db.execute('''
             CREATE TABLE IF NOT EXISTS data_bios (
             system_id64 INT NOT NULL,
@@ -727,7 +728,8 @@ class BioPatrol(tk.Frame, Module):
             signal TEXT NOT NULL,
             species TEXT NOT NULL,
             cmdr_id INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, signal, cmdr_id),
+            state INT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, signal, cmdr_id, state),
             FOREIGN KEY (system_id64, bodyid, signal, cmdr_id) REFERENCES data_body_bio_signals(system_id64, bodyid, signal, cmdr_id) ON DELETE CASCADE
         )
         ''')
@@ -1180,7 +1182,11 @@ class BioPatrol(tk.Frame, Module):
             "SupercruiseExit",
 
             # for YOBA
-            "FSDTarget"
+            "FSDTarget",
+
+            # misc
+            "Died",
+            "SellOrganicData"
         ]
 
         event = entry.data["event"]
@@ -1276,7 +1282,12 @@ class BioPatrol(tk.Frame, Module):
                 # in case we skipped DSS
                 self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, self.cmdr_id, ))
 
-                self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
+                if entry.data["ScanType"] in ('Log', 'Sample'):
+                    # partial sample: "Log" = first, "Sample" = subsequent
+                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
+                elif entry.data["ScanType"] == "Analyze":
+                    # complete sample
+                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
 
         elif event == "CodexEntry":
             if "BodyID" not in entry.data:
@@ -1289,7 +1300,9 @@ class BioPatrol(tk.Frame, Module):
             signal = species.split()[0]
 
             self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, self.cmdr_id))
-            self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, species, self.cmdr_id))
+
+            # we only know there's a bio but didn't sample it yet
+            self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, species, self.cmdr_id))
 
         elif event == "Disembark":
             # this is in case when body is already known (Bubble?)
@@ -1298,6 +1311,52 @@ class BioPatrol(tk.Frame, Module):
         elif event == "SupercruiseExit":
             self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
             self.store_current_body(entry, entry.data["Body"])
+
+        elif event == "Died":
+            # debug
+            for i in self.db.execute('''
+            SELECT
+                data_systems.id64,
+                data_bodies.bodyid,
+                data_systems.name,
+                data_bodies.name,
+                data_bios.species
+            FROM
+                data_systems
+            INNER JOIN
+                data_bodies ON data_systems.id64 = data_bodies.system_id64
+            INNER JOIN
+                data_bios
+            ON data_bios.system_id64 = data_bodies.system_id64
+            AND data_bios.bodyid = data_bodies.bodyid
+            WHERE cmdr_id = ? AND state != 4
+            ''', (self.cmdr_id, )):
+                debug(f'CMDR died, biodata {i[4]} on planet {i[3]} in system {i[2]} is lost.')
+
+            self.db.execute("DELETE FROM data_bios WHERE cmdr_id = ? AND state != 4", (self.cmdr_id, ))
+
+        elif event == "SellOrganicData":
+            for biodata in entry.data["BioData"]:
+                if "Variant" not in biodata:
+                    break
+
+                variant = biodata["Variant"]
+                variant_en = codex_to_english_variants.get(variant, variant)
+
+                unsold_species = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_bios WHERE cmdr_id = ? AND species = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, variant_en, )).fetchone()
+                if unsold_species is None:
+                    debug(f"Selling nonexisting {variant_en} biodata on")
+                else:
+                    debug(f"Potentially selling biodata on {unsold_species}")
+                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 3)", unsold_species[0:5])
+
+            unsold_bio = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_bios WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, )).fetchone()
+            # do we have something unsold?
+            if unsold_bio is None:
+                # sold everything we had on hand!
+                for sold_bio in self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_bios WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state = 3', (self.cmdr_id, )):
+                    debug(f"Confirmed selling biodata on {sold_bio}")
+                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 4)", sold_bio[0:5])
 
         self.biopatrol_process_entry(entry)
         self.yoba_process_entry(entry)
