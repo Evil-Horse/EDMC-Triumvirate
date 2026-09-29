@@ -924,8 +924,6 @@ class BioPatrol(tk.Frame, Module):
             url = f'{URL_GOOGLE}/1FAIpQLSfp4rPNSOVf5V-LYLEUXCKomDBaHo92lPwfp9YJDrml2QGUQQ/formResponse?usp=pp_url&{"&".join([f"{k}={v}" for k, v in url_params.items()])}'
             Reporter(url).start()
 
-        debug(f"Found {bioname} (genus: {genus}) at {planet} (priority: {priority})")
-
         # confirm prediction
         self.db.execute("UPDATE predictions_data SET status = 1 WHERE system_id64 = ? AND bodyid = ? AND species = ?", (system_id64, bodyid, bioname, ))
 
@@ -1217,7 +1215,6 @@ class BioPatrol(tk.Frame, Module):
             self.store_system_coords(entry)
 
         elif event == "FSSDiscoveryScan":
-            debug(entry.data)
             self.store_current_system(entry.data["SystemAddress"], entry.data["SystemName"])
 
             self.db.execute("INSERT OR IGNORE INTO data_fss (id64, cmdr_id, body_count) VALUES (?, ?, ?)", (entry.data["SystemAddress"], self.cmdr_id, entry.data["BodyCount"], ))
