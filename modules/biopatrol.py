@@ -2,7 +2,6 @@ import os
 import re
 import gzip
 import json
-import sqlite3
 import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import askyesno, WARNING
@@ -13,7 +12,6 @@ from threading import Lock
 from time import sleep
 from typing import Callable, Any
 from PIL import Image
-from enum import Enum
 
 from .debug import debug
 from modules.lib.module import Module
@@ -26,7 +24,6 @@ from modules.lib.conf import base_config as _edmc_config, config as plugin_confi
 import myNotebook as nb     # type: ignore
 from theme import theme     # type: ignore
 from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses, codex_to_english_regions, regions
-from modules.sectors import merge_ids, split_ids, get_procgen_name, get_sector, get_boxel, get_children
 
 from modules.legacy import Reporter, URL_GOOGLE
 
@@ -45,76 +42,6 @@ def get_priority_text(priority: int):
         case 2: priority_text = "Открытие региона"
         case _: priority_text = ""
     return priority_text
-
-
-class YobaStatus(Enum):
-    IDLE = 0
-    CALIBRATING = 1
-    RUNNING = 2
-
-
-class YobaWindow(tk.Toplevel):
-    def __init__(self, parent: tk.Misc, callback: Callable[[dict[str, bool]], Any], system_data):
-        super().__init__(parent)
-        self.callback = callback
-
-        self.frame = tk.Frame(self)
-
-        self.title_label = tk.Label(self.frame, text="Your Outstanding Boxel Analyzer")
-        self.title_label.grid(row=0, column=0, sticky="NWSE")
-
-        system_name = system_data["name"]
-        system_pgname = system_data["pgname"]
-
-        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(system_data["id64"])
-        system_pgname = get_procgen_name(sector_id, masscode_id, boxel_id, system_id)
-        system_boxel = f'{get_sector(sector_id)} {get_boxel(masscode_id, boxel_id)}'
-
-        text = f"Текущая система: {system_name}\n"
-        if system_name != system_pgname:
-            text += f"Procgen имя: {system_pgname}\n"
-        text += f"Текущий боксель: {system_boxel}"
-        self.label = tk.Label(self.frame, text=text)
-        self.label.grid(row=2, column=0, sticky="NWSE")
-
-        self.depth_frame = tk.Frame(self.frame)
-
-        self.yoba_depth = tk.IntVar(value=0)
-        self.yoba_exclude_known = tk.IntVar(value=0)
-        self.depth_header = tk.Label(self.depth_frame, text="Исследование вложенных бокселей:")
-        self.depth0 = tk.Radiobutton(self.depth_frame, text="Только текущий боксель", value=0, variable=self.yoba_depth)
-        self.depth1 = tk.Radiobutton(self.depth_frame, text="Глубина 1 боксель", value=1, variable=self.yoba_depth)
-        self.depth2 = tk.Radiobutton(self.depth_frame, text="Глубина 2 бокселя", value=2, variable=self.yoba_depth)
-        self.depth3 = tk.Radiobutton(self.depth_frame, text="Глубина 3 бокселя", value=3, variable=self.yoba_depth)
-        self.exclude_known = tk.Checkbutton(self.depth_frame, text="Исключить исследованные системы", variable=self.yoba_exclude_known)
-
-        if masscode_id < 3:
-            self.depth3.configure(state="disabled")
-        if masscode_id < 2:
-            self.depth2.configure(state="disabled")
-        if masscode_id < 1:
-            self.depth1.configure(state="disabled")
-
-        self.depth_header.pack()
-        self.depth0.pack()
-        self.depth1.pack()
-        self.depth2.pack()
-        self.depth3.pack()
-
-        self.depth_frame.grid(row=3, column=0, sticky="NWSE")
-
-        self.save_button = nb.Button(self.frame, text="Сохранить")
-        self.save_button.bind("<Button-1>", self.__save)
-        self.save_button.grid(row=4, column=0, sticky="NWSE")
-
-        self.frame.pack()
-
-    def __save(self, event):
-        obj = {
-            "depth" : self.yoba_depth.get(),
-            "exclude_known" : self.yoba_exclude_known.get()
-        }
-        self.callback(obj)
 
 
 class RegionFilterWindow(tk.Toplevel):
@@ -192,32 +119,32 @@ class BioPatrolJournalEntry:
         self.coords = coords
 
 
-class BiopatrolDB:
-    def __init__(self):
-        self.db_path = Path(global_context.plugin_dir, "data", "biopatrol.db")
-        self.db_lock = Lock()
-        self.db_con = sqlite3.connect(self.db_path, check_same_thread=False)
-        self.db_con.execute("PRAGMA foreign_keys = ON")
-
-    def execute(self, query, params = None):
-        with self.db_lock:
-            if params is None:
-                return self.db_con.execute(query)
-            else:
-                return self.db_con.execute(query, params)
-
-    def commit(self):
-        with self.db_lock:
-            self.db_con.commit()
-
 class BioPatrol(tk.Frame, Module):
     FILENAME_RAW = 'bio.json.gz'
     FILENAME_FLAT = 'bio-flat.json'
     FILENAME_BIO = 'bio-found.json'
-    FILENAME_BOXELS = 'boxels.json'
 
-    def _biopatrol_init_ui(self):
-        self.biopatrol = tk.Frame(self)
+    def __init__(self, parent, gridrow):
+        super().__init__(parent)
+
+        self.plugin_dir = global_context.plugin_dir
+        self.data: list[dict] = []
+        self.enabled_regions: list[str] = [region for region, enabled in RegionFilterWindow.load_config().items() if enabled]
+        self.current_coords: Coords = None
+        self._enabled = False
+        self.__threadlock = Lock()
+        self.__region_filter_window: RegionFilterWindow = None
+        self.__pos = 0
+        self.__priority = 0
+        self.__selected_bio = ""
+        self.pinned_bio: str = None
+        self.cmdr = None
+        # dict: (id64, bodyId) -> bodyName
+        self.bodies = {}
+        self.signals_in_system = {}
+        self.__live_data = False
+        # this is needed to stop the processing of old logs upon reaching fresh data
+        self.last_processed_timestamp: datetime = None
 
         self.IMG_PREV = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "left_arrow.gif"))
         self.IMG_NEXT = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "right_arrow.gif"))
@@ -226,12 +153,14 @@ class BioPatrol(tk.Frame, Module):
         self.IMG_TO_BEGINNING = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "to_beginning.gif"))
         self.IMG_BRABFUN = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "brabfun.png"))
 
+        self.grid_columnconfigure(0, weight=1)
+
         # заглушка/статус
         self.__dummy_var = tk.StringVar(self)
-        self.dummy_label = tk.Label(self.biopatrol, textvariable=self.__dummy_var)
+        self.dummy_label = tk.Label(self, textvariable=self.__dummy_var)
 
         # переключатель видов
-        self.switch_frame = tk.Frame(self.biopatrol)
+        self.switch_frame = tk.Frame(self)
         self.switch_frame.grid_columnconfigure(2, weight=1)
 
         self.prev_button = nb.Button(self.switch_frame, image=self.IMG_PREV)
@@ -275,7 +204,7 @@ class BioPatrol(tk.Frame, Module):
         theme.button_bind(self.next_button_dark, self.__next)
 
         # регион локации и количество планет с видом
-        self.region_frame = tk.Frame(self.biopatrol)
+        self.region_frame = tk.Frame(self)
         self.region_frame.grid_columnconfigure(0, weight=1)
 
         self.__region_var = tk.StringVar(self.region_frame)
@@ -289,7 +218,7 @@ class BioPatrol(tk.Frame, Module):
         self.locations_count_label.grid(column=1, row=0, sticky="E")
 
         # ближайшая локация и расстояние до неё
-        self.closest_location_frame = tk.Frame(self.biopatrol)
+        self.closest_location_frame = tk.Frame(self)
         self.closest_location_frame.grid_columnconfigure(0, weight=1)
 
         self.__closest_location_var = tk.StringVar(self.closest_location_frame)
@@ -303,7 +232,7 @@ class BioPatrol(tk.Frame, Module):
         self.distance_label.grid(column=1, row=0, sticky="E")
 
         # кнопки удаления локации и копирования системы
-        self.buttons_frame = tk.Frame(self.biopatrol)
+        self.buttons_frame = tk.Frame(self)
         self.buttons_frame.grid_columnconfigure((0, 1), weight=1, uniform="equal")
 
         self.copy_button = nb.Button(self.buttons_frame, text="Копировать систему", padding=(10, 0))
@@ -326,7 +255,7 @@ class BioPatrol(tk.Frame, Module):
 
         # кнопка фильтра по регионам
         # кнопка обработки старых логов
-        self.filter_frame = tk.Frame(self.biopatrol)
+        self.filter_frame = tk.Frame(self)
         self.filter_frame.grid_columnconfigure(0, weight=1)
 
         self.filter_button = nb.Button(self.filter_frame, text="Фильтр регионов")
@@ -362,167 +291,11 @@ class BioPatrol(tk.Frame, Module):
         self.buttons_frame.grid_remove()
         self.filter_frame.grid_remove()
 
-        self.biopatrol.grid_columnconfigure(0, weight=1)
-        self.biopatrol.grid(row=0, sticky="NWSE")
-
-    def _yoba_init_ui(self):
-        # Boxel Explorer
-        self.yoba = tk.Frame(self)
-
-        self.IMG_YOBA_START = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "51de0d93.png"))
-        self.IMG_YOBA_STOP = tk.PhotoImage(file=Path(self.plugin_dir, "icons", "40845c5c.png"))
-
-        self.yoba_start_frame = tk.Frame(self.yoba)
-        self.yoba_start_frame.grid_columnconfigure(0, weight=1)
-        self.__yoba_start_var = tk.StringVar(self.yoba_start_frame)
-        self.yoba_start_label = tk.Label(self.yoba_start_frame, textvariable=self.__yoba_start_var)
-        self.yoba_start_label.grid(column=0, row=0, sticky="W")
-
-        self.yoba_start_button = nb.Button(self.yoba_start_frame, image=self.IMG_YOBA_START)
-        self.yoba_start_button_dark = tk.Label(self.yoba_start_frame, image=self.IMG_YOBA_START)
-        theme.register_alternate(
-            (self.yoba_start_button, self.yoba_start_button_dark, self.yoba_start_button_dark),
-            {"column": 1, "row": 0, "sticky": "EW"}
-        )
-
-        self.yoba_start_button.bind('<Button-1>', self.__yoba_window_create)
-        theme.button_bind(self.yoba_start_button_dark, self.__yoba_window_create)
-
-        self.yoba_stop_frame = tk.Frame(self.yoba)
-        self.yoba_stop_frame.grid_columnconfigure(0, weight=1)
-        self.__yoba_stop_var = tk.StringVar(self.yoba_stop_frame)
-        self.yoba_stop_label = tk.Label(self.yoba_stop_frame, textvariable=self.__yoba_stop_var)
-        self.yoba_stop_label.grid(column=0, row=0, sticky="W")
-
-        self.yoba_stop_button = nb.Button(self.yoba_stop_frame, image=self.IMG_YOBA_STOP)
-        self.yoba_stop_button_dark = tk.Label(self.yoba_stop_frame, image=self.IMG_YOBA_STOP)
-        theme.register_alternate(
-            (self.yoba_stop_button, self.yoba_stop_button_dark, self.yoba_stop_button_dark),
-            {"column": 1, "row": 0, "sticky": "EW"}
-        )
-
-        self.yoba_stop_button.bind('<Button-1>', self.__yoba_abort)
-        theme.button_bind(self.yoba_stop_button_dark, self.__yoba_abort)
-
-        self.yoba_calibrate_frame = tk.Frame(self.yoba)
-        self.yoba_calibrate_frame.grid_columnconfigure(0, weight=1)
-        self.__yoba_calibrate_var = tk.StringVar(self.yoba_calibrate_frame)
-        self.yoba_calibrate_label = tk.Label(self.yoba_calibrate_frame, textvariable=self.__yoba_calibrate_var)
-        self.yoba_calibrate_label.grid(column=0, row=0, sticky="W")
-
-        self.yoba_calibrate_button = nb.Button(self.yoba_calibrate_frame, text="Калибровка")
-        self.yoba_calibrate_button_dark = tk.Label(self.yoba_calibrate_frame, text="Калибровка", fg="white")
-        theme.register_alternate(
-            (self.yoba_calibrate_button, self.yoba_calibrate_button_dark, self.yoba_calibrate_button_dark),
-            {"column": 1, "row": 0, "sticky": "EW"}
-        )
-        self.yoba_calibrate_button.bind('<Button-1>', self.__yoba_calibrate)
-        theme.button_bind(self.yoba_calibrate_button_dark, self.__yoba_calibrate)
-
-        self.yoba_boxel_frame = tk.Frame(self.yoba)
-        self.yoba_boxel_frame.grid_columnconfigure(0, weight=1)
-        self.__yoba_boxel_var = tk.StringVar(self.yoba_boxel_frame)
-        self.yoba_boxel_label = tk.Label(self.yoba_boxel_frame, textvariable=self.__yoba_boxel_var)
-        self.yoba_boxel_label.grid(column=0, row=0, sticky="W")
-
-        self.yoba_boxel_button = nb.Button(self.yoba_boxel_frame, text="Пропустить боксель")
-        self.yoba_boxel_button_dark = tk.Label(self.yoba_boxel_frame, text="Пропустить боксель", fg="white")
-        theme.register_alternate(
-            (self.yoba_boxel_button, self.yoba_boxel_button_dark, self.yoba_boxel_button_dark),
-            {"column": 1, "row": 0, "sticky": "EW"}
-        )
-        self.yoba_boxel_button.bind('<Button-1>', self.__yoba_next_boxel)
-        theme.button_bind(self.yoba_boxel_button_dark, self.__yoba_next_boxel)
-
-        self.yoba_boxel_button2 = nb.Button(self.yoba_calibrate_frame, text="Нет систем")
-        self.yoba_boxel_button2_dark = tk.Label(self.yoba_calibrate_frame, text="Нет системы", fg="white")
-        theme.register_alternate(
-            (self.yoba_boxel_button2, self.yoba_boxel_button2_dark, self.yoba_boxel_button2_dark),
-            {"column": 2, "row": 0, "sticky": "EW"}
-        )
-        self.yoba_boxel_button2.bind('<Button-1>', self.__yoba_next_boxel)
-        theme.button_bind(self.yoba_boxel_button2_dark, self.__yoba_next_boxel)
-
-        self.yoba_calibrate2_frame = tk.Frame(self.yoba)
-        self.yoba_calibrate2_frame.grid_columnconfigure(0, weight=1)
-        self.yoba_calibrate_instructions_label = tk.Label(self.yoba_calibrate2_frame, text="Выделяйте системы бокселя в цель")
-        self.yoba_calibrate_instructions_label.grid(column=0, row=0, sticky="W")
-
-        self.yoba_copy_boxel_button = nb.Button(self.yoba_calibrate2_frame, text="Копировать боксель")
-        self.yoba_copy_boxel_button_dark = tk.Label(self.yoba_calibrate2_frame, text="Копировать боксель", fg="white")
-        theme.register_alternate(
-            (self.yoba_copy_boxel_button, self.yoba_copy_boxel_button_dark, self.yoba_copy_boxel_button_dark),
-            {"column": 1, "row": 0, "sticky": "EW"}
-        )
-        self.yoba_copy_boxel_button.bind('<Button-1>', self.__yoba_copy_boxel)
-        theme.button_bind(self.yoba_copy_boxel_button_dark, self.__yoba_copy_boxel)
-
-        self.yoba_next_frame = tk.Frame(self.yoba)
-        self.yoba_next_frame.grid_columnconfigure(0, weight=1)
-        self.__yoba_next_system_var = tk.StringVar(self.yoba_next_frame)
-        self.yoba_next_system = tk.Label(self.yoba_next_frame, textvariable=self.__yoba_next_system_var)
-        self.yoba_next_system.grid(column=0, row=0, sticky="W")
-
-        self.yoba_copy = nb.Button(self.yoba_next_frame, text="Копировать систему")
-        self.yoba_copy_dark = tk.Label(self.yoba_next_frame, text="Копировать систему", fg="white")
-        theme.register_alternate(
-            (self.yoba_copy, self.yoba_copy_dark, self.yoba_copy_dark),
-            {"column": 1, "row": 0, "sticky": "EW"}
-        )
-        self.yoba_copy.bind('<Button-1>', self.__yoba_copy_button)
-        theme.button_bind(self.yoba_copy_dark, self.__yoba_copy_button)
-
-        self.yoba_state_frame = tk.Frame(self.yoba)
-        self.yoba_state_frame.grid_columnconfigure(0, weight=1)
-        self.__yoba_state_var = tk.StringVar(self.yoba_state_frame)
-        self.yoba_state = tk.Label(self.yoba_state_frame, textvariable=self.__yoba_state_var)
-        self.yoba_state.grid(column=0, row=0, sticky="W")
-
-        self.yoba.grid_columnconfigure(0, weight=1)
-        self.yoba.grid(row=1, sticky="NWSE")
-
-    def __init__(self, parent, gridrow):
-        super().__init__(parent)
-
-        self.plugin_dir = global_context.plugin_dir
-        self.data: list[dict] = []
-        self.enabled_regions: list[str] = [region for region, enabled in RegionFilterWindow.load_config().items() if enabled]
-        self.current_coords: Coords = None
-        self._enabled = False
-        self.__threadlock = Lock()
-        self.__region_filter_window: RegionFilterWindow = None
-        self.__pos = 0
-        self.__priority = 0
-        self.__selected_bio = ""
-        self.pinned_bio: str = None
-        self.cmdr = None
-        # dict: (id64, bodyId) -> bodyName
-        self.__live_data = False
-        self.__yoba_window: YobaWindow = None
-        self.cmdr_id = None
-        self.current_system_id64 = None
-        self.yoba_current_boxel = None
-        self.__yoba_calibrating = False
-        self.__yoba_boxels = None
-
-        # this is needed to stop the processing of old logs upon reaching fresh data
-        self.last_processed_timestamp: datetime = None
-
-        self.grid_columnconfigure(0, weight=1)
-        self._biopatrol_init_ui()
-        self._yoba_init_ui()
-
-        BasicThread(name="YobaDataReader", target=self.yoba_load).start()
-
         # упаковываем до данных по местоположению
+        self.set_status("Местоположение неизвестно.\nТребуется прыжок или перезапуск игры.")
         BasicThread(name="BioPatrolDataReader", target=self.load_data).start()
         self.grid(column=0, row=gridrow, sticky="NWSE")
-        self.set_status("Местоположение неизвестно.\nТребуется прыжок или перезапуск игры.")
 
-        self.db = BiopatrolDB()
-
-    def close(self):
-        self.db.commit()
 
     def brab_fun(self):
         self.is_brab_fun = True
@@ -558,14 +331,13 @@ class BioPatrol(tk.Frame, Module):
         logsdir = Path(_edmc_config.get_str("journaldir") or logsdir_default)
         logs = [
             logfile
-            for logfile in sorted(logsdir.iterdir())
+            for logfile in logsdir.iterdir()
             if (
                 logfile.is_file()
                 and re.match(pattern, logfile.name) is not None
             )
         ]
         debug(f"Game logs dir: {logsdir} ({len(logs)} files found)")
-        self.db.execute("DELETE FROM data_cmdrs")
 
         class BioPatrolJournalProcessor:
             def __init__(self, logs: list[Path], patrol: BioPatrol):
@@ -618,151 +390,24 @@ class BioPatrol(tk.Frame, Module):
 
         BioPatrolJournalProcessor(logs, self).run()
         debug("Finished reading old game logs")
-
-
-    def filter_predictions_after_dss(self, system_id64, bodyid, genuses):
-        for i in self.db.execute("SELECT DISTINCT genus, body FROM predictions_data WHERE system_id64 = ? AND bodyid = ?", (system_id64, bodyid,)):
-            predicted_genus = i[0]
-            planet = i[1]
-            if predicted_genus not in genuses:
-                debug(f">> Removing {predicted_genus} prediction for {planet} - ruled out by DSS")
-                self.db.execute("UPDATE predictions_data SET status = -1 WHERE system_id64 = ? AND bodyid = ? AND genus = ?", (system_id64, bodyid, predicted_genus,))
+        self.bodies = {}
 
 
     def open_discoveries(self):
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_cmdrs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            fid TEXT NOT NULL,
-            name TEXT NOT NULL,
-            prev_id INT NOT NULL
-        )
-        ''')
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_systems (
-            id64 INT PRIMARY KEY,
-            name TEXT NOT NULL,
-            procgen_sector_id INT NOT NULL,
-            procgen_masscode_id INT NOT NULL,
-            procgen_boxel_id INT NOT NULL,
-            procgen_system_id INT NOT NULL
-        )
-        ''')
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_systems_coordinates (
-            id64 INT PRIMARY KEY,
-            x FLOAT NOT NULL,
-            y FLOAT NOT NULL,
-            z FLOAT NOT NULL,
-            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE
-        )
-        ''')
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_fss (
-            id64 INT NOT NULL,
-            cmdr_id INT NOT NULL,
-            body_count INT NOT NULL,
-            PRIMARY KEY (id64, cmdr_id),
-            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
-        )
-        ''')
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_fss_completed_systems (
-            id64 INT NOT NULL,
-            cmdr_id INT NOT NULL,
-            PRIMARY KEY (id64, cmdr_id),
-            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
-        )
-        ''')
-        # scan_level: 0 - Auto/NavBeaconDetail, 1 - Detailed (FSS), 2 - SAAScanComplete (DSS)
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_body_scans (
-            system_id64 INT NOT NULL,
-            bodyid INT NOT NULL,
-            cmdr_id INT NOT NULL,
-            scan_level INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, cmdr_id, scan_level),
-            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
-        )
-        ''')
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_bodies (
-            system_id64 INT NOT NULL,
-            bodyid INT NOT NULL,
-            name TEXT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid),
-            FOREIGN KEY (system_id64) REFERENCES data_systems(id64) ON DELETE CASCADE
-        )
-        ''')
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_fss_body_signals (
-            system_id64 INT NOT NULL,
-            bodyid INT NOT NULL,
-            type TEXT NOT NULL,
-            count INT NOT NULL,
-            cmdr_id INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, type, cmdr_id),
-            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
-        )
-        ''')
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_body_bio_signals (
-            system_id64 INT NOT NULL,
-            bodyid INT NOT NULL,
-            signal TEXT NOT NULL,
-            cmdr_id INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, signal, cmdr_id),
-            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
-        )
-        ''')
-        # state: 0 - Known (CodexEntry), 1 - Logged, 2 - Analyzed, 3 - Possibly Sold, 4 - Sold
-        self.db.execute('''
-            CREATE TABLE IF NOT EXISTS data_bios (
-            system_id64 INT NOT NULL,
-            bodyid INT NOT NULL,
-            signal TEXT NOT NULL,
-            species TEXT NOT NULL,
-            cmdr_id INT NOT NULL,
-            state INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, signal, cmdr_id, state),
-            FOREIGN KEY (system_id64, bodyid, signal, cmdr_id) REFERENCES data_body_bio_signals(system_id64, bodyid, signal, cmdr_id) ON DELETE CASCADE
-        )
-        ''')
+        try:
+            with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'r') as f:
+                self.__bio_found = json.load(f)
+        except Exception:
+            self.__bio_found = {}
 
 
     def open_predictions(self):
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS predictions_metadata (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-        )
-        ''')
-        # status:
-        # 0  - unknown
-        # 1  - confirmed
-        # -1 - falsified
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS predictions_data (
-            species TEXT NOT NULL,
-            genus TEXT NOT NULL,
-            system_id64 INT NOT NULL,
-            bodyid INT NOT NULL,
-            system TEXT NOT NULL,
-            body TEXT NOT NULL,
-            x FLOAT NOT NULL,
-            y FLOAT NOT NULL,
-            z FLOAT NOT NULL,
-            region TEXT NOT NULL,
-            priority INT NOT NULL,
-            status INT NOT NULL DEFAULT 0,
-            PRIMARY KEY (species, system_id64, bodyid)
-        )
-        ''')
+        try:
+            with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'r') as f:
+                return json.load(f)
+        except Exception:
+            self.set_status(f"Файл с предсказаниями не найден или повреждён (data/{self.FILENAME_FLAT})")
+            return {}
 
 
     def unpack_predictions(self):
@@ -775,40 +420,43 @@ class BioPatrol(tk.Frame, Module):
 
 
     def update_predictions(self):
+        unpacked = self.open_predictions()
         archived = self.unpack_predictions()
-        archived_date = archived.get("timestamp", "1970-01-01")
 
-        self.open_predictions()
-        unpacked_date = self.db.execute("SELECT value FROM predictions_metadata WHERE key = 'timestamp'").fetchone()
-        if unpacked_date is None:
-            unpacked_date = ("1970-01-01",)
+        unpacked_date = datetime.fromisoformat(unpacked.get("timestamp", "1970-01-01"))
+        archived_date = datetime.fromisoformat(archived.get("timestamp", "1970-01-01"))
 
-        # check if archive is newer
-        if archived and (unpacked_date[0] < archived_date):
-            self.process_archive_data(archived)
+        if archived and (unpacked_date < archived_date):
+            self.__raw_data = self.process_archive_data(archived)
             self.save_data()
             return True
         else:
-            return False
+            if unpacked:
+                self.__raw_data = unpacked
+                return False
+            else:
+                self._enabled = False
+                return None
 
 
     def cleanup_predictions(self):
-        self.set_status(f"Отфильтровываем находки КМДР...")
+        for k, v in self.__bio_found.items():
+            planet = k
 
-        for i in self.db.execute("SELECT signal, species, system_id64, bodyid, cmdr_id FROM data_bios"):
-            self.process_genus_bio(i[0], i[1], i[2], i[3], i[4])
+            for species, data in self.__raw_data["bio"].items():
+                if planet not in data["locations"]:
+                    continue
 
-        for i in self.db.execute("SELECT system_id64, bodyid, count FROM data_fss_body_signals WHERE type = '$SAA_SignalType_Biological;'"):
-            system = i[0]
-            body = i[1]
-            bio_count = i[2]
+                species_genus = species.split()[0]
+                known_genuses = self.__bio_found[planet].get("genuses", [])
 
-            bio_signals = set()
-            for j in self.db.execute("SELECT system_id64, bodyid, signal FROM data_body_bio_signals WHERE system_id64 = ? AND bodyid = ?", (system, body, )):
-                bio_signals.add(j[2])
+                if known_genuses is not None and species_genus not in known_genuses:
+                    debug(f">> Removing {species} prediction for {planet} - genus has been ruled out by DSS")
+                    del data["locations"][planet]
 
-            if len(bio_signals) == bio_count:
-                self.filter_predictions_after_dss(system, body, bio_signals)
+            for bioname in v["signals"]:
+                genus = bioname.split()[0]
+                self.process_genus_bio(genus, bioname, planet)
 
 
     def load_data(self):
@@ -821,6 +469,7 @@ class BioPatrol(tk.Frame, Module):
                 else:
                     break
 
+            self.body = None
             self.open_discoveries()
 
             # {
@@ -835,11 +484,13 @@ class BioPatrol(tk.Frame, Module):
             # }
 
             predictions_updated = self.update_predictions()
+            if predictions_updated is None:
+                return
 
             self._enabled = True
 
-            if self.db.execute("SELECT COUNT(id) FROM data_cmdrs").fetchone()[0] == 0:
-                debug(f"Database not found; reading old game logs")
+            if not self.__bio_found:
+                debug(f"{self.FILENAME_BIO} not found; reading old game logs")
                 self.read_old_logs()
 
             self.cleanup_predictions()
@@ -850,51 +501,41 @@ class BioPatrol(tk.Frame, Module):
 
 
     def process_archive_data(self, raw_data: dict):
-        # remove outdated predictions
-        self.db.execute("DELETE FROM predictions_data")
+        data = {
+            "timestamp": raw_data.get("timestamp", "1970-01-01"),
+            "bio": {}
+        }
 
         for region, region_data in raw_data["bio"].items():
             for species, species_data in region_data.items():
+                priority = species_data["priority"]
+                if species not in data["bio"]:
+                    data["bio"][species] = {"locations": {}}
 
                 for location in species_data["locations"]:
-                    self.db.execute('''
-                    INSERT INTO predictions_data
-                        (species, genus, system_id64, bodyid, system, body, x, y, z, region, priority)
-                    VALUES
-                        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (
-                        species,
-                        species.split()[0],
-                        location["system_id64"],
-                        location["body_id64"] >> 55,
-                        location["system"],
-                        location["body"],
-                        location["x"],
-                        location["y"],
-                        location["z"],
-                        region,
-                        species_data["priority"],
-                        ))
+                    location["region"] = region
+                    location["priority"] = priority
+                    body = location["body"]
+                    del location["body"]
+                    data["bio"][species]["locations"][body] = location
 
             self.set_status(f"Обработан регион {region}")
 
-        timestamp = raw_data.get("timestamp", "1970-01-01")
-        self.db.execute("INSERT OR REPLACE INTO predictions_metadata (key, value) VALUES (?, ?)", ("timestamp", timestamp))
+        return data
 
 
     def save_data(self):
         if not self.__live_data:
             return
 
-        self.db.commit()
+        with open(Path(self.plugin_dir, "data", self.FILENAME_FLAT), 'w') as f:
+            json.dump(self.__raw_data, f, ensure_ascii=False)
+
+        with open(Path(self.plugin_dir, "data", self.FILENAME_BIO), 'w') as f:
+            json.dump(self.__bio_found, f, ensure_ascii=False)
 
 
-    def process_genus_bio(self, genus, bioname, system_id64, bodyid, cmdr_id=None, report=False, entry_region=None):
-        if cmdr_id is None:
-            cmdr_id = self.cmdr_id
-
-        planet = self.get_current_body(system_id64, bodyid)
-
+    def process_genus_bio(self, genus, bioname, planet, report=False, entry_region=None):
         # sanity check
         for codex_name, english_name in codex_to_english_variants.items():
             if bioname in (codex_name, english_name):
@@ -904,10 +545,11 @@ class BioPatrol(tk.Frame, Module):
 
         region = None
         priority = 1
-
-        res = self.db.execute("SELECT region, priority FROM predictions_data WHERE species = ? AND system_id64 = ? AND bodyid = ?", (bioname, system_id64, bodyid,)).fetchone()
-        if res is not None:
-            region, priority = res
+        if bioname in self.__raw_data["bio"]:
+            locations = self.__raw_data["bio"][bioname]["locations"]
+            if planet in locations:
+                region = locations[planet]["region"]
+                priority = locations[planet]["priority"]
 
         # We may know the region from CodexEntry event
         if entry_region is not None:
@@ -924,73 +566,87 @@ class BioPatrol(tk.Frame, Module):
             url = f'{URL_GOOGLE}/1FAIpQLSfp4rPNSOVf5V-LYLEUXCKomDBaHo92lPwfp9YJDrml2QGUQQ/formResponse?usp=pp_url&{"&".join([f"{k}={v}" for k, v in url_params.items()])}'
             Reporter(url).start()
 
-        # confirm prediction
-        self.db.execute("UPDATE predictions_data SET status = 1 WHERE system_id64 = ? AND bodyid = ? AND species = ?", (system_id64, bodyid, bioname, ))
+        debug(f"Found {bioname} (genus: {genus}) at {planet} (priority: {priority})")
+        for species, data in self.__raw_data["bio"].items():
+            if planet not in data["locations"]:
+                continue
 
-        # only one species per genus allowed
-        self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ? AND genus = ? AND species != ?", (system_id64, bodyid, genus, bioname, ))
+            remove_planet = False
+            # only one species per genus allowed
+            species_genus = species.split()[0]
+            if genus == species_genus and bioname != species:
+                debug(f">> Removing {species} prediction for {planet} - matching genus has been found")
+                remove_planet = True
 
-        # all signals has been found
-        signals_found = self.db.execute("SELECT COUNT(DISTINCT(species)) FROM data_bios WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ? AND species IS NOT NULL", (system_id64, bodyid, cmdr_id, )).fetchone()[0]
+            # found all signals, clear planet from lists
+            signals_found = len(self.__bio_found[planet]["signals"])
+            signals_count = self.__bio_found[planet]["signalCount"]
+            if signals_found == signals_count:
+                debug(f">> Removing {species} prediction for {planet} - all {signals_count} signals discovered")
+                remove_planet = True
 
-        signals_count = self.db.execute("SELECT count FROM data_fss_body_signals WHERE system_id64 = ? AND bodyid = ? AND type = '$SAA_SignalType_Biological;'", (system_id64, bodyid, )).fetchone()
-        if signals_count is not None and signals_found == signals_count:
-            self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (system_id64, bodyid, ))
+            if remove_planet is True:
+                del data["locations"][planet]
+                # don't update ui on EDMC startup
+                if self._enabled:
+                    self.update_pos()
 
-        # don't update ui on EDMC startup
-        if self._enabled:
-            self.update_pos()
+            # new codex entry detected, remove all from region
+            if priority > 1:
+                data_locations_new = {}
+                for k, v in data["locations"].items():
+                    if species == bioname and v["region"] == region:
+                        debug(f">> Removing {species} prediction for {k} - new codex entry in region {region}")
+                        continue
 
-        # new regional codex entry
-        self.db.execute("UPDATE predictions_data SET priority = 1 WHERE priority = 2 AND species = ? AND region = ?", (bioname, region, ))
+                    data_locations_new[k] = v
 
-        # new galactic new codex entry
-        self.db.execute("UPDATE predictions_data SET priority = 1 WHERE priority = 3 AND species = ? AND region = ?", (bioname, region, ))
-        self.db.execute("UPDATE predictions_data SET priority = 2 WHERE priority = 3 AND species = ? AND region != ?", (bioname, region, ))
+                data["locations"] = data_locations_new
+
+            # new galactic entry detected
+            if priority > 2:
+                for k, v in data["locations"].items():
+                    if species == bioname:
+                        if v["region"] != region:
+                            debug(f'>> Changing {species} prediction for {k} - found in {region}, downgrading priority in {v["region"]}')
+                            v["priority"] = 2
+                            continue
 
 
-    def get_current_body(self, system_id64, bodyid):
-        res = self.db.execute("SELECT name FROM data_bodies WHERE system_id64 = ? AND bodyid = ?", (system_id64, bodyid, )).fetchone()
-        return None if res is None else res[0]
+    def get_priority(self, bioname, planet):
+        """Приоритет предсказанной локации (3 - первый в галактике), 1 если данных нет."""
+        try:
+            return self.__raw_data["bio"][bioname]["locations"][planet]["priority"]
+        except (KeyError, TypeError):
+            return 1
 
-    def get_system(self, id64):
-        row = self.db.execute("SELECT name FROM data_systems WHERE id64 = ?", (id64, ))
-        if row is None:
-            return None
+
+    def biofound_init_body(self, body, signal_count=None):
+        if body not in self.__bio_found:
+            self.__bio_found[body] = {
+                "signalCount": signal_count,
+                "signals": [],
+                "genuses": None
+            }
+
+    def biofound_set_genuses(self, body, genuses):
+        self.__bio_found[body]["genuses"] = genuses
+
+    def biofound_add_signal(self, body, signal):
+        if signal not in self.__bio_found[body]["signals"]:
+            self.__bio_found[body]["signals"].append(signal)
+
+
+    def get_current_body(self, key):
+        if self.__live_data:
+            return self.body
         else:
-            return row.fetchone()[0]
-
-    def store_current_system(self, id64, name):
-        # store some procgen data
-        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(id64)
-        self.current_system_id64 = id64
-        self.db.execute('''
-            INSERT OR IGNORE INTO
-                data_systems
-            (id64, name, procgen_sector_id, procgen_masscode_id, procgen_boxel_id, procgen_system_id)
-                VALUES
-            (?, ?, ?, ?, ?, ?)
-        ''', (id64, name, sector_id, masscode_id, boxel_id, system_id, ))
-
-
-    def store_system_coords(self, entry):
-        self.db.execute('''
-            INSERT OR IGNORE INTO
-                data_systems_coordinates
-            (id64, x, y, z)
-                VALUES
-            (?, ?, ?, ?)
-        ''', (entry.data["SystemAddress"], entry.data["StarPos"][0], entry.data["StarPos"][1], entry.data["StarPos"][2], ))
+            return self.bodies.get(key, None)
 
 
     def store_current_body(self, entry, name):
-        self.db.execute('''
-            INSERT OR IGNORE INTO
-                data_bodies
-            (system_id64, bodyid, name)
-                VALUES
-            (?, ?, ?)
-        ''', (entry.data["SystemAddress"], entry.data["BodyID"], name))
+        if not self.__live_data:
+            self.bodies[(entry.data["SystemAddress"], entry.data["BodyID"])] = name
 
 
     def on_historic_entry(self, entry: BioPatrolJournalEntry):
@@ -1002,26 +658,28 @@ class BioPatrol(tk.Frame, Module):
             self.process_entry(entry)
 
 
-    def biopatrol_process_entry(self, entry):
-        required_events = [
-            "Location",
-            "FSDJump",
-            "ScanOrganic",
-            "CodexEntry",
-            "SAASignalsFound",
-            "FSSBodySignals",
-            "FSSAllBodiesFound"
-        ]
+    def process_entry(self, entry):
+        if self.__live_data:
+            self.last_processed_timestamp = datetime.fromisoformat(entry.data["timestamp"])
+        required_events = ["Location", "FSDJump", "ScanOrganic", "SAASignalsFound", "FSSBodySignals", "FSSAllBodiesFound", "CodexEntry"]
+        if not self.__live_data:
+            required_events += ["ApproachBody", "Touchdown", "Disembark"]
 
         event = entry.data["event"]
         if event not in required_events:
             return
 
+        if not self._enabled:       # на случай, если попытка чтения данных завершилась ошибкой
+            return
+
         if event in ("Location", "FSDJump"):
             self.__update_data_wrap(entry)
 
+            if event == "Location":
+                self.store_current_body(entry, entry.data["Body"])
+
         elif event == "ScanOrganic":
-            body = self.get_current_body(entry.data["SystemAddress"], entry.data["Body"])
+            body = self.get_current_body((entry.data["SystemAddress"], entry.data["Body"]))
 
             genus = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
             if "Variant" not in entry.data:
@@ -1031,8 +689,11 @@ class BioPatrol(tk.Frame, Module):
             if self.__live_data:
                 self.set_status(f"Scanned {bioname} at {body}")
 
+            self.biofound_init_body(body)
+            self.biofound_add_signal(body, bioname)
+
             # update data
-            self.process_genus_bio(genus, bioname, entry.data["SystemAddress"], entry.data["Body"], report=True)
+            self.process_genus_bio(genus, bioname, body, report=True)
 
             self.save_data()
             self.__update_data_wrap(entry)
@@ -1044,7 +705,9 @@ class BioPatrol(tk.Frame, Module):
             if entry.data["SubCategory"] != "$Codex_SubCategory_Organic_Structures;":
                 return
 
-            body = self.get_current_body(entry.data["SystemAddress"], entry.data["BodyID"])
+            body = self.get_current_body((entry.data["SystemAddress"], entry.data["BodyID"]))
+            if body is None:
+                return
 
             bioname = codex_to_english_variants.get(entry.data["Name"], entry.data["Name"])
             region = codex_to_english_regions.get(entry.data["Region"], entry.data["Region"])
@@ -1054,314 +717,86 @@ class BioPatrol(tk.Frame, Module):
             if self.__live_data:
                 self.set_status(f"Scanned {bioname} at {body}")
 
+            self.biofound_init_body(body)
+            self.biofound_add_signal(body, bioname)
+
             # update data
-            self.process_genus_bio(genus, bioname, entry.data["SystemAddress"], entry.data["BodyID"], report=True, entry_region=region)
+            self.process_genus_bio(genus, bioname, body, report=True, entry_region=region)
 
             self.save_data()
             self.__update_data_wrap(entry)
-
 
         elif event == "SAASignalsFound" and entry.data.get("Genuses"):
             genuses = [codex_to_english_genuses.get(i["Genus"], i["Genus"]) for i in entry.data["Genuses"]]
+            bodyName = entry.data["BodyName"]
 
-            self.filter_predictions_after_dss(entry.data["SystemAddress"], entry.data["BodyID"], genuses)
+            self.store_current_body(entry, bodyName)
 
-            self.__update_data_wrap(entry)
-            self.update_pos()
+            self.biofound_init_body(bodyName, len(genuses))
+            self.biofound_set_genuses(bodyName, genuses)
+
+            for species, data in self.__raw_data["bio"].items():
+                if bodyName in data["locations"] and species.split()[0] not in genuses:
+                    del data["locations"][bodyName]
+                    self.__update_data_wrap(entry)
+                    self.update_pos()
             self.save_data()
-
-        elif event == "FSSAllBodiesFound":
-            for i in self.db.execute("SELECT DISTINCT bodyid, body FROM predictions_data WHERE system_id64 = ?", (entry.data["SystemAddress"], )):
-                bodyid = i[0]
-                planet = i[1]
-
-                isScanned = self.db.execute("SELECT MAX(scan_level) FROM data_body_scans WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (entry.data["SystemAddress"], bodyid, self.cmdr_id, )).fetchone()
-                if isScanned is None or isScanned == 0:
-                    debug(f'>> Skipping {planet}: has not been scanned yet')
-                    continue
-
-                signalCount = self.db.execute("SELECT count FROM data_fss_body_signals WHERE system_id64 = ? AND bodyid = ? AND type = '$SAA_SignalType_Biological;'", (entry.data["SystemAddress"], bodyid, )).fetchone()
-                if signalCount is None:
-                    debug(f'>> Removing {planet}: has no signals')
-                    self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (entry.data["SystemAddress"], bodyid, ))
-                elif signalCount[0] == 0:
-                    debug(f'>> Removing {planet}: known to have no signals')
-                else:
-                    debug(f'>> Keeping {planet}: has {signalCount[0]} signals')
-
-            self.__update_data_wrap(entry)
-            self.update_pos()
-            self.save_data()
-
-
-    def yoba_process_entry(self, entry):
-        required_events = [
-            "Commander",
-            "FSSDiscoveryScan",
-            "FSSAllBodiesFound",
-            "NavBeaconScan",
-            "FSSBodySignals",
-            "SAASignalsFound",
-            "ScanOrganic",
-            "CodexEntry",
-            "FSDTarget"
-        ]
-
-        event = entry.data["event"]
-        if event not in required_events:
-            return
-
-        if event == "Commander":
-            self.yoba_update_status()
-            self.yoba_update()
-
-        if event in ["FSSDiscoveryScan",
-            "FSSAllBodiesFound",
-            "NavBeaconScan",
-            "FSSBodySignals",
-            "SAASignalsFound",
-            "ScanOrganic",
-            "CodexEntry"]:
-            self.yoba_update()
-
-        elif event == "FSDTarget":
-            if self.yoba_calibrating:
-                # sanity check
-                target_id64 = entry.data["SystemAddress"]
-                boxel_data = self.yoba_boxels[self.yoba_current_boxel]
-
-                sector_id, masscode_id, boxel_id, system_id, _ = split_ids(target_id64)
-                if sector_id == boxel_data["_sector"] and masscode_id == boxel_data["_masscode"] and boxel_id == boxel_data["_boxel"]:
-                    if boxel_data["start"] is None or system_id < boxel_data["start"]:
-                        boxel_data["start"] = system_id
-                        self.yoba_update()
-
-                    if boxel_data["finish"] is None or system_id > boxel_data["finish"]:
-                        boxel_data["finish"] = system_id
-                        self.yoba_update()
-
-
-    def process_entry(self, entry):
-        if self.__live_data:
-            self.last_processed_timestamp = datetime.fromisoformat(entry.data["timestamp"])
-        required_events = [
-            # cmdr
-            "NewCommander",
-            "Commander",
-
-            # systems
-            "Location",
-            "FSDJump",
-            "CarrierJump",
-
-            # system, fss
-            "FSSDiscoveryScan",
-
-            # bodies, fss
-            "Scan",
-            "FSSBodySignals",
-
-            # system, fss done
-            "FSSAllBodiesFound",
-            "NavBeaconScan",
-
-            # bodies, dss
-            "SAAScanComplete",
-            "SAASignalsFound",
-
-            # biological event
-            "ScanOrganic",
-
-            # bodies, misc
-            "Disembark",
-
-            # for biopatrol
-            "CodexEntry",
-            "SupercruiseExit",
-
-            # for YOBA
-            "FSDTarget",
-
-            # misc
-            "Died",
-            "SellOrganicData"
-        ]
-
-        event = entry.data["event"]
-        if event not in required_events:
-            return
-
-        if not self._enabled:       # на случай, если попытка чтения данных завершилась ошибкой
-            return
-
-        if event == "NewCommander":
-            self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, 0)", (entry.data["FID"], entry.data["Name"]))
-
-        elif event == "Commander":
-            c_fid = entry.data["FID"]
-            c_name = entry.data["Name"]
-
-            row = self.db.execute("SELECT id, name, prev_id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
-            if row is None: # no such CMDR
-                self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, 0)", (c_fid, c_name,))
-            elif row[1] != c_name: # changed name
-                self.db.execute("INSERT INTO data_cmdrs (fid, name, prev_id) VALUES (?, ?, ?)", (c_fid, c_name, row[0]))
-
-            row = self.db.execute("SELECT id FROM data_cmdrs WHERE fid = ? ORDER BY id DESC LIMIT 1", (c_fid, )).fetchone()
-            self.cmdr_id = row[0]
-
-        elif event in ("Location", "FSDJump", "CarrierJump"):
-            self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
-            self.store_system_coords(entry)
-
-        elif event == "FSSDiscoveryScan":
-            self.store_current_system(entry.data["SystemAddress"], entry.data["SystemName"])
-
-            self.db.execute("INSERT OR IGNORE INTO data_fss (id64, cmdr_id, body_count) VALUES (?, ?, ?)", (entry.data["SystemAddress"], self.cmdr_id, entry.data["BodyCount"], ))
-
-        elif event == "Scan":
-            self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
-
-            self.store_current_body(entry, entry.data["BodyName"])
-            self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
-
-            # DSS does not make sense for non-landable body
-            if "Landable" not in entry.data or entry.data["Landable"] == False:
-                self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
-
-            # mark body as scanned
-            if entry.data["ScanType"] in ('Detailed'):
-                self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "FSSBodySignals":
-            # this event comes BEFORE "Scan", for Braben reasons
-            self.store_current_body(entry, entry.data["BodyName"])
-
-            for i in entry.data["Signals"]:
-                self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], self.cmdr_id, ))
-
-            # mark body as scanned
-            self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+            name = entry.data["BodyName"]
+            for signal in entry.data.get("Signals", []):
+                if signal["Type"] == "$SAA_SignalType_Biological;":
+                    self.signals_in_system[name] = signal["Count"]
+                    self.biofound_init_body(name, signal["Count"])
 
         elif event == "FSSAllBodiesFound":
-            # in case of Multi-Crew, for Braben Reasons
-            self.store_current_system(entry.data["SystemAddress"], entry.data["SystemName"])
-            self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
+            planets_to_remove = set()
 
-        elif event == "NavBeaconScan":
-            # for Braben reasons, there are no subsequent "Scan" events for bodies scanned using navigation beacon
-            # treat system as FSS completed but do not guarantee all body signals will be known
-            self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
+            for species, species_data in self.__raw_data["bio"].items():
+                for planet, planet_data in species_data["locations"].items():
+                    if planet_data["system"] != entry.data["SystemName"]:
+                        continue
 
-        elif event == "SAAScanComplete":
-            # this event comes BEFORE "Scan", for Braben reasons
-            self.store_current_body(entry, entry.data["BodyName"])
+                    if planet not in self.signals_in_system:
+                        if planet in self.__bio_found:
+                            signalCount = self.__bio_found[planet].get("signalCount", 0)
+                            if signalCount > 0:
+                                debug(f'>> Keeping {planet}: has {signalCount} signals')
+                                continue
 
-            self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+                            debug(f'>> Removing {planet}: known to have no signals')
 
-        elif event == "SAASignalsFound":
-            # this event comes BEFORE "Scan", for Braben reasons
-            self.store_current_body(entry, entry.data["BodyName"])
+                        planets_to_remove.add(planet)
+                        debug(f'>> Removing {planet}: has no signals')
 
-            # spare event, in case if body was autoscanned
-            for i in entry.data["Signals"]:
-                self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], self.cmdr_id))
+            for planet in planets_to_remove:
+                self.biofound_init_body(planet, 0)
+                for species, species_data in self.__raw_data["bio"].items():
+                    if planet in species_data["locations"]:
+                        del species_data["locations"][planet]
 
-            for i in entry.data.get("Genuses", []):
-                signal = codex_to_english_genuses.get(i["Genus"], i["Genus"])
-                self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, self.cmdr_id, ))
+            self.__update_data_wrap(entry)
+            self.update_pos()
+            self.save_data()
+            self.signals_in_system.clear()
 
-        elif event == "ScanOrganic":
-            if "Variant" in entry.data:
-                signal = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
-                species = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
-
-                # in case we skipped DSS
-                self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, self.cmdr_id, ))
-
-                if entry.data["ScanType"] in ('Log', 'Sample'):
-                    # partial sample: "Log" = first, "Sample" = subsequent
-                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
-                elif entry.data["ScanType"] == "Analyze":
-                    # complete sample
-                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
-
-        elif event == "CodexEntry":
-            if "BodyID" not in entry.data:
-                return
-
-            if entry.data["SubCategory"] != "$Codex_SubCategory_Organic_Structures;":
-                return
-
-            species = codex_to_english_variants.get(entry.data["Name"], entry.data["Name"])
-            signal = species.split()[0]
-
-            self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, self.cmdr_id))
-
-            # we only know there's a bio but didn't sample it yet
-            self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, species, self.cmdr_id))
-
-        elif event == "Disembark":
-            # this is in case when body is already known (Bubble?)
+        elif event == "ApproachBody":
             self.store_current_body(entry, entry.data["Body"])
-
-        elif event == "SupercruiseExit":
-            self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
-            self.store_current_body(entry, entry.data["Body"])
-
-        elif event == "Died":
-            # debug
-            for i in self.db.execute('''
-            SELECT
-                data_systems.id64,
-                data_bodies.bodyid,
-                data_systems.name,
-                data_bodies.name,
-                data_bios.species
-            FROM
-                data_systems
-            INNER JOIN
-                data_bodies ON data_systems.id64 = data_bodies.system_id64
-            INNER JOIN
-                data_bios
-            ON data_bios.system_id64 = data_bodies.system_id64
-            AND data_bios.bodyid = data_bodies.bodyid
-            WHERE cmdr_id = ? AND state != 4
-            ''', (self.cmdr_id, )):
-                debug(f'CMDR died, biodata {i[4]} on planet {i[3]} in system {i[2]} is lost.')
-
-            self.db.execute("DELETE FROM data_bios WHERE cmdr_id = ? AND state != 4", (self.cmdr_id, ))
-
-        elif event == "SellOrganicData":
-            for biodata in entry.data["BioData"]:
-                if "Variant" not in biodata:
-                    break
-
-                variant = biodata["Variant"]
-                variant_en = codex_to_english_variants.get(variant, variant)
-
-                unsold_species = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_bios WHERE cmdr_id = ? AND species = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, variant_en, )).fetchone()
-                if unsold_species is None:
-                    debug(f"Selling nonexisting {variant_en} biodata on")
-                else:
-                    debug(f"Potentially selling biodata on {unsold_species}")
-                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 3)", unsold_species[0:5])
-
-            unsold_bio = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_bios WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, )).fetchone()
-            # do we have something unsold?
-            if unsold_bio is None:
-                # sold everything we had on hand!
-                for sold_bio in self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_bios WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state = 3', (self.cmdr_id, )):
-                    debug(f"Confirmed selling biodata on {sold_bio}")
-                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 4)", sold_bio[0:5])
-
-        self.biopatrol_process_entry(entry)
-        self.yoba_process_entry(entry)
-
+        elif event in ("Touchdown", "Disembark"):
+            if entry.data["OnPlanet"]:
+                self.store_current_body(entry, entry.data["Body"])
 
     def on_dashboard_entry(self, cmdr, is_beta, entry):
         if self.cmdr != cmdr and cmdr is not None:
             self.cmdr = cmdr
+
+        if "BodyName" not in entry:
+            self.body = None
+            return
+
+        if self.body != entry["BodyName"]:
+            self.body = entry["BodyName"]
+
 
     def set_status(self, text: str):
         def __inner():
@@ -1463,7 +898,7 @@ class BioPatrol(tk.Frame, Module):
 
 
     def get_species_left_to_discover(self):
-        return [row[0] for row in self.db.execute("SELECT DISTINCT(species) FROM predictions_data WHERE status == 0")]
+        return [bio_item for bio_item, data in self.__raw_data["bio"].items() if len(data["locations"]) > 0]
 
 
     def __update_data_wrap(self, entry):
@@ -1474,20 +909,12 @@ class BioPatrol(tk.Frame, Module):
 
 
     def __update_data(self, entry: JournalEntry):
-        current_coords = None
-        if None in [entry.coords.x, entry.coords.y, entry.coords.z]:
-            # couldn't fetch anything
-            if "StarPos" in entry.data:
-                starpos = entry.data["StarPos"]
-                current_coords = Coords(starpos[0], starpos[1], starpos[2])
-            else:
-                current_coords = None
-        else:
-            current_coords = entry.coords
-
+        current_coords = entry.coords
+        if None in [entry.coords.x, entry.coords.y, entry.coords.z] and "StarPos" in entry.data:
+            starpos = entry.data["StarPos"]
+            current_coords = Coords(starpos[0], starpos[1], starpos[2])
         self.current_coords = current_coords
-        if self.current_coords:
-            self.__update_data_coords(self.current_coords)
+        self.__update_data_coords(self.current_coords)
 
 
     def __update_data_coords(self, current_coords: Coords):
@@ -1518,18 +945,7 @@ class BioPatrol(tk.Frame, Module):
         self.set_status("Пересчёт данных...")
         data = []
         for bio_item in self.get_species_left_to_discover():
-            locations = {}
-            for row in self.db.execute("SELECT body, system, x, y, z, region, priority FROM predictions_data WHERE status = 0 AND species = ?", (bio_item, )):
-                locations[row[0]] = {
-                    "system" : row[1],
-                    "x" : row[2],
-                    "y" : row[3],
-                    "z" : row[4],
-                    "region" : row[5],
-                    "priority" : row[6],
-                }
-
-            closest_location = get_closest(current_coords, locations)
+            closest_location = get_closest(current_coords, self.__raw_data["bio"][bio_item]["locations"])
             if closest_location is None:
                 continue
             system, body, distance, coords, priority, region, count = closest_location
@@ -1633,20 +1049,21 @@ class BioPatrol(tk.Frame, Module):
         planet = self.data[self.pos]["closest_location"]
         coords = self.data[self.pos]["coords"]
 
-        row = self.db.execute("SELECT biosignals FROM data_planets WHERE name = ? AND cmdr_id = ?", (planet, self.cmdr_id, )).fetchone()
-        if row is None:
+        if planet not in self.__bio_found:
             self.set_status(f"Сначала просканируйте {planet} с помощью DSS.")
             self.after(3000, self.show)
             return
 
-        self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND planet = ?", (planet, ))
-        self.biofound_init_body(planet, 0)
+        for species, data in self.__raw_data["bio"].items():
+            if planet in data["locations"]:
+                del data["locations"][planet]
+                self.biofound_init_body(planet, 0)
 
-        self.__update_data_coords(coords)
-        self.save_data()
+                self.__update_data_coords(coords)
+                self.save_data()
 
-        self.set_status(f"Планета {planet} удалена из списка.")
-        self.after(3000, self.show)
+                self.set_status(f"Планета {planet} удалена из списка.")
+                self.after(3000, self.show)
 
 
     def __create_filter_window(self, event):
@@ -1669,483 +1086,6 @@ class BioPatrol(tk.Frame, Module):
             self.__update_data_coords(self.current_coords)
 
 
-    @property
-    def yoba_boxels(self):
-        return self.__yoba_boxels
-
-
-    @yoba_boxels.setter
-    def yoba_boxels(self, value):
-        if value == self.__yoba_boxels:
-            return
-        self.__yoba_boxels = value
-        self.yoba_update_status()
-
-
-    @property
-    def yoba_calibrating(self):
-        return self.__yoba_calibrating
-
-
-    @yoba_calibrating.setter
-    def yoba_calibrating(self, value):
-        if value == self.__yoba_calibrating:
-            return
-        self.__yoba_calibrating = value
-        self.yoba_update_status()
-
-
-    def yoba_load(self):
-        try:
-            with open(Path(self.plugin_dir, "data", self.FILENAME_BOXELS), 'r') as f:
-                self.yoba_boxels = json.load(f)
-        except Exception:
-            self.yoba_boxels = None
-
-        self.yoba_update_status()
-
-
-    def yoba_save(self):
-        with open(Path(self.plugin_dir, "data", self.FILENAME_BOXELS), 'w') as f:
-            if self.yoba_boxels is not None:
-                json.dump(self.yoba_boxels, f, ensure_ascii=False)
-
-        self.yoba_update()
-
-
-    def yoba_update_status(self):
-        if not self.__live_data:
-            return
-
-        if self.cmdr_id is None:
-            self.yoba_set_status(YobaStatus.IDLE)
-            return
-
-        if self.__yoba_boxels is None:
-            self.yoba_set_status(YobaStatus.IDLE)
-            return
-
-        if self.__yoba_calibrating:
-            self.yoba_set_status(YobaStatus.CALIBRATING)
-        else:
-            self.yoba_set_status(YobaStatus.RUNNING)
-
-
-    def yoba_update(self):
-        if not self.__live_data:
-            return
-
-        if self.cmdr_id is None:
-            return
-
-        if self.yoba_boxels is None:
-            return
-
-        for boxel, data in self.yoba_boxels.items():
-            if data["surveyed"] == True:
-                continue
-
-            self.yoba_current_boxel = boxel
-            break
-        else:
-            self.__yoba_finish()
-            return
-
-        boxel_data = self.yoba_boxels[self.yoba_current_boxel]
-        if boxel_data["start"] is None or boxel_data["finish"] is None:
-            self.yoba_calibrating = True
-
-        start = boxel_data["start"] if boxel_data["start"] is not None else "?"
-        finish = boxel_data["finish"] if boxel_data["finish"] is not None else "?"
-
-        if self.yoba_calibrating:
-            self.__yoba_stop_var.set(f"Боксель {self.yoba_current_boxel}")
-
-            # always start with zero, except for h masscode
-            if boxel_data["_masscode"] != 7:
-                if boxel_data["start"] is None:
-                    boxel_data["start"] = 0
-
-            # initialize with current system
-            sector_id, masscode_id, boxel_id, system_id, _ = split_ids(self.current_system_id64)
-            if sector_id == boxel_data["_sector"] and masscode_id == boxel_data["_masscode"] and boxel_id == boxel_data["_boxel"]:
-                if boxel_data["start"] is None:
-                    boxel_data["start"] = system_id
-
-                if boxel_data["finish"] is None:
-                    boxel_data["finish"] = system_id
-
-            self.__yoba_calibrate_var.set(f'Калибровка: {start}-{finish}')
-        else:
-            self.__yoba_stop_var.set(f"Боксель {self.yoba_current_boxel}")
-
-            # getting systems
-            knowledge_levels = {}
-            user_message = None
-            for i in range(start, finish + 1):
-                system_id64 = merge_ids(boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, 0)
-                level, messages = self.analyze_system(system_id64)
-
-                for message in messages:
-                    debug(message)
-
-                knowledge_levels[i] = level
-                if user_message is None and len(messages) > 0:
-                    user_message = messages[0]
-
-            first_unknown = None
-            for system in sorted(knowledge_levels):
-                if knowledge_levels[system] != 4:
-                    first_unknown = system
-                    break
-            else:
-                self.yoba_skip_boxel()
-                return
-
-            boxelmap_string = ""
-            boxelmap_range = 10
-            boxelmap_ellipsis_1 = False
-            boxelmap_ellipsis_2 = False
-            for i in range(start, finish + 1):
-                if first_unknown - i > boxelmap_range:
-                    boxelmap_ellipsis_1 = True
-                    continue
-
-                if i - first_unknown > boxelmap_range:
-                    boxelmap_ellipsis_2 = True
-                    continue
-
-                if i == first_unknown:
-                    boxelmap_string += "▼"
-                    continue
-
-                if knowledge_levels[i] == 0:
-                    boxelmap_string += " " # not visited, en space (U+2002)
-                elif knowledge_levels[i] == 1:
-                    boxelmap_string += "░" # not FSS'ed, light shade
-                elif knowledge_levels[i] == 2:
-                    boxelmap_string += "▒" # not DSS'ed, medium shade
-                elif knowledge_levels[i] == 3:
-                    boxelmap_string += "▓" # biosignals not collected, dark shade
-                elif knowledge_levels[i] == 4:
-                    boxelmap_string += "█" # fully scanned, fully shaded block
-
-            if boxelmap_ellipsis_1:
-                boxelmap_string = f"…{boxelmap_string}"
-
-            if boxelmap_ellipsis_2:
-                boxelmap_string = f"{boxelmap_string}…"
-
-            self.__yoba_boxel_var.set(f'{start} [{boxelmap_string}] {finish}')
-            self.__yoba_next_system_var.set(f'{get_procgen_name(boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], first_unknown)}')
-            self.__yoba_state_var.set(user_message)
-
-
-    def yoba_set_status(self, status):
-        self.yoba_status = status
-
-        match status:
-            case YobaStatus.IDLE:
-                self.yoba_start_frame.grid(row=0, sticky="NWSE")
-                self.yoba_stop_frame.grid_remove()
-
-                self.yoba_calibrate_frame.grid_remove()
-                self.yoba_boxel_frame.grid_remove()
-
-                self.yoba_next_frame.grid_remove()
-                self.yoba_calibrate2_frame.grid_remove()
-
-                self.yoba_state_frame.grid_remove()
-            case YobaStatus.CALIBRATING:
-                self.yoba_start_frame.grid_remove()
-                self.yoba_stop_frame.grid(row=0, sticky="NWSE")
-
-                self.yoba_calibrate_frame.grid(row=1, sticky="NWSE")
-                self.yoba_boxel_frame.grid_remove()
-
-                self.yoba_next_frame.grid_remove()
-                self.yoba_calibrate2_frame.grid(row=2, sticky="NWSE")
-
-                self.yoba_state_frame.grid_remove()
-            case YobaStatus.RUNNING:
-                self.yoba_start_frame.grid_remove()
-                self.yoba_stop_frame.grid(row=0, sticky="NWSE")
-
-                self.yoba_calibrate_frame.grid_remove()
-                self.yoba_boxel_frame.grid(row=1, sticky="NWSE")
-
-                self.yoba_next_frame.grid(row=2, sticky="NWSE")
-                self.yoba_calibrate2_frame.grid_remove()
-
-                self.yoba_state_frame.grid(row=3, sticky="NWSE")
-
-        self.yoba_save()
-
-    def yoba_setup_boxel(self, settings):
-        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(self.current_system_id64)
-
-        yoba_boxels = {}
-        parents = []
-        children = []
-
-        parents.append((masscode_id, boxel_id))
-        for i in range(settings["depth"] + 1):
-            for parent in parents:
-                parent_masscode, parent_boxel = parent
-
-                name = f'{get_sector(sector_id)} {get_boxel(parent_masscode, parent_boxel)}'
-                obj = {
-                    "_sector" : sector_id,
-                    "_masscode" : parent_masscode,
-                    "_boxel" : parent_boxel,
-                    "surveyed" : False,
-                    "start" : None,
-                    "finish" : None
-                }
-                yoba_boxels[name] = obj
-
-                if i < settings["depth"]:
-                    for child in get_children(parent_masscode, parent_boxel):
-                        child_masscode, child_boxel = child
-                        children.append((child_masscode, child_boxel))
-
-            parents = children.copy()
-            children.clear()
-
-        self.yoba_boxels = yoba_boxels
-
-
-    def yoba_skip_boxel(self):
-        self.yoba_boxels[self.yoba_current_boxel]["surveyed"] = True
-        self.yoba_save()
-
-    def analyze_system(self, id64):
-        level = 0
-
-        user_messages = []
-        if not self.system_has_honk(id64, self.cmdr_id, user_messages):
-            return level, user_messages
-
-        # there was HONK, knowledge level 1
-        level = 1
-
-        if not self.system_has_fss(id64, self.cmdr_id, user_messages):
-            return level, user_messages
-
-        # system fully FSS'ed, knowledge level 2
-        level = 2
-
-        all_dss_completed = True
-        all_bio_completed = True
-        for j in self.db.execute('''
-        SELECT
-            data_body_scans.system_id64,
-            data_body_scans.bodyid,
-            data_bodies.name,
-            data_body_scans.cmdr_id,
-            MAX(data_body_scans.scan_level) AS level
-        FROM data_bodies
-        INNER JOIN data_body_scans ON
-            data_bodies.system_id64 == data_body_scans.system_id64
-        AND data_bodies.bodyid == data_body_scans.bodyid
-        WHERE
-            data_bodies.system_id64 = ?
-        AND data_body_scans.cmdr_id = ?
-        GROUP BY data_body_scans.bodyid
-        ''', (id64, self.cmdr_id)):
-            body_id = j[1]
-            body_name = j[2]
-            body_scan_level = j[4]
-
-            if body_scan_level == 0:
-                user_messages.append(f"{body_name}: отсутствует DSS (автоскан/маяк)")
-                all_dss_completed &= False
-                return level, user_messages
-
-            if body_scan_level == 1:
-                if not self.body_has_dss(id64, body_id, self.cmdr_id, user_messages):
-                    all_dss_completed &= False
-
-            if body_scan_level == 2:
-                if not self.body_all_dss_signals_scanned(id64, body_id, self.cmdr_id, user_messages):
-                    all_bio_completed &= False
-
-        if not all_dss_completed:
-            return level, user_messages
-           
-        level = 3
-
-        if not all_bio_completed:
-            return level, user_messages
-
-        level = 4
-        return level, user_messages
-
-    def system_has_honk(self, id64, cmdr_id, user_messages):
-        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(id64)
-        boxel_name = f'{get_sector(sector_id)} {get_boxel(masscode_id, boxel_id)}'
-
-        fss_count = self.db.execute('''
-        SELECT data_fss.body_count
-        FROM data_systems
-        INNER JOIN data_fss ON data_fss.id64 = data_systems.id64
-        WHERE data_systems.id64 = ?
-            AND data_fss.cmdr_id = ?
-        ''', (id64, cmdr_id, )).fetchone()
-        if fss_count is None:
-            user_messages.append(f"{boxel_name}-{system_id}: отсутствует DiscoveryScan")
-            return False
-
-        return True
-
-    def system_has_fss(self, id64, cmdr_id, user_messages):
-        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(id64)
-        boxel_name = f'{get_sector(sector_id)} {get_boxel(masscode_id, boxel_id)}'
-
-        fss_complete = self.db.execute('''
-        SELECT data_systems.id64
-        FROM data_systems
-        INNER JOIN data_fss_completed_systems ON data_fss_completed_systems.id64 = data_systems.id64
-        WHERE data_systems.id64 = ?
-            AND data_fss_completed_systems.cmdr_id = ?
-        ''', (id64, cmdr_id, )).fetchone()
-        if fss_complete is None:
-            user_messages.append(f"{boxel_name}-{system_id}: отсутствует FSS")
-            return False
-
-        return True
-
-    def body_all_dss_signals_scanned(self, id64, bodyid, cmdr_id, user_messages):
-        for signal in self.db.execute('''
-        SELECT
-            data_bodies.system_id64,
-            data_bodies.bodyid,
-            data_bodies.name,
-            data_body_bio_signals.signal,
-            data_bios.species
-        FROM data_bodies
-        INNER JOIN
-            data_body_bio_signals
-        ON data_bodies.system_id64 = data_body_bio_signals.system_id64
-        AND data_bodies.bodyid = data_body_bio_signals.bodyid
-        LEFT JOIN
-            data_bios
-        ON data_body_bio_signals.system_id64 = data_bios.system_id64
-        AND data_body_bio_signals.bodyid = data_bios.bodyid
-        AND data_body_bio_signals.signal = data_bios.signal
-        WHERE data_bodies.system_id64 = ?
-        AND data_body_bio_signals.cmdr_id = ?
-        AND data_bodies.bodyid = ?
-        ''', (id64, cmdr_id, bodyid, )):
-            body_name = signal[2]
-            signal_name = signal[3]
-            species = signal[4]
-            if species is None:
-                user_messages.append(f"{body_name}: не просканирован {signal_name}")
-                return False
-
-        return True
-
-    def body_has_dss(self, id64, bodyid, cmdr_id, user_messages):
-        body_query = self.db.execute('''
-        SELECT
-            data_bodies.system_id64,
-            data_bodies.bodyid,
-            data_bodies.name,
-            data_fss_body_signals.count,
-            COUNT(data_bios.species)
-        FROM data_bodies
-        INNER JOIN
-            data_fss_body_signals
-        ON data_bodies.system_id64 = data_fss_body_signals.system_id64
-        AND data_bodies.bodyid = data_fss_body_signals.bodyid
-        LEFT JOIN
-            data_bios
-        ON data_fss_body_signals.system_id64 = data_bios.system_id64
-        AND data_fss_body_signals.bodyid = data_bios.bodyid
-        AND data_fss_body_signals.cmdr_id = data_bios.cmdr_id
-        WHERE
-            data_bodies.system_id64 = ?
-        AND data_bodies.bodyid = ?
-        AND data_fss_body_signals.cmdr_id = ?
-        AND data_fss_body_signals.type = '$SAA_SignalType_Biological;'
-        GROUP BY data_bodies.system_id64, data_bodies.bodyid;
-        ''', (id64, bodyid, cmdr_id)).fetchone()
-        if body_query is not None and body_query[3] > body_query[4]:
-            body_name = signal[2]
-            user_messages.append(f"{body_name}: отсутствует DSS")
-            return False
-
-        return True
-
-
-    def __yoba_calibrate(self, event: tk.Event):
-        boxel_data = self.yoba_boxels[self.yoba_current_boxel]
-        if boxel_data["start"] is None or boxel_data["finish"] is None:
-            return
-
-        self.yoba_calibrating = False
-
-
-    def __yoba_next_boxel(self, event: tk.Event):
-        self.yoba_skip_boxel()
-
-
-    def __yoba_copy_boxel(self, event: tk.Event):
-        copyclip(f'{self.yoba_current_boxel}-')
-
-
-    def __yoba_abort(self, event: tk.Event):
-        self.yoba_boxels = None
-        self.yoba_calibrating = False
-
-        self.__yoba_start_var.set("Исследование прервано")
-        self.yoba_save()
-
-
-    def __yoba_finish(self):
-        self.yoba_boxels = None
-        self.yoba_calibrating = False
-
-        self.__yoba_start_var.set("Исследование завершено")
-        self.yoba_save()
-
-
-    def __yoba_window_create(self, event: tk.Event):
-        if self.__yoba_window is not None:
-            return
-        if self.current_system_id64 is None:
-            return
-        if self.yoba_boxels is not None:
-            return
-
-        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(self.current_system_id64)
-        system_data = {
-            "id64" : self.current_system_id64,
-            "name" : self.get_system(self.current_system_id64),
-            "pgname" : get_procgen_name(sector_id, masscode_id, boxel_id, system_id)
-        }
-
-        self.__yoba_window = YobaWindow(self, self.__yoba_window_callback, system_data)
-        self.__yoba_window.protocol("WM_DELETE_WINDOW", self.__yoba_window_closed)
-
-
-    def __yoba_window_closed(self):
-        self.__yoba_window.destroy()
-        self.__yoba_window = None
-
-
-    def __yoba_window_callback(self, settings):
-        self.yoba_setup_boxel(settings)
-
-        self.__yoba_window.destroy()
-        self.__yoba_window = None
-
-
-    def __yoba_copy_button(self, event):
-        copyclip(self.__yoba_next_system_var.get())
-
-
     def __on_old_logs_processing_requested(self, event: tk.Event):
         answer = askyesno(
             title="Чтение старых логов",
@@ -2166,6 +1106,7 @@ class BioPatrol(tk.Frame, Module):
             # this will block JournalProcessor, so the whole plugin will be waiting for us to finish
             # (won't affect EDMC and other plugins)
             with self.__threadlock:
+                self.__bio_found = {}
                 self.__live_data = False
                 self.read_old_logs()
                 self.cleanup_predictions()
