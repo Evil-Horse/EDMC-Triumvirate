@@ -31,7 +31,8 @@ from modules import (
     patrol,
     release,
     bgs,
-    biopatrol
+    biopatrol,
+    biovalue
 )
 from modules.debug import Debug
 from modules.lib import http
@@ -210,7 +211,7 @@ def plugin_stop():
     this.bgs_module.stop()
     logger.debug("Joining threads...")
     thread.BasicThread.join_all()
-    logger.debug("Done, exiting.")
+    logger.dubug("Done, exiting.")
 
 
 def kill_notification():
@@ -242,12 +243,14 @@ def plugin_app(parent):
     this.bgs_module = bgs.BGS()
     this.colonisation_tracker = DeliveryTracker()
     this.biopatrol = biopatrol.BioPatrol(frame, 3)
+    this.biovalue = biovalue.BioValue(frame, 4)
     this.modules = [
         rel,
         this.patrol,
         this.bgs_module,
         this.canonn_rt_api,
         this.colonisation_tracker,
+        this.biovalue,      # раньше biopatrol: читает приоритет до того, как BioPatrol уберёт локацию
         this.biopatrol
     ]
 
