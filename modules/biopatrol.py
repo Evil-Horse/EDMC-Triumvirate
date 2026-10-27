@@ -363,7 +363,7 @@ class BioPatrol(tk.Frame, Module):
         self.filter_frame.grid_remove()
 
         self.biopatrol.grid_columnconfigure(0, weight=1)
-        self.biopatrol.grid(row=0, sticky="NWSE")
+        self.biopatrol.grid(column=0, row=0, sticky="NWSE")
 
     def _yoba_init_ui(self):
         # Boxel Explorer
@@ -479,7 +479,69 @@ class BioPatrol(tk.Frame, Module):
         self.yoba_state.grid(column=0, row=0, sticky="W")
 
         self.yoba.grid_columnconfigure(0, weight=1)
-        self.yoba.grid(row=1, sticky="NWSE")
+        self.yoba.grid(column=0, row=1, sticky="NWSE")
+
+    def _stats_init_ui(self):
+        self.stats = tk.Frame(self)
+
+        # sector and scanned/known systems
+        self.stats_sector_frame = tk.Frame(self.stats)
+        self.stats_sector_frame.grid_columnconfigure(0, weight=1)
+        self.__stats_sector_name_var = tk.StringVar(self.stats_sector_frame)
+        self.stats_sector_name = tk.Label(self.stats_sector_frame, textvariable=self.__stats_sector_name_var)
+        self.stats_sector_name.grid(column=0, row=0, sticky="W")
+
+        self.__stats_sector_systems_var = tk.StringVar(self.stats_sector_frame)
+        self.stats_sector_systems = tk.Label(self.stats_sector_frame, textvariable=self.__stats_sector_systems_var)
+        self.stats_sector_systems.grid(column=1, row=0, sticky="E")
+
+        # boxel and scanned/known systems
+        self.stats_boxel_frame = tk.Frame(self.stats)
+        self.stats_boxel_frame.grid_columnconfigure(0, weight=1)
+        self.__stats_boxel_name_var = tk.StringVar(self.stats_boxel_frame)
+        self.stats_boxel_name = tk.Label(self.stats_boxel_frame, textvariable=self.__stats_boxel_name_var)
+        self.stats_boxel_name.grid(column=0, row=0, sticky="W")
+
+        self.__stats_boxel_systems_var = tk.StringVar(self.stats_boxel_frame)
+        self.stats_boxel_systems = tk.Label(self.stats_boxel_frame, textvariable=self.__stats_boxel_systems_var)
+        self.stats_boxel_systems.grid(column=1, row=0, sticky="E")
+
+        self.__stats_boxel_map_var = tk.StringVar(self.stats_boxel_frame)
+        self.stats_boxel_map = tk.Label(self.stats_boxel_frame, textvariable=self.__stats_boxel_map_var)
+        self.stats_boxel_map.grid(column=0, row=1, sticky="W")
+
+        self.__stats_boxel_reason_var = tk.StringVar(self.stats_boxel_frame)
+        self.stats_boxel_reason = tk.Label(self.stats_boxel_frame, textvariable=self.__stats_boxel_reason_var)
+        self.stats_boxel_reason.grid(column=1, row=1, sticky="E")
+
+        # current system
+        # TODO bio/map estimates
+        self.stats_system_frame = tk.Frame(self.stats)
+        self.stats_system_frame.grid_columnconfigure(0, weight=1)
+        self.__stats_system_pgname_var = tk.StringVar(self.stats_system_frame)
+        self.stats_system_pgname = tk.Label(self.stats_system_frame, textvariable=self.__stats_system_pgname_var)
+        self.stats_system_pgname.grid(column=0, row=0, sticky="W")
+
+        self.__stats_system_name_var = tk.StringVar(self.stats_system_frame)
+        self.stats_system_name = tk.Label(self.stats_system_frame, textvariable=self.__stats_system_name_var)
+        self.stats_system_name.grid(column=1, row=0, sticky="E")
+
+        # current body
+        self.stats_body_frame = tk.Frame(self.stats)
+        self.stats_body_frame.grid_columnconfigure(0, weight=1)
+        self.__stats_body_name_var = tk.StringVar(self.stats_body_frame)
+        self.stats_body_name = tk.Label(self.stats_body_frame, textvariable=self.__stats_body_name_var)
+        self.stats_body_name.grid(column=0, row=0, sticky="W")
+
+        self.stats_sector_frame.grid(row=0, sticky="NWSE")
+        self.stats_boxel_frame.grid(row=1, sticky="NWSE")
+        self.stats_system_frame.grid(row=2, sticky="NWSE")
+        self.stats_body_frame.grid(row=3, sticky="NWSE")
+
+        self.__stats_sector_name_var.set("Чо-то тестовое")
+
+        self.stats.grid_columnconfigure(0, weight=1)
+        self.stats.grid(column=1, row=0, rowspan=2, sticky="NWSE")
 
     def __init__(self, parent, gridrow):
         super().__init__(parent)
@@ -501,6 +563,7 @@ class BioPatrol(tk.Frame, Module):
         self.__yoba_window: YobaWindow = None
         self.cmdr_id = None
         self.current_system_id64 = None
+        self.current_bodyid = None
         self.yoba_current_boxel = None
         self.__yoba_calibrating = False
         self.__yoba_boxels = None
@@ -509,8 +572,10 @@ class BioPatrol(tk.Frame, Module):
         self.last_processed_timestamp: datetime = None
 
         self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         self._biopatrol_init_ui()
         self._yoba_init_ui()
+        self._stats_init_ui()
 
         BasicThread(name="YobaDataReader", target=self.yoba_load).start()
 
@@ -638,6 +703,8 @@ class BioPatrol(tk.Frame, Module):
             prev_id INT NOT NULL
         )
         ''')
+
+        # ========== systems ==========
         self.db.execute('''
         CREATE TABLE IF NOT EXISTS data_systems (
             id64 INT PRIMARY KEY,
@@ -658,36 +725,25 @@ class BioPatrol(tk.Frame, Module):
         )
         ''')
         self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_fss (
-            id64 INT NOT NULL,
-            cmdr_id INT NOT NULL,
+        CREATE TABLE IF NOT EXISTS data_systems_bodycount (
+            id64 INT PRIMARY KEY,
             body_count INT NOT NULL,
-            PRIMARY KEY (id64, cmdr_id),
-            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
+            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE
         )
         ''')
+        # scan_level: 0 - None, 1 - DiscoveryScan, 2 - FSS
         self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_fss_completed_systems (
+        CREATE TABLE IF NOT EXISTS data_scans_systems (
             id64 INT NOT NULL,
-            cmdr_id INT NOT NULL,
-            PRIMARY KEY (id64, cmdr_id),
-            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
-        )
-        ''')
-        # scan_level: 0 - Auto/NavBeaconDetail, 1 - Detailed (FSS), 2 - SAAScanComplete (DSS)
-        self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_body_scans (
-            system_id64 INT NOT NULL,
-            bodyid INT NOT NULL,
             cmdr_id INT NOT NULL,
             scan_level INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, cmdr_id, scan_level),
-            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
+            PRIMARY KEY (id64, cmdr_id, scan_level),
+            FOREIGN KEY (id64) REFERENCES data_systems(id64) ON DELETE CASCADE,
             FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
+
+        # ========== Bodies ==========
         self.db.execute('''
         CREATE TABLE IF NOT EXISTS data_bodies (
             system_id64 INT NOT NULL,
@@ -697,32 +753,51 @@ class BioPatrol(tk.Frame, Module):
             FOREIGN KEY (system_id64) REFERENCES data_systems(id64) ON DELETE CASCADE
         )
         ''')
+        # scan_level: 0 - Auto/NavBeaconDetail, 1 - Detailed (FSS), 2 - SAAScanComplete (DSS)
         self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_fss_body_signals (
+        CREATE TABLE IF NOT EXISTS data_scans_bodies (
+            system_id64 INT NOT NULL,
+            bodyid INT NOT NULL,
+            cmdr_id INT NOT NULL,
+            scan_level INT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, cmdr_id, scan_level),
+            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
+            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
+        )
+        ''')
+
+        self.db.execute('''
+        CREATE TABLE IF NOT EXISTS data_body_signals_fss (
             system_id64 INT NOT NULL,
             bodyid INT NOT NULL,
             type TEXT NOT NULL,
             count INT NOT NULL,
-            cmdr_id INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, type, cmdr_id),
-            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
+            PRIMARY KEY (system_id64, bodyid, type),
+            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE
         )
         ''')
         self.db.execute('''
-        CREATE TABLE IF NOT EXISTS data_body_bio_signals (
+        CREATE TABLE IF NOT EXISTS data_body_signals_dss_bio (
             system_id64 INT NOT NULL,
             bodyid INT NOT NULL,
             signal TEXT NOT NULL,
-            cmdr_id INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, signal, cmdr_id),
-            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE,
-            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
+            PRIMARY KEY (system_id64, bodyid, signal),
+            FOREIGN KEY (system_id64, bodyid) REFERENCES data_bodies(system_id64, bodyid) ON DELETE CASCADE
+        )
+        ''')
+        self.db.execute('''
+            CREATE TABLE IF NOT EXISTS data_exobiology (
+            system_id64 INT NOT NULL,
+            bodyid INT NOT NULL,
+            signal TEXT NOT NULL,
+            species TEXT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, signal),
+            FOREIGN KEY (system_id64, bodyid, signal) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE
         )
         ''')
         # state: 0 - Known (CodexEntry), 1 - Logged, 2 - Analyzed, 3 - Possibly Sold, 4 - Sold
         self.db.execute('''
-            CREATE TABLE IF NOT EXISTS data_bios (
+            CREATE TABLE IF NOT EXISTS data_scans_exobiology (
             system_id64 INT NOT NULL,
             bodyid INT NOT NULL,
             signal TEXT NOT NULL,
@@ -730,7 +805,8 @@ class BioPatrol(tk.Frame, Module):
             cmdr_id INT NOT NULL,
             state INT NOT NULL,
             PRIMARY KEY (system_id64, bodyid, signal, cmdr_id, state),
-            FOREIGN KEY (system_id64, bodyid, signal, cmdr_id) REFERENCES data_body_bio_signals(system_id64, bodyid, signal, cmdr_id) ON DELETE CASCADE
+            FOREIGN KEY (system_id64, bodyid, signal) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE,
+            FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
 
@@ -795,16 +871,16 @@ class BioPatrol(tk.Frame, Module):
     def cleanup_predictions(self):
         self.set_status(f"Отфильтровываем находки КМДР...")
 
-        for i in self.db.execute("SELECT signal, species, system_id64, bodyid, cmdr_id FROM data_bios"):
+        for i in self.db.execute("SELECT signal, species, system_id64, bodyid, cmdr_id FROM data_scans_exobiology"):
             self.process_genus_bio(i[0], i[1], i[2], i[3], i[4])
 
-        for i in self.db.execute("SELECT system_id64, bodyid, count FROM data_fss_body_signals WHERE type = '$SAA_SignalType_Biological;'"):
+        for i in self.db.execute("SELECT system_id64, bodyid, count FROM data_body_signals_fss WHERE type = '$SAA_SignalType_Biological;'"):
             system = i[0]
             body = i[1]
             bio_count = i[2]
 
             bio_signals = set()
-            for j in self.db.execute("SELECT system_id64, bodyid, signal FROM data_body_bio_signals WHERE system_id64 = ? AND bodyid = ?", (system, body, )):
+            for j in self.db.execute("SELECT system_id64, bodyid, signal FROM data_body_signals_dss_bio WHERE system_id64 = ? AND bodyid = ?", (system, body, )):
                 bio_signals.add(j[2])
 
             if len(bio_signals) == bio_count:
@@ -931,9 +1007,9 @@ class BioPatrol(tk.Frame, Module):
         self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ? AND genus = ? AND species != ?", (system_id64, bodyid, genus, bioname, ))
 
         # all signals has been found
-        signals_found = self.db.execute("SELECT COUNT(DISTINCT(species)) FROM data_bios WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ? AND species IS NOT NULL", (system_id64, bodyid, cmdr_id, )).fetchone()[0]
+        signals_found = self.db.execute("SELECT COUNT(DISTINCT(species)) FROM data_scans_exobiology WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ? AND species IS NOT NULL", (system_id64, bodyid, cmdr_id, )).fetchone()[0]
 
-        signals_count = self.db.execute("SELECT count FROM data_fss_body_signals WHERE system_id64 = ? AND bodyid = ? AND type = '$SAA_SignalType_Biological;'", (system_id64, bodyid, )).fetchone()
+        signals_count = self.db.execute("SELECT count FROM data_body_signals_fss WHERE system_id64 = ? AND bodyid = ? AND type = '$SAA_SignalType_Biological;'", (system_id64, bodyid, )).fetchone()
         if signals_count is not None and signals_found == signals_count:
             self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (system_id64, bodyid, ))
 
@@ -1075,12 +1151,12 @@ class BioPatrol(tk.Frame, Module):
                 bodyid = i[0]
                 planet = i[1]
 
-                isScanned = self.db.execute("SELECT MAX(scan_level) FROM data_body_scans WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (entry.data["SystemAddress"], bodyid, self.cmdr_id, )).fetchone()
+                isScanned = self.db.execute("SELECT MAX(scan_level) FROM data_scans_bodies WHERE system_id64 = ? AND bodyid = ? AND cmdr_id = ?", (entry.data["SystemAddress"], bodyid, self.cmdr_id, )).fetchone()
                 if isScanned is None or isScanned == 0:
                     debug(f'>> Skipping {planet}: has not been scanned yet')
                     continue
 
-                signalCount = self.db.execute("SELECT count FROM data_fss_body_signals WHERE system_id64 = ? AND bodyid = ? AND type = '$SAA_SignalType_Biological;'", (entry.data["SystemAddress"], bodyid, )).fetchone()
+                signalCount = self.db.execute("SELECT count FROM data_body_signals_fss WHERE system_id64 = ? AND bodyid = ? AND type = '$SAA_SignalType_Biological;'", (entry.data["SystemAddress"], bodyid, )).fetchone()
                 if signalCount is None:
                     debug(f'>> Removing {planet}: has no signals')
                     self.db.execute("UPDATE predictions_data SET status = -1 WHERE status = 0 AND system_id64 = ? AND bodyid = ?", (entry.data["SystemAddress"], bodyid, ))
@@ -1093,6 +1169,105 @@ class BioPatrol(tk.Frame, Module):
             self.update_pos()
             self.save_data()
 
+
+    def stats_process_entry(self, entry):
+        required_events = [
+            "Location",
+            "FSDJump",
+            "CarrierJump",
+            "ApproachBody",
+            "LeaveBody",
+            "Disembark",
+            "SAAScanComplete",
+            "FSSDiscoveryScan",
+            "FSSAllBodiesFound"
+        ]
+
+        event = entry.data["event"]
+        if event not in required_events:
+            return
+
+        self.stats_update()
+
+    def stats_update(self):
+        if self.cmdr_id is None:
+            return
+
+        if self.current_system_id64 is None:
+            self.stats.grid_remove()
+            return
+
+        self.stats.grid()
+
+        # === Sector ===
+        sector_id, masscode_id, boxel_id, system_id, _ = split_ids(self.current_system_id64)
+        self.__stats_sector_name_var.set(f'Сектор: {get_sector(sector_id)}')
+
+        sector_scanned = 0
+        sector_known = 0
+        for i in self.db.execute('''
+        SELECT id64 FROM data_systems
+        WHERE procgen_sector_id = ?
+        ''', (sector_id,)):
+            id64 = i[0]
+            sector_known += 1
+
+            system_level, _ = self.analyze_system(id64)
+            if system_level == 4:
+                sector_scanned += 1
+
+        self.__stats_sector_systems_var.set(f'{sector_scanned}/{sector_known} систем')
+
+        # === Boxel ===
+        self.__stats_boxel_name_var.set(f'{get_sector(sector_id)} {get_boxel(masscode_id, boxel_id)}')
+
+        boxel_scanned = 0
+        boxel_known = 0
+        for i in self.db.execute('''
+        SELECT id64 FROM data_systems
+        WHERE procgen_sector_id = ?
+          AND procgen_masscode_id = ?
+          AND procgen_boxel_id = ?
+        ''', (sector_id, masscode_id, boxel_id,)):
+            id64 = i[0]
+            boxel_known += 1
+
+            system_level, _ = self.analyze_system(id64)
+            if system_level == 4:
+                boxel_scanned += 1
+
+        self.__stats_boxel_systems_var.set(f'{boxel_scanned}/{boxel_known} систем')
+
+        query = self.db.execute('''
+        SELECT
+            MIN(procgen_system_id),
+            MAX(procgen_system_id)
+        FROM data_systems
+        WHERE procgen_sector_id = ?
+          AND procgen_masscode_id = ?
+          AND procgen_boxel_id = ?
+        ''', (sector_id, masscode_id, boxel_id,)).fetchone()
+        if query is None:
+            return None
+        else:
+            start = query[0]
+            finish = query[1]
+
+        knowledge_levels = self.get_levels_for_boxel(sector_id, masscode_id, boxel_id, start, finish)
+        first_unscanned, reason = self.get_first_unscanned(knowledge_levels)
+        boxelmap = self.get_boxelmap(knowledge_levels, first_unscanned)
+        self.__stats_boxel_map_var.set(boxelmap)
+        self.__stats_boxel_reason_var.set(reason)
+
+        # === System ===
+        self.__stats_system_pgname_var.set(f'{get_procgen_name(sector_id, masscode_id, boxel_id, system_id)}')
+        self.__stats_system_name_var.set(f'{self.get_system(self.current_system_id64)}')
+
+        if self.current_bodyid is None:
+            self.stats_body_frame.grid_remove()
+        else:
+            self.stats_body_frame.grid()
+            self.__stats_body_name_var.set(f'{self.get_current_body(self.current_system_id64, self.current_bodyid)}')
 
     def yoba_process_entry(self, entry):
         required_events = [
@@ -1179,6 +1354,10 @@ class BioPatrol(tk.Frame, Module):
             "CodexEntry",
             "SupercruiseExit",
 
+            # for stats
+            "ApproachBody",
+            "LeaveBody"
+
             # for YOBA
             "FSDTarget",
 
@@ -1217,47 +1396,48 @@ class BioPatrol(tk.Frame, Module):
         elif event == "FSSDiscoveryScan":
             self.store_current_system(entry.data["SystemAddress"], entry.data["SystemName"])
 
-            self.db.execute("INSERT OR IGNORE INTO data_fss (id64, cmdr_id, body_count) VALUES (?, ?, ?)", (entry.data["SystemAddress"], self.cmdr_id, entry.data["BodyCount"], ))
+            self.db.execute("INSERT OR IGNORE INTO data_systems_bodycount (id64, body_count) VALUES (?, ?)", (entry.data["SystemAddress"], entry.data["BodyCount"], ))
+            self.db.execute("INSERT OR IGNORE INTO data_scans_systems (id64, cmdr_id, scan_level) VALUES (?, ?, 1)", (entry.data["SystemAddress"], self.cmdr_id, ))
 
         elif event == "Scan":
             self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
 
             self.store_current_body(entry, entry.data["BodyName"])
-            self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+            self.db.execute("INSERT OR IGNORE INTO data_scans_bodies (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
             # DSS does not make sense for non-landable body
             if "Landable" not in entry.data or entry.data["Landable"] == False:
-                self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+                self.db.execute("INSERT OR IGNORE INTO data_scans_bodies (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
             # mark body as scanned
             if entry.data["ScanType"] in ('Detailed'):
-                self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+                self.db.execute("INSERT OR IGNORE INTO data_scans_bodies (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "FSSBodySignals":
             # this event comes BEFORE "Scan", for Braben reasons
             self.store_current_body(entry, entry.data["BodyName"])
 
             for i in entry.data["Signals"]:
-                self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], self.cmdr_id, ))
+                self.db.execute("INSERT OR IGNORE INTO data_body_signals_fss (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], ))
 
             # mark body as scanned
-            self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+            self.db.execute("INSERT OR IGNORE INTO data_scans_bodies (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "FSSAllBodiesFound":
             # in case of Multi-Crew, for Braben Reasons
             self.store_current_system(entry.data["SystemAddress"], entry.data["SystemName"])
-            self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
+            self.db.execute("INSERT OR IGNORE INTO data_scans_systems (id64, cmdr_id, scan_level) VALUES (?, ?, 2)", (entry.data["SystemAddress"], self.cmdr_id, ))
 
         elif event == "NavBeaconScan":
             # for Braben reasons, there are no subsequent "Scan" events for bodies scanned using navigation beacon
             # treat system as FSS completed but do not guarantee all body signals will be known
-            self.db.execute("INSERT OR IGNORE INTO data_fss_completed_systems (id64, cmdr_id) VALUES (?, ?)", (entry.data["SystemAddress"], self.cmdr_id, ))
+            self.db.execute("INSERT OR IGNORE INTO data_scans_systems (id64, cmdr_id, scan_level) VALUES (?, ?, 2)", (entry.data["SystemAddress"], self.cmdr_id, ))
 
         elif event == "SAAScanComplete":
             # this event comes BEFORE "Scan", for Braben reasons
             self.store_current_body(entry, entry.data["BodyName"])
 
-            self.db.execute("INSERT OR IGNORE INTO data_body_scans (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
+            self.db.execute("INSERT OR IGNORE INTO data_scans_bodies (system_id64, bodyid, cmdr_id, scan_level) VALUES (?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["BodyID"], self.cmdr_id, ))
 
         elif event == "SAASignalsFound":
             # this event comes BEFORE "Scan", for Braben reasons
@@ -1265,11 +1445,11 @@ class BioPatrol(tk.Frame, Module):
 
             # spare event, in case if body was autoscanned
             for i in entry.data["Signals"]:
-                self.db.execute("INSERT OR IGNORE INTO data_fss_body_signals (system_id64, bodyid, type, count, cmdr_id) VALUES (?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], self.cmdr_id))
+                self.db.execute("INSERT OR IGNORE INTO data_body_signals_fss (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], ))
 
             for i in entry.data.get("Genuses", []):
                 signal = codex_to_english_genuses.get(i["Genus"], i["Genus"])
-                self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, self.cmdr_id, ))
+                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, ))
 
         elif event == "ScanOrganic":
             if "Variant" in entry.data:
@@ -1277,14 +1457,15 @@ class BioPatrol(tk.Frame, Module):
                 species = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
 
                 # in case we skipped DSS
-                self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, self.cmdr_id, ))
+                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, ))
 
                 if entry.data["ScanType"] in ('Log', 'Sample'):
                     # partial sample: "Log" = first, "Sample" = subsequent
-                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
+                    self.db.execute("INSERT OR IGNORE INTO data_exobiology (system_id64, bodyid, signal, species) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, ))
+                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
                 elif entry.data["ScanType"] == "Analyze":
                     # complete sample
-                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
+                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
 
         elif event == "CodexEntry":
             if "BodyID" not in entry.data:
@@ -1296,18 +1477,21 @@ class BioPatrol(tk.Frame, Module):
             species = codex_to_english_variants.get(entry.data["Name"], entry.data["Name"])
             signal = species.split()[0]
 
-            self.db.execute("INSERT OR IGNORE INTO data_body_bio_signals (system_id64, bodyid, signal, cmdr_id) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, self.cmdr_id))
+            self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, ))
 
             # we only know there's a bio but didn't sample it yet
-            self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, species, self.cmdr_id))
+            self.db.execute("INSERT OR IGNORE INTO data_exobiology (system_id64, bodyid, signal, species) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, species, ))
+            self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, species, self.cmdr_id))
 
         elif event == "Disembark":
             # this is in case when body is already known (Bubble?)
             self.store_current_body(entry, entry.data["Body"])
+            self.current_bodyid = entry.data["Body"]
 
         elif event == "SupercruiseExit":
             self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
             self.store_current_body(entry, entry.data["Body"])
+            self.current_bodyid = entry.data["Body"]
 
         elif event == "Died":
             # debug
@@ -1317,20 +1501,20 @@ class BioPatrol(tk.Frame, Module):
                 data_bodies.bodyid,
                 data_systems.name,
                 data_bodies.name,
-                data_bios.species
+                data_scans_exobiology.species
             FROM
                 data_systems
             INNER JOIN
                 data_bodies ON data_systems.id64 = data_bodies.system_id64
             INNER JOIN
-                data_bios
-            ON data_bios.system_id64 = data_bodies.system_id64
-            AND data_bios.bodyid = data_bodies.bodyid
+                data_scans_exobiology
+            ON data_scans_exobiology.system_id64 = data_bodies.system_id64
+            AND data_scans_exobiology.bodyid = data_bodies.bodyid
             WHERE cmdr_id = ? AND state != 4
             ''', (self.cmdr_id, )):
                 debug(f'CMDR died, biodata {i[4]} on planet {i[3]} in system {i[2]} is lost.')
 
-            self.db.execute("DELETE FROM data_bios WHERE cmdr_id = ? AND state != 4", (self.cmdr_id, ))
+            self.db.execute("DELETE FROM data_scans_exobiology WHERE cmdr_id = ? AND state != 4", (self.cmdr_id, ))
 
         elif event == "SellOrganicData":
             for biodata in entry.data["BioData"]:
@@ -1340,23 +1524,34 @@ class BioPatrol(tk.Frame, Module):
                 variant = biodata["Variant"]
                 variant_en = codex_to_english_variants.get(variant, variant)
 
-                unsold_species = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_bios WHERE cmdr_id = ? AND species = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, variant_en, )).fetchone()
+                unsold_species = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_scans_exobiology WHERE cmdr_id = ? AND species = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, variant_en, )).fetchone()
                 if unsold_species is None:
                     debug(f"Selling nonexisting {variant_en} biodata on")
                 else:
                     debug(f"Potentially selling biodata on {unsold_species}")
-                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 3)", unsold_species[0:5])
+                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 3)", unsold_species[0:5])
 
-            unsold_bio = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_bios WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, )).fetchone()
+            unsold_bio = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_scans_exobiology WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, )).fetchone()
             # do we have something unsold?
             if unsold_bio is None:
                 # sold everything we had on hand!
-                for sold_bio in self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_bios WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state = 3', (self.cmdr_id, )):
+                for sold_bio in self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_scans_exobiology WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state = 3', (self.cmdr_id, )):
                     debug(f"Confirmed selling biodata on {sold_bio}")
-                    self.db.execute("INSERT OR IGNORE INTO data_bios (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 4)", sold_bio[0:5])
+                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 4)", sold_bio[0:5])
+
+        elif event == "ApproachBody":
+            self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
+            self.store_current_body(entry, entry.data["Body"])
+            self.current_bodyid = entry.data["Body"]
+
+        elif event == "LeaveBody":
+            self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
+            self.store_current_body(entry, entry.data["Body"])
+            self.current_bodyid = None
 
         self.biopatrol_process_entry(entry)
         self.yoba_process_entry(entry)
+        self.stats_process_entry(entry)
 
 
     def on_dashboard_entry(self, cmdr, is_beta, entry):
@@ -1779,66 +1974,18 @@ class BioPatrol(tk.Frame, Module):
         else:
             self.__yoba_stop_var.set(f"Боксель {self.yoba_current_boxel}")
 
-            # getting systems
-            knowledge_levels = {}
-            user_message = None
-            for i in range(start, finish + 1):
-                system_id64 = merge_ids(boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], i, 0)
-                level, messages = self.analyze_system(system_id64)
+            knowledge_levels = self.get_levels_for_boxel(boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], start, finish)
+            first_unknown, reason = self.get_first_unscanned(knowledge_levels)
 
-                for message in messages:
-                    debug(message)
-
-                knowledge_levels[i] = level
-                if user_message is None and len(messages) > 0:
-                    user_message = messages[0]
-
-            first_unknown = None
-            for system in sorted(knowledge_levels):
-                if knowledge_levels[system] != 4:
-                    first_unknown = system
-                    break
-            else:
+            if first_unknown is None:
                 self.yoba_skip_boxel()
                 return
 
-            boxelmap_string = ""
-            boxelmap_range = 10
-            boxelmap_ellipsis_1 = False
-            boxelmap_ellipsis_2 = False
-            for i in range(start, finish + 1):
-                if first_unknown - i > boxelmap_range:
-                    boxelmap_ellipsis_1 = True
-                    continue
+            boxelmap_string = self.get_boxelmap(knowledge_levels, first_unknown)
 
-                if i - first_unknown > boxelmap_range:
-                    boxelmap_ellipsis_2 = True
-                    continue
-
-                if i == first_unknown:
-                    boxelmap_string += "▼"
-                    continue
-
-                if knowledge_levels[i] == 0:
-                    boxelmap_string += " " # not visited, en space (U+2002)
-                elif knowledge_levels[i] == 1:
-                    boxelmap_string += "░" # not FSS'ed, light shade
-                elif knowledge_levels[i] == 2:
-                    boxelmap_string += "▒" # not DSS'ed, medium shade
-                elif knowledge_levels[i] == 3:
-                    boxelmap_string += "▓" # biosignals not collected, dark shade
-                elif knowledge_levels[i] == 4:
-                    boxelmap_string += "█" # fully scanned, fully shaded block
-
-            if boxelmap_ellipsis_1:
-                boxelmap_string = f"…{boxelmap_string}"
-
-            if boxelmap_ellipsis_2:
-                boxelmap_string = f"{boxelmap_string}…"
-
-            self.__yoba_boxel_var.set(f'{start} [{boxelmap_string}] {finish}')
+            self.__yoba_boxel_var.set(f'{boxelmap_string}')
             self.__yoba_next_system_var.set(f'{get_procgen_name(boxel_data["_sector"], boxel_data["_masscode"], boxel_data["_boxel"], first_unknown)}')
-            self.__yoba_state_var.set(user_message)
+            self.__yoba_state_var.set(reason)
 
 
     def yoba_set_status(self, status):
@@ -1919,6 +2066,76 @@ class BioPatrol(tk.Frame, Module):
         self.yoba_boxels[self.yoba_current_boxel]["surveyed"] = True
         self.yoba_save()
 
+    def get_levels_for_boxel(self, sector_id, masscode_id, boxel_id, start, finish):
+        knowledge_levels = {}
+        for i in range(start, finish + 1):
+            system_id64 = merge_ids(sector_id, masscode_id, boxel_id, i, 0)
+            level, messages = self.analyze_system(system_id64)
+            knowledge_levels[i] = {
+                "level" : level,
+                "messages" : messages
+            }
+        return knowledge_levels
+
+    def get_first_unscanned(self, knowledge_levels):
+        first_unknown = None
+        reason = None
+
+        # getting systems
+        for i in sorted(knowledge_levels):
+            if knowledge_levels[i]["level"] != 4:
+                if first_unknown is None: first_unknown = i
+                if reason is None: reason = knowledge_levels[i]["messages"][0]
+
+        return first_unknown, reason
+
+    def get_boxelmap(self, knowledge_levels, first_unknown):
+        # all scanned, boxelmap would be full, return None
+        if first_unknown is None:
+            return None
+
+        start = min(knowledge_levels)
+        finish = max(knowledge_levels)
+
+        boxelmap_string = ""
+        boxelmap_range = 10
+        boxelmap_ellipsis_1 = False
+        boxelmap_ellipsis_2 = False
+        for i in range(start, finish + 1):
+            if first_unknown - i > boxelmap_range:
+                boxelmap_ellipsis_1 = True
+                continue
+
+            if i - first_unknown > boxelmap_range:
+                boxelmap_ellipsis_2 = True
+                continue
+
+            if i == first_unknown:
+                boxelmap_string += "▼"
+                continue
+
+            if knowledge_levels[i]["level"] == 0:
+                boxelmap_string += " " # not visited, en space (U+2002)
+            elif knowledge_levels[i]["level"] == 1:
+                boxelmap_string += "░" # not FSS'ed, light shade
+            elif knowledge_levels[i]["level"] == 2:
+                boxelmap_string += "▒" # not DSS'ed, medium shade
+            elif knowledge_levels[i]["level"] == 3:
+                boxelmap_string += "▓" # biosignals not collected, dark shade
+            elif knowledge_levels[i]["level"] == 4:
+                boxelmap_string += "█" # fully scanned, fully shaded block
+
+        if boxelmap_ellipsis_1:
+            boxelmap_string = f"…{boxelmap_string}"
+
+        if boxelmap_ellipsis_2:
+            boxelmap_string = f"{boxelmap_string}…"
+
+        boxelmap_string = f'{start} [{boxelmap_string}] {finish}'
+
+        return boxelmap_string
+
+
     def analyze_system(self, id64):
         level = 0
 
@@ -1939,26 +2156,26 @@ class BioPatrol(tk.Frame, Module):
         all_bio_completed = True
         for j in self.db.execute('''
         SELECT
-            data_body_scans.system_id64,
-            data_body_scans.bodyid,
+            data_scans_bodies.system_id64,
+            data_scans_bodies.bodyid,
             data_bodies.name,
-            data_body_scans.cmdr_id,
-            MAX(data_body_scans.scan_level) AS level
+            data_scans_bodies.cmdr_id,
+            MAX(data_scans_bodies.scan_level) AS level
         FROM data_bodies
-        INNER JOIN data_body_scans ON
-            data_bodies.system_id64 == data_body_scans.system_id64
-        AND data_bodies.bodyid == data_body_scans.bodyid
+        INNER JOIN data_scans_bodies ON
+            data_bodies.system_id64 == data_scans_bodies.system_id64
+        AND data_bodies.bodyid == data_scans_bodies.bodyid
         WHERE
             data_bodies.system_id64 = ?
-        AND data_body_scans.cmdr_id = ?
-        GROUP BY data_body_scans.bodyid
+        AND data_scans_bodies.cmdr_id = ?
+        GROUP BY data_scans_bodies.bodyid
         ''', (id64, self.cmdr_id)):
             body_id = j[1]
             body_name = j[2]
             body_scan_level = j[4]
 
             if body_scan_level == 0:
-                user_messages.append(f"{body_name}: отсутствует DSS (автоскан/маяк)")
+                user_messages.append(f"DSS: {body_name}")
                 all_dss_completed &= False
                 return level, user_messages
 
@@ -1986,14 +2203,14 @@ class BioPatrol(tk.Frame, Module):
         boxel_name = f'{get_sector(sector_id)} {get_boxel(masscode_id, boxel_id)}'
 
         fss_count = self.db.execute('''
-        SELECT data_fss.body_count
-        FROM data_systems
-        INNER JOIN data_fss ON data_fss.id64 = data_systems.id64
-        WHERE data_systems.id64 = ?
-            AND data_fss.cmdr_id = ?
+        SELECT MAX(scan_level) AS m
+        FROM data_scans_systems
+        WHERE id64 = ? AND cmdr_id = ?
+        GROUP BY id64, cmdr_id
+        HAVING m > 0
         ''', (id64, cmdr_id, )).fetchone()
         if fss_count is None:
-            user_messages.append(f"{boxel_name}-{system_id}: отсутствует DiscoveryScan")
+            user_messages.append(f"Honk: {boxel_name}-{system_id}")
             return False
 
         return True
@@ -2003,14 +2220,14 @@ class BioPatrol(tk.Frame, Module):
         boxel_name = f'{get_sector(sector_id)} {get_boxel(masscode_id, boxel_id)}'
 
         fss_complete = self.db.execute('''
-        SELECT data_systems.id64
-        FROM data_systems
-        INNER JOIN data_fss_completed_systems ON data_fss_completed_systems.id64 = data_systems.id64
-        WHERE data_systems.id64 = ?
-            AND data_fss_completed_systems.cmdr_id = ?
+        SELECT MAX(scan_level) AS m
+        FROM data_scans_systems
+        WHERE id64 = ? AND cmdr_id = ?
+        GROUP BY id64, cmdr_id
+        HAVING m > 0
         ''', (id64, cmdr_id, )).fetchone()
         if fss_complete is None:
-            user_messages.append(f"{boxel_name}-{system_id}: отсутствует FSS")
+            user_messages.append(f"FSS: {boxel_name}-{system_id}")
             return False
 
         return True
@@ -2021,59 +2238,79 @@ class BioPatrol(tk.Frame, Module):
             data_bodies.system_id64,
             data_bodies.bodyid,
             data_bodies.name,
-            data_body_bio_signals.signal,
-            data_bios.species
+            data_body_signals_dss_bio.signal,
+            data_scans_exobiology.species
         FROM data_bodies
         INNER JOIN
-            data_body_bio_signals
-        ON data_bodies.system_id64 = data_body_bio_signals.system_id64
-        AND data_bodies.bodyid = data_body_bio_signals.bodyid
+            data_body_signals_dss_bio
+        ON data_bodies.system_id64 = data_body_signals_dss_bio.system_id64
+        AND data_bodies.bodyid = data_body_signals_dss_bio.bodyid
         LEFT JOIN
-            data_bios
-        ON data_body_bio_signals.system_id64 = data_bios.system_id64
-        AND data_body_bio_signals.bodyid = data_bios.bodyid
-        AND data_body_bio_signals.signal = data_bios.signal
+            data_scans_exobiology
+        ON data_body_signals_dss_bio.system_id64 = data_scans_exobiology.system_id64
+        AND data_body_signals_dss_bio.bodyid = data_scans_exobiology.bodyid
+        AND data_body_signals_dss_bio.signal = data_scans_exobiology.signal
         WHERE data_bodies.system_id64 = ?
-        AND data_body_bio_signals.cmdr_id = ?
+        AND data_scans_exobiology.cmdr_id = ?
         AND data_bodies.bodyid = ?
         ''', (id64, cmdr_id, bodyid, )):
             body_name = signal[2]
             signal_name = signal[3]
             species = signal[4]
             if species is None:
-                user_messages.append(f"{body_name}: не просканирован {signal_name}")
+                user_messages.append(f"{signal_name}: {body_name}")
                 return False
 
         return True
 
     def body_has_dss(self, id64, bodyid, cmdr_id, user_messages):
-        body_query = self.db.execute('''
+        dss_query = self.db.execute('''
         SELECT
             data_bodies.system_id64,
             data_bodies.bodyid,
             data_bodies.name,
-            data_fss_body_signals.count,
-            COUNT(data_bios.species)
+            MAX(data_scans_bodies.scan_level) AS level
         FROM data_bodies
         INNER JOIN
-            data_fss_body_signals
-        ON data_bodies.system_id64 = data_fss_body_signals.system_id64
-        AND data_bodies.bodyid = data_fss_body_signals.bodyid
+            data_scans_bodies
+        ON
+            data_bodies.system_id64 = data_scans_bodies.system_id64
+        AND data_bodies.bodyid = data_scans_bodies.bodyid
+        WHERE data_bodies.system_id64 = ?
+          AND data_bodies.bodyid = ?
+          AND data_scans_bodies.cmdr_id = ?
+        GROUP BY data_scans_bodies.system_id64, data_scans_bodies.bodyid, data_scans_bodies.cmdr_id
+        HAVING level >= 2
+        ''', (id64, bodyid, cmdr_id,)).fetchone()
+        if dss_query is not None:
+            return True
+
+        bio_query = self.db.execute('''
+        SELECT
+            data_bodies.system_id64,
+            data_bodies.bodyid,
+            data_bodies.name,
+            data_body_signals_fss.count,
+            COUNT(data_scans_exobiology.species)
+        FROM data_bodies
+        INNER JOIN
+            data_body_signals_fss
+        ON data_bodies.system_id64 = data_body_signals_fss.system_id64
+        AND data_bodies.bodyid = data_body_signals_fss.bodyid
         LEFT JOIN
-            data_bios
-        ON data_fss_body_signals.system_id64 = data_bios.system_id64
-        AND data_fss_body_signals.bodyid = data_bios.bodyid
-        AND data_fss_body_signals.cmdr_id = data_bios.cmdr_id
+            data_scans_exobiology
+        ON data_body_signals_fss.system_id64 = data_scans_exobiology.system_id64
+        AND data_body_signals_fss.bodyid = data_scans_exobiology.bodyid
         WHERE
             data_bodies.system_id64 = ?
         AND data_bodies.bodyid = ?
-        AND data_fss_body_signals.cmdr_id = ?
-        AND data_fss_body_signals.type = '$SAA_SignalType_Biological;'
+        AND data_scans_exobiology.cmdr_id = ?
+        AND data_body_signals_fss.type = '$SAA_SignalType_Biological;'
         GROUP BY data_bodies.system_id64, data_bodies.bodyid;
         ''', (id64, bodyid, cmdr_id)).fetchone()
-        if body_query is not None and body_query[3] > body_query[4]:
-            body_name = signal[2]
-            user_messages.append(f"{body_name}: отсутствует DSS")
+        if bio_query is not None and bio_query[3] > bio_query[4]:
+            body_name = bio_query[2]
+            user_messages.append(f"DSS: {body_name}")
             return False
 
         return True
