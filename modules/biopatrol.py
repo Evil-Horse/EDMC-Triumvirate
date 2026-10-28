@@ -25,7 +25,7 @@ from modules.lib.conf import base_config as _edmc_config, config as plugin_confi
 
 import myNotebook as nb     # type: ignore
 from theme import theme     # type: ignore
-from modules.bio_dicts import codex_to_english_variants, codex_to_english_genuses, codex_to_english_regions, regions
+from modules.bio_dicts import codex_genuses, codex_species, codex_variants, codex_to_english_regions, regions
 from modules.sectors import merge_ids, split_ids, get_procgen_name, get_sector, get_boxel, get_children
 
 from modules.legacy import Reporter, URL_GOOGLE
@@ -789,10 +789,14 @@ class BioPatrol(tk.Frame, Module):
             CREATE TABLE IF NOT EXISTS data_exobiology (
             system_id64 INT NOT NULL,
             bodyid INT NOT NULL,
-            signal TEXT NOT NULL,
+            codex_genus TEXT NOT NULL,
+            codex_species TEXT NOT NULL,
+            codex_variant TEXT NOT NULL,
+            genus TEXT NOT NULL,
             species TEXT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, signal),
-            FOREIGN KEY (system_id64, bodyid, signal) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE
+            variant TEXT NOT NULL,
+            PRIMARY KEY (system_id64, bodyid, genus),
+            FOREIGN KEY (system_id64, bodyid, genus) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE
         )
         ''')
         # state: 0 - Known (CodexEntry), 1 - Logged, 2 - Analyzed, 3 - Possibly Sold, 4 - Sold
@@ -800,12 +804,16 @@ class BioPatrol(tk.Frame, Module):
             CREATE TABLE IF NOT EXISTS data_scans_exobiology (
             system_id64 INT NOT NULL,
             bodyid INT NOT NULL,
-            signal TEXT NOT NULL,
+            codex_genus TEXT NOT NULL,
+            codex_species TEXT NOT NULL,
+            codex_variant TEXT NOT NULL,
+            genus TEXT NOT NULL,
             species TEXT NOT NULL,
+            variant TEXT NOT NULL,
             cmdr_id INT NOT NULL,
             state INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, signal, cmdr_id, state),
-            FOREIGN KEY (system_id64, bodyid, signal) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE,
+            PRIMARY KEY (system_id64, bodyid, genus, cmdr_id, state),
+            FOREIGN KEY (system_id64, bodyid, genus) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE,
             FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
@@ -871,7 +879,7 @@ class BioPatrol(tk.Frame, Module):
     def cleanup_predictions(self):
         self.set_status(f"Отфильтровываем находки КМДР...")
 
-        for i in self.db.execute("SELECT signal, species, system_id64, bodyid, cmdr_id FROM data_scans_exobiology"):
+        for i in self.db.execute("SELECT genus, species, system_id64, bodyid, cmdr_id FROM data_scans_exobiology"):
             self.process_genus_bio(i[0], i[1], i[2], i[3], i[4])
 
         for i in self.db.execute("SELECT system_id64, bodyid, count FROM data_body_signals_fss WHERE type = '$SAA_SignalType_Biological;'"):
@@ -970,13 +978,6 @@ class BioPatrol(tk.Frame, Module):
             cmdr_id = self.cmdr_id
 
         planet = self.get_current_body(system_id64, bodyid)
-
-        # sanity check
-        for codex_name, english_name in codex_to_english_variants.items():
-            if bioname in (codex_name, english_name):
-                break
-        else:
-            debug(f'>> Warning: {bioname} is not in dictionary')
 
         region = None
         priority = 1
@@ -1097,18 +1098,24 @@ class BioPatrol(tk.Frame, Module):
             self.__update_data_wrap(entry)
 
         elif event == "ScanOrganic":
-            body = self.get_current_body(entry.data["SystemAddress"], entry.data["Body"])
-
-            genus = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
             if "Variant" not in entry.data:
                 return
 
-            bioname = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
+            body = self.get_current_body(entry.data["SystemAddress"], entry.data["Body"])
+
+            variant_codex = entry.data["Variant"]
+            species_codex = entry.data["Species"]
+            genus_codex = entry.data["Genus"]
+
+            variant_human = codex_variants[variant_codex].get("name", variant_codex)
+            species_human = codex_species[species_codex].get("name", species_codex)
+            genus_human = codex_genuses[genus_codex].get("name", genus_codex)
+
             if self.__live_data:
-                self.set_status(f"Scanned {bioname} at {body}")
+                self.set_status(f"Scanned {variant_human} at {body}")
 
             # update data
-            self.process_genus_bio(genus, bioname, entry.data["SystemAddress"], entry.data["Body"], report=True)
+            self.process_genus_bio(genus_human, variant_human, entry.data["SystemAddress"], entry.data["Body"], report=True)
 
             self.save_data()
             self.__update_data_wrap(entry)
@@ -1121,24 +1128,28 @@ class BioPatrol(tk.Frame, Module):
                 return
 
             body = self.get_current_body(entry.data["SystemAddress"], entry.data["BodyID"])
-
-            bioname = codex_to_english_variants.get(entry.data["Name"], entry.data["Name"])
             region = codex_to_english_regions.get(entry.data["Region"], entry.data["Region"])
 
             # HACK -- CodexEntry does not have 'Genus' key
-            genus = bioname.split()[0]
+            variant_codex = entry.data["Name"]
+            species_codex = variant_codex if variant_codex not in codex_variants else codex_variants[variant_codex]["species"]
+            genus_codex = species_codex if species_codex not in codex_species else codex_species[species_codex]["genus"]
+
+            variant_human = variant_codex if variant_codex not in codex_variants else codex_variants[variant_codex].get("name", variant_codex)
+            species_human = species_codex if species_codex not in codex_species else codex_species[species_codex].get("name", species_codex)
+            genus_human = genus_codex if genus_codex not in codex_genuses else codex_genuses[genus_codex].get("name", genus_codex)
             if self.__live_data:
-                self.set_status(f"Scanned {bioname} at {body}")
+                self.set_status(f"Scanned {variant_human} at {body}")
 
             # update data
-            self.process_genus_bio(genus, bioname, entry.data["SystemAddress"], entry.data["BodyID"], report=True, entry_region=region)
+            self.process_genus_bio(genus_human, variant_human, entry.data["SystemAddress"], entry.data["BodyID"], report=True, entry_region=region)
 
             self.save_data()
             self.__update_data_wrap(entry)
 
 
         elif event == "SAASignalsFound" and entry.data.get("Genuses"):
-            genuses = [codex_to_english_genuses.get(i["Genus"], i["Genus"]) for i in entry.data["Genuses"]]
+            genuses = [i["Genus"] if i["Genus"] not in codex_genuses else codex_genuses[i["Genus"]].get("name", i["Genus"]) for i in entry.data["Genuses"]]
 
             self.filter_predictions_after_dss(entry.data["SystemAddress"], entry.data["BodyID"], genuses)
 
@@ -1448,24 +1459,37 @@ class BioPatrol(tk.Frame, Module):
                 self.db.execute("INSERT OR IGNORE INTO data_body_signals_fss (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], ))
 
             for i in entry.data.get("Genuses", []):
-                signal = codex_to_english_genuses.get(i["Genus"], i["Genus"])
-                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, ))
+                genus_codex = i["Genus"]
+                genus_human = genus_codex if genus_codex not in codex_genuses else codex_genuses[genus_codex].get("name", genus_codex)
+                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], genus_human, ))
 
         elif event == "ScanOrganic":
             if "Variant" in entry.data:
-                signal = codex_to_english_genuses.get(entry.data["Genus"], entry.data["Genus"])
-                species = codex_to_english_variants.get(entry.data["Variant"], entry.data["Variant"])
+                variant_codex = entry.data["Variant"]
+                species_codex = entry.data["Species"]
+                genus_codex = entry.data["Genus"]
+
+                variant_human = variant_codex if variant_codex not in codex_variants else codex_variants[variant_codex].get("name", variant_codex)
+                species_human = species_codex if species_codex not in codex_species else codex_species[species_codex].get("name", species_codex)
+                genus_human = genus_codex if genus_codex not in codex_genuses else codex_genuses[genus_codex].get("name", genus_codex)
+
+                # sanity check
+                if species_codex != codex_variants.get(variant_codex, {}).get("species", None):
+                    raise ValueError(entry.data)
+
+                if genus_codex != codex_species.get(species_codex, {}).get("genus", None):
+                    raise ValueError(entry.data)
 
                 # in case we skipped DSS
-                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, ))
+                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], genus_human, ))
 
                 if entry.data["ScanType"] in ('Log', 'Sample'):
                     # partial sample: "Log" = first, "Sample" = subsequent
-                    self.db.execute("INSERT OR IGNORE INTO data_exobiology (system_id64, bodyid, signal, species) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, ))
-                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
+                    self.db.execute("INSERT OR IGNORE INTO data_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], genus_codex, species_codex, variant_codex, genus_human, species_human, variant_human, ))
+                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["Body"], genus_codex, species_codex, variant_codex, genus_human, species_human, variant_human, self.cmdr_id))
                 elif entry.data["ScanType"] == "Analyze":
                     # complete sample
-                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["Body"], signal, species, self.cmdr_id))
+                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["Body"], genus_codex, species_codex, variant_codex, genus_human, species_human, variant_human, self.cmdr_id))
 
         elif event == "CodexEntry":
             if "BodyID" not in entry.data:
@@ -1474,14 +1498,19 @@ class BioPatrol(tk.Frame, Module):
             if entry.data["SubCategory"] != "$Codex_SubCategory_Organic_Structures;":
                 return
 
-            species = codex_to_english_variants.get(entry.data["Name"], entry.data["Name"])
-            signal = species.split()[0]
+            variant_codex = entry.data["Name"]
+            species_codex = variant_codex if variant_codex not in codex_variants else codex_variants[variant_codex]["species"]
+            genus_codex = species_codex if species_codex not in codex_species else codex_species[species_codex]["genus"]
 
-            self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, ))
+            variant_human = variant_codex if variant_codex not in codex_variants else codex_variants[variant_codex].get("name", variant_codex)
+            species_human = species_codex if species_codex not in codex_species else codex_species[species_codex].get("name", species_codex)
+            genus_human = genus_codex if genus_codex not in codex_genuses else codex_genuses[genus_codex].get("name", genus_codex)
+
+            self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], genus_human, ))
 
             # we only know there's a bio but didn't sample it yet
-            self.db.execute("INSERT OR IGNORE INTO data_exobiology (system_id64, bodyid, signal, species) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, species, ))
-            self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], signal, species, self.cmdr_id))
+            self.db.execute("INSERT OR IGNORE INTO data_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], genus_codex, species_codex, variant_codex, genus_human, species_human, variant_human, ))
+            self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", (entry.data["SystemAddress"], entry.data["BodyID"], genus_codex, species_codex, variant_codex, genus_human, species_human, variant_human, self.cmdr_id))
 
         elif event == "Disembark":
             # this is in case when body is already known (Bubble?)
@@ -1521,23 +1550,28 @@ class BioPatrol(tk.Frame, Module):
                 if "Variant" not in biodata:
                     break
 
-                variant = biodata["Variant"]
-                variant_en = codex_to_english_variants.get(variant, variant)
+                variant_codex = biodata["Variant"]
+                species_codex = biodata["Species"]
+                genus_codex = biodata["Genus"]
 
-                unsold_species = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_scans_exobiology WHERE cmdr_id = ? AND species = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, variant_en, )).fetchone()
+                variant_human = variant_codex if variant_codex not in codex_variants else codex_variants[variant_codex].get("name", variant_codex)
+                species_human = species_codex if species_codex not in codex_species else codex_species[species_codex].get("name", species_codex)
+                genus_human = genus_codex if genus_codex not in codex_genuses else codex_genuses[genus_codex].get("name", genus_codex)
+
+                unsold_species = self.db.execute('SELECT system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, MAX(state) FROM data_scans_exobiology WHERE cmdr_id = ? AND species = ? GROUP BY system_id64, bodyid, genus, cmdr_id HAVING state < 3', (self.cmdr_id, variant_human, )).fetchone()
                 if unsold_species is None:
-                    debug(f"Selling nonexisting {variant_en} biodata on")
+                    debug(f"Selling nonexisting {variant_human} biodata on")
                 else:
                     debug(f"Potentially selling biodata on {unsold_species}")
-                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 3)", unsold_species[0:5])
+                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 3)", unsold_species[0:9])
 
-            unsold_bio = self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_scans_exobiology WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state < 3', (self.cmdr_id, )).fetchone()
+            unsold_bio = self.db.execute('SELECT system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, MAX(state) FROM data_scans_exobiology WHERE cmdr_id = ? GROUP BY system_id64, bodyid, genus, cmdr_id HAVING state < 3', (self.cmdr_id, )).fetchone()
             # do we have something unsold?
             if unsold_bio is None:
                 # sold everything we had on hand!
-                for sold_bio in self.db.execute('SELECT system_id64, bodyid, signal, species, cmdr_id, MAX(state) FROM data_scans_exobiology WHERE cmdr_id = ? GROUP BY system_id64, bodyid, signal, cmdr_id HAVING state = 3', (self.cmdr_id, )):
+                for sold_bio in self.db.execute('SELECT system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, MAX(state) FROM data_scans_exobiology WHERE cmdr_id = ? GROUP BY system_id64, bodyid, genus, cmdr_id HAVING state = 3', (self.cmdr_id, )):
                     debug(f"Confirmed selling biodata on {sold_bio}")
-                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, signal, species, cmdr_id, state) VALUES (?, ?, ?, ?, ?, 4)", sold_bio[0:5])
+                    self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 4)", sold_bio[0:9])
 
         elif event == "ApproachBody":
             self.store_current_system(entry.data["SystemAddress"], entry.data["StarSystem"])
@@ -2249,7 +2283,7 @@ class BioPatrol(tk.Frame, Module):
             data_scans_exobiology
         ON data_body_signals_dss_bio.system_id64 = data_scans_exobiology.system_id64
         AND data_body_signals_dss_bio.bodyid = data_scans_exobiology.bodyid
-        AND data_body_signals_dss_bio.signal = data_scans_exobiology.signal
+        AND data_body_signals_dss_bio.signal = data_scans_exobiology.genus
         WHERE data_bodies.system_id64 = ?
         AND data_scans_exobiology.cmdr_id = ?
         AND data_bodies.bodyid = ?
