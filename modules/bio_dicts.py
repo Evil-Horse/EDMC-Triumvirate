@@ -1,828 +1,3325 @@
-codex_to_english_genuses = {
-    "$Codex_Ent_Aleoids_Genus_Name;": "Aleoida",
-    "$Codex_Ent_Bacterial_Genus_Name;": "Bacterium",
-    "$Codex_Ent_Cactoid_Genus_Name;": "Cactoida",
-    "$Codex_Ent_Clypeus_Genus_Name;": "Clypeus",
-    "$Codex_Ent_Conchas_Genus_Name;": "Concha",
-    "$Codex_Ent_Electricae_Genus_Name;": "Electricae",
-    "$Codex_Ent_Fonticulus_Genus_Name;": "Fonticulua",
-    "$Codex_Ent_Fumerolas_Genus_Name;": "Fumerola",
-    "$Codex_Ent_Fungoids_Genus_Name;": "Fungoida",
-    "$Codex_Ent_Osseus_Genus_Name;": "Osseus",
-    "$Codex_Ent_Recepta_Genus_Name;": "Recepta",
-    "$Codex_Ent_Shrubs_Genus_Name;": "Frutexa",
-    "$Codex_Ent_Stratum_Genus_Name;": "Stratum",
-    "$Codex_Ent_Tubus_Genus_Name;": "Tubus",
-    "$Codex_Ent_Tussocks_Genus_Name;": "Tussock"
+codex_genuses = {
+    # Horizons
+    "$Codex_Ent_Cone_Name;": {"name" : "Bark Mounds"},
+    "$Codex_Ent_Sphere_Name;": {"name" : "Luteolum Anemone"},
+    "$Codex_Ent_Tube_Name;": {"name" : "Roseum Sinuous Tubers"},
+    "$Codex_Ent_Ingensradices_Genus_Name;": {"name" : "Radicoida"},
+
+    "$Codex_Ent_Aleoids_Genus_Name;": {"name" : "Aleoida"},
+    "$Codex_Ent_Bacterial_Genus_Name;": {"name" : "Bacterium"},
+    "$Codex_Ent_Cactoid_Genus_Name;": {"name" : "Cactoida"},
+    "$Codex_Ent_Clypeus_Genus_Name;": {"name" : "Clypeus"},
+    "$Codex_Ent_Conchas_Genus_Name;": {"name" : "Concha"},
+    "$Codex_Ent_Electricae_Genus_Name;": {"name" : "Electricae"},
+    "$Codex_Ent_Fonticulus_Genus_Name;": {"name" : "Fonticulua"},
+    "$Codex_Ent_Fumerolas_Genus_Name;": {"name" : "Fumerola"},
+    "$Codex_Ent_Fungoids_Genus_Name;": {"name" : "Fungoida"},
+    "$Codex_Ent_Osseus_Genus_Name;": {"name" : "Osseus"},
+    "$Codex_Ent_Recepta_Genus_Name;": {"name" : "Recepta"},
+    "$Codex_Ent_Shrubs_Genus_Name;": {"name" : "Frutexa"},
+    "$Codex_Ent_Stratum_Genus_Name;": {"name" : "Stratum"},
+    "$Codex_Ent_Tubus_Genus_Name;": {"name" : "Tubus"},
+    "$Codex_Ent_Tussocks_Genus_Name;": {"name" : "Tussock"}
 }
 
-codex_to_english_variants = {
+codex_species = {
     # Horizons
-    "$Codex_Ent_Seed_Name;": "Roseum Brain Tree",                                   # entry 2100201
-    "$Codex_Ent_Cone_Name;": "Bark Mounds",                                         # entry 2100301
-    "$Codex_Ent_SphereABCD_02_Name;": "Puniceum Anemone",                           # entry 2100403
-    "$Codex_Ent_SphereEFGH_02_Name;": "Prasinum Bioluminescent Anemone",            # entry 2100407
-    "$Codex_Ent_Vents_Name;": "Amphora Plant",                                      # entry 2101400
+    "$Codex_Ent_Cone_Name;" : {"genus" : "$Codex_Ent_Cone_Name;", "name" : "Bark Mounds"},
+    "$Codex_Ent_SphereEFGH_02_Name;" : {"genus" : "$Codex_Ent_Sphere_Name;", "name" : "Prasinum Bioluminescent Anemone"},
+    "$Codex_Ent_Tube_Name;" : {"genus" : "$Codex_Ent_Tube_Name;", "name" : "Roseum Sinuous Tubers"},
 
-    "$Codex_Ent_Aleoids_01_B_Name;": "Aleoida Arcus - Yellow",                       # entry 2310101
-    "$Codex_Ent_Aleoids_01_A_Name;": "Aleoida Arcus - Green",                        # entry 2310102
-    "$Codex_Ent_Aleoids_01_F_Name;": "Aleoida Arcus - Teal",                         # entry 2310103
-    "$Codex_Ent_Aleoids_01_K_Name;": "Aleoida Arcus - Turquoise",                    # entry 2310104
-    "$Codex_Ent_Aleoids_01_M_Name;": "Aleoida Arcus - Emerald",                      # entry 2310105
-    "$Codex_Ent_Aleoids_01_L_Name;": "Aleoida Arcus - Lime",                         # entry 2310106
-    "$Codex_Ent_Aleoids_01_T_Name;": "Aleoida Arcus - Sage",                         # entry 2310107
-    "$Codex_Ent_Aleoids_01_TTS_Name;": "Aleoida Arcus - Mauve",                      # entry 2310108
-    "$Codex_Ent_Aleoids_01_Y_Name;": "Aleoida Arcus - Amethyst",                     # entry 2310110
-    "$Codex_Ent_Aleoids_01_W_Name;": "Aleoida Arcus - Grey",                         # entry 2310111
-    "$Codex_Ent_Aleoids_01_D_Name;": "Aleoida Arcus - Indigo",                       # entry 2310112
-    "$Codex_Ent_Aleoids_01_N_Name;": "Aleoida Arcus - Ocher",                        # entry 2310113
-    "$Codex_Ent_Aleoids_02_B_Name;": "Aleoida Coronamus - Yellow",                   # entry 2310201
-    "$Codex_Ent_Aleoids_02_A_Name;": "Aleoida Coronamus - Green",                    # entry 2310202
-    "$Codex_Ent_Aleoids_02_F_Name;": "Aleoida Coronamus - Teal",                     # entry 2310203
-    "$Codex_Ent_Aleoids_02_K_Name;": "Aleoida Coronamus - Turquoise",                # entry 2310204
-    "$Codex_Ent_Aleoids_02_M_Name;": "Aleoida Coronamus - Emerald",                  # entry 2310205
-    "$Codex_Ent_Aleoids_02_L_Name;": "Aleoida Coronamus - Lime",                     # entry 2310206
-    "$Codex_Ent_Aleoids_02_T_Name;": "Aleoida Coronamus - Sage",                     # entry 2310207
-    "$Codex_Ent_Aleoids_02_TTS_Name;": "Aleoida Coronamus - Mauve",                  # entry 2310208
-    "$Codex_Ent_Aleoids_02_Y_Name;": "Aleoida Coronamus - Amethyst",                 # entry 2310210
-    "$Codex_Ent_Aleoids_02_D_Name;": "Aleoida Coronamus - Indigo",                   # entry 2310212
-    "$Codex_Ent_Aleoids_02_N_Name;": "Aleoida Coronamus - Ocher",                    # entry 2310213
-    "$Codex_Ent_Aleoids_03_B_Name;": "Aleoida Spica - Yellow",                       # entry 2310301
-    "$Codex_Ent_Aleoids_03_A_Name;": "Aleoida Spica - Green",                        # entry 2310302
-    "$Codex_Ent_Aleoids_03_F_Name;": "Aleoida Spica - Teal",                         # entry 2310303
-    "$Codex_Ent_Aleoids_03_K_Name;": "Aleoida Spica - Turquoise",                    # entry 2310304
-    "$Codex_Ent_Aleoids_03_M_Name;": "Aleoida Spica - Emerald",                      # entry 2310305
-    "$Codex_Ent_Aleoids_03_L_Name;": "Aleoida Spica - Lime",                         # entry 2310306
-    "$Codex_Ent_Aleoids_03_T_Name;": "Aleoida Spica - Sage",                         # entry 2310307
-    "$Codex_Ent_Aleoids_03_TTS_Name;": "Aleoida Spica - Mauve",                      # entry 2310308
-    "$Codex_Ent_Aleoids_03_Y_Name;": "Aleoida Spica - Amethyst",                     # entry 2310310
-    "$Codex_Ent_Aleoids_03_D_Name;": "Aleoida Spica - Indigo",                       # entry 2310312
-    "$Codex_Ent_Aleoids_03_N_Name;": "Aleoida Spica - Ocher",                        # entry 2310313
-    "$Codex_Ent_Aleoids_04_B_Name;": "Aleoida Laminiae - Yellow",                    # entry 2310401
-    "$Codex_Ent_Aleoids_04_A_Name;": "Aleoida Laminiae - Green",                     # entry 2310402
-    "$Codex_Ent_Aleoids_04_F_Name;": "Aleoida Laminiae - Teal",                      # entry 2310403
-    "$Codex_Ent_Aleoids_04_K_Name;": "Aleoida Laminiae - Turquoise",                 # entry 2310404
-    "$Codex_Ent_Aleoids_04_M_Name;": "Aleoida Laminiae - Emerald",                   # entry 2310405
-    "$Codex_Ent_Aleoids_04_L_Name;": "Aleoida Laminiae - Lime",                      # entry 2310406
-    "$Codex_Ent_Aleoids_04_T_Name;": "Aleoida Laminiae - Sage",                      # entry 2310407
-    "$Codex_Ent_Aleoids_04_TTS_Name;": "Aleoida Laminiae - Mauve",                   # entry 2310408
-    "$Codex_Ent_Aleoids_04_Y_Name;": "Aleoida Laminiae - Amethyst",                  # entry 2310410
-    "$Codex_Ent_Aleoids_04_W_Name;": "Aleoida Laminiae - Grey",                      # entry 2310411
-    "$Codex_Ent_Aleoids_04_D_Name;": "Aleoida Laminiae - Indigo",                    # entry 2310412
-    "$Codex_Ent_Aleoids_04_N_Name;": "Aleoida Laminiae - Ocher",                     # entry 2310413
-    "$Codex_Ent_Aleoids_05_B_Name;": "Aleoida Gravis - Yellow",                      # entry 2310501
-    "$Codex_Ent_Aleoids_05_A_Name;": "Aleoida Gravis - Green",                       # entry 2310502
-    "$Codex_Ent_Aleoids_05_F_Name;": "Aleoida Gravis - Teal",                        # entry 2310503
-    "$Codex_Ent_Aleoids_05_K_Name;": "Aleoida Gravis - Turquoise",                   # entry 2310504
-    "$Codex_Ent_Aleoids_05_M_Name;": "Aleoida Gravis - Emerald",                     # entry 2310505
-    "$Codex_Ent_Aleoids_05_L_Name;": "Aleoida Gravis - Lime",                        # entry 2310506
-    "$Codex_Ent_Aleoids_05_T_Name;": "Aleoida Gravis - Sage",                        # entry 2310507
-    "$Codex_Ent_Aleoids_05_TTS_Name;": "Aleoida Gravis - Mauve",                     # entry 2310508
-    "$Codex_Ent_Aleoids_05_Y_Name;": "Aleoida Gravis - Amethyst",                    # entry 2310510
-    "$Codex_Ent_Aleoids_05_D_Name;": "Aleoida Gravis - Indigo",                      # entry 2310512
-    "$Codex_Ent_Aleoids_05_N_Name;": "Aleoida Gravis - Ocher",                       # entry 2310513
+    "$Codex_Ent_Aleoids_01_Name;" : {"genus" : "$Codex_Ent_Aleoids_Genus_Name;", "name" : "Aleoida Arcus"},
+    "$Codex_Ent_Aleoids_02_Name;" : {"genus" : "$Codex_Ent_Aleoids_Genus_Name;", "name" : "Aleoida Coronamus"},
+    "$Codex_Ent_Aleoids_03_Name;" : {"genus" : "$Codex_Ent_Aleoids_Genus_Name;", "name" : "Aleoida Spica"},
+    "$Codex_Ent_Aleoids_04_Name;" : {"genus" : "$Codex_Ent_Aleoids_Genus_Name;", "name" : "Aleoida Laminiae"},
+    "$Codex_Ent_Aleoids_05_Name;" : {"genus" : "$Codex_Ent_Aleoids_Genus_Name;", "name" : "Aleoida Gravis"},
 
-    "$Codex_Ent_Bacterial_01_O_Name;": "Bacterium Aurasus - Turquoise",              # entry 2320101
-    "$Codex_Ent_Bacterial_01_B_Name;": "Bacterium Aurasus - Grey",                   # entry 2320102
-    "$Codex_Ent_Bacterial_01_A_Name;": "Bacterium Aurasus - Yellow",                 # entry 2320103
-    "$Codex_Ent_Bacterial_01_F_Name;": "Bacterium Aurasus - Lime",                   # entry 2320104
-    "$Codex_Ent_Bacterial_01_G_Name;": "Bacterium Aurasus - Emerald",                # entry 2320105
-    "$Codex_Ent_Bacterial_01_K_Name;": "Bacterium Aurasus - Green",                  # entry 2320106
-    "$Codex_Ent_Bacterial_01_M_Name;": "Bacterium Aurasus - Teal",                   # entry 2320107
-    "$Codex_Ent_Bacterial_01_L_Name;": "Bacterium Aurasus - Sage",                   # entry 2320108
-    "$Codex_Ent_Bacterial_01_T_Name;": "Bacterium Aurasus - Red",                    # entry 2320109
-    "$Codex_Ent_Bacterial_01_TTS_Name;": "Bacterium Aurasus - Maroon",               # entry 2320110
-    "$Codex_Ent_Bacterial_01_Ae_Name;": "Bacterium Aurasus - Orange",                # entry 2320111
-    "$Codex_Ent_Bacterial_01_Y_Name;": "Bacterium Aurasus - Mauve",                  # entry 2320112
-    "$Codex_Ent_Bacterial_01_W_Name;": "Bacterium Aurasus - Amethyst",               # entry 2320113
-    "$Codex_Ent_Bacterial_01_D_Name;": "Bacterium Aurasus - Ocher",                  # entry 2320114
-    "$Codex_Ent_Bacterial_01_N_Name;": "Bacterium Aurasus - Indigo",                 # entry 2320115
-    "$Codex_Ent_Bacterial_02_Technetium_Name;": "Bacterium Nebulus - Cyan",          # entry 2320201
-    "$Codex_Ent_Bacterial_02_Tellurium_Name;": "Bacterium Nebulus - Green",          # entry 2320202
-    "$Codex_Ent_Bacterial_02_Polonium_Name;": "Bacterium Nebulus - Gold",            # entry 2320203
-    "$Codex_Ent_Bacterial_02_Ruthenium_Name;": "Bacterium Nebulus - Orange",         # entry 2320204
-    "$Codex_Ent_Bacterial_02_Antimony_Name;": "Bacterium Nebulus - Magenta",         # entry 2320205
-    "$Codex_Ent_Bacterial_02_Yttrium_Name;": "Bacterium Nebulus - Cobalt",           # entry 2320206
-    "$Codex_Ent_Bacterial_03_Mercury_Name;": "Bacterium Scopulum - Peach",           # entry 2320301
-    "$Codex_Ent_Bacterial_03_Niobium_Name;": "Bacterium Scopulum - Red",             # entry 2320302
-    "$Codex_Ent_Bacterial_03_Tin_Name;": "Bacterium Scopulum - Mulberry",            # entry 2320303
-    "$Codex_Ent_Bacterial_03_Tungsten_Name;": "Bacterium Scopulum - Aquamarine",     # entry 2320304
-    "$Codex_Ent_Bacterial_03_Molybdenum_Name;": "Bacterium Scopulum - Lime",         # entry 2320305
-    "$Codex_Ent_Bacterial_03_Cadmium_Name;": "Bacterium Scopulum - White",           # entry 2320306
-    "$Codex_Ent_Bacterial_04_Technetium_Name;": "Bacterium Acies - Lime",            # entry 2320401
-    "$Codex_Ent_Bacterial_04_Tellurium_Name;": "Bacterium Acies - White",            # entry 2320402
-    "$Codex_Ent_Bacterial_04_Polonium_Name;": "Bacterium Acies - Magenta",           # entry 2320403
-    "$Codex_Ent_Bacterial_04_Ruthenium_Name;": "Bacterium Acies - Cobalt",           # entry 2320404
-    "$Codex_Ent_Bacterial_04_Antimony_Name;": "Bacterium Acies - Cyan",              # entry 2320405
-    "$Codex_Ent_Bacterial_04_Yttrium_Name;": "Bacterium Acies - Aquamarine",         # entry 2320406
-    "$Codex_Ent_Bacterial_05_Technetium_Name;": "Bacterium Vesicula - Gold",         # entry 2320501
-    "$Codex_Ent_Bacterial_05_Tellurium_Name;": "Bacterium Vesicula - Red",           # entry 2320502
-    "$Codex_Ent_Bacterial_05_Polonium_Name;": "Bacterium Vesicula - Orange",         # entry 2320503
-    "$Codex_Ent_Bacterial_05_Ruthenium_Name;": "Bacterium Vesicula - Mulberry",      # entry 2320504
-    "$Codex_Ent_Bacterial_05_Antimony_Name;": "Bacterium Vesicula - Cyan",           # entry 2320505
-    "$Codex_Ent_Bacterial_05_Yttrium_Name;": "Bacterium Vesicula - Lime",            # entry 2320506
-    "$Codex_Ent_Bacterial_06_O_Name;": "Bacterium Alcyoneum - Turquoise",            # entry 2320601
-    "$Codex_Ent_Bacterial_06_B_Name;": "Bacterium Alcyoneum - Grey",                 # entry 2320602
-    "$Codex_Ent_Bacterial_06_A_Name;": "Bacterium Alcyoneum - Yellow",               # entry 2320603
-    "$Codex_Ent_Bacterial_06_F_Name;": "Bacterium Alcyoneum - Lime",                 # entry 2320604
-    "$Codex_Ent_Bacterial_06_G_Name;": "Bacterium Alcyoneum - Emerald",              # entry 2320605
-    "$Codex_Ent_Bacterial_06_K_Name;": "Bacterium Alcyoneum - Green",                # entry 2320606
-    "$Codex_Ent_Bacterial_06_M_Name;": "Bacterium Alcyoneum - Teal",                 # entry 2320607
-    "$Codex_Ent_Bacterial_06_L_Name;": "Bacterium Alcyoneum - Sage",                 # entry 2320608
-    "$Codex_Ent_Bacterial_06_T_Name;": "Bacterium Alcyoneum - Red",                  # entry 2320609
-    "$Codex_Ent_Bacterial_06_TTS_Name;": "Bacterium Alcyoneum - Maroon",             # entry 2320610
-    "$Codex_Ent_Bacterial_06_Ae_Name;": "Bacterium Alcyoneum - Orange",              # entry 2320611
-    "$Codex_Ent_Bacterial_06_Y_Name;": "Bacterium Alcyoneum - Mauve",                # entry 2320612
-    "$Codex_Ent_Bacterial_06_W_Name;": "Bacterium Alcyoneum - Amethyst",             # entry 2320613
-    "$Codex_Ent_Bacterial_06_D_Name;": "Bacterium Alcyoneum - Ocher",                # entry 2320614
-    "$Codex_Ent_Bacterial_06_N_Name;": "Bacterium Alcyoneum - Indigo",               # entry 2320615
-    "$Codex_Ent_Bacterial_07_Mercury_Name;": "Bacterium Tela - Orange",              # entry 2320701
-    "$Codex_Ent_Bacterial_07_Niobium_Name;": "Bacterium Tela - Magenta",             # entry 2320702
-    "$Codex_Ent_Bacterial_07_Tin_Name;": "Bacterium Tela - Cobalt",                  # entry 2320703
-    "$Codex_Ent_Bacterial_07_Tungsten_Name;": "Bacterium Tela - Green",              # entry 2320704
-    "$Codex_Ent_Bacterial_07_Molybdenum_Name;": "Bacterium Tela - Yellow",           # entry 2320705
-    "$Codex_Ent_Bacterial_07_Cadmium_Name;": "Bacterium Tela - Gold",                # entry 2320706
-    "$Codex_Ent_Bacterial_08_Technetium_Name;": "Bacterium Informem - Aquamarine",   # entry 2320801
-    "$Codex_Ent_Bacterial_08_Tellurium_Name;": "Bacterium Informem - Yellow",        # entry 2320802
-    "$Codex_Ent_Bacterial_08_Polonium_Name;": "Bacterium Informem - Lime",           # entry 2320803
-    "$Codex_Ent_Bacterial_08_Ruthenium_Name;": "Bacterium Informem - Gold",          # entry 2320804
-    "$Codex_Ent_Bacterial_08_Antimony_Name;": "Bacterium Informem - Red",            # entry 2320805
-    "$Codex_Ent_Bacterial_08_Yttrium_Name;": "Bacterium Informem - Cobalt",          # entry 2320806
-    "$Codex_Ent_Bacterial_09_Technetium_Name;": "Bacterium Volu - Lime",             # entry 2320901
-    "$Codex_Ent_Bacterial_09_Tellurium_Name;": "Bacterium Volu - Cyan",              # entry 2320902
-    "$Codex_Ent_Bacterial_09_Polonium_Name;": "Bacterium Volu - Aquamarine",         # entry 2320903
-    "$Codex_Ent_Bacterial_09_Ruthenium_Name;": "Bacterium Volu - Cobalt",            # entry 2320904
-    "$Codex_Ent_Bacterial_09_Antimony_Name;": "Bacterium Volu - Red",                # entry 2320905
-    "$Codex_Ent_Bacterial_09_Yttrium_Name;": "Bacterium Volu - Gold",                # entry 2320906
-    "$Codex_Ent_Bacterial_10_Technetium_Name;": "Bacterium Bullaris - Gold",         # entry 2321001
-    "$Codex_Ent_Bacterial_10_Tellurium_Name;": "Bacterium Bullaris - Lime",          # entry 2321002
-    "$Codex_Ent_Bacterial_10_Polonium_Name;": "Bacterium Bullaris - Yellow",         # entry 2321003
-    "$Codex_Ent_Bacterial_10_Ruthenium_Name;": "Bacterium Bullaris - Aquamarine",    # entry 2321004
-    "$Codex_Ent_Bacterial_10_Antimony_Name;": "Bacterium Bullaris - Cobalt",         # entry 2321005
-    "$Codex_Ent_Bacterial_10_Yttrium_Name;": "Bacterium Bullaris - Red",             # entry 2321006
-    "$Codex_Ent_Bacterial_11_Mercury_Name;": "Bacterium Omentum - White",            # entry 2321101
-    "$Codex_Ent_Bacterial_11_Niobium_Name;": "Bacterium Omentum - Peach",            # entry 2321102
-    "$Codex_Ent_Bacterial_11_Tin_Name;": "Bacterium Omentum - Red",                  # entry 2321103
-    "$Codex_Ent_Bacterial_11_Tungsten_Name;": "Bacterium Omentum - Blue",            # entry 2321104
-    "$Codex_Ent_Bacterial_11_Molybdenum_Name;": "Bacterium Omentum - Aquamarine",    # entry 2321105
-    "$Codex_Ent_Bacterial_11_Cadmium_Name;": "Bacterium Omentum - Lime",             # entry 2321106
-    "$Codex_Ent_Bacterial_12_O_Name;": "Bacterium Cerbrus - Turquoise",              # entry 2321201
-    "$Codex_Ent_Bacterial_12_B_Name;": "Bacterium Cerbrus - Grey",                   # entry 2321202
-    "$Codex_Ent_Bacterial_12_A_Name;": "Bacterium Cerbrus - Yellow",                 # entry 2321203
-    "$Codex_Ent_Bacterial_12_F_Name;": "Bacterium Cerbrus - Lime",                   # entry 2321204
-    "$Codex_Ent_Bacterial_12_G_Name;": "Bacterium Cerbrus - Emerald",                # entry 2321205
-    "$Codex_Ent_Bacterial_12_K_Name;": "Bacterium Cerbrus - Green",                  # entry 2321206
-    "$Codex_Ent_Bacterial_12_M_Name;": "Bacterium Cerbrus - Teal",                   # entry 2321207
-    "$Codex_Ent_Bacterial_12_L_Name;": "Bacterium Cerbrus - Sage",                   # entry 2321208
-    "$Codex_Ent_Bacterial_12_T_Name;": "Bacterium Cerbrus - Red",                    # entry 2321209
-    "$Codex_Ent_Bacterial_12_TTS_Name;": "Bacterium Cerbrus - Maroon",               # entry 2321210
-    "$Codex_Ent_Bacterial_12_Ae_Name;": "Bacterium Cerbrus - Orange",                # entry 2321211
-    "$Codex_Ent_Bacterial_12_Y_Name;": "Bacterium Cerbrus - Mauve",                  # entry 2321212
-    "$Codex_Ent_Bacterial_12_W_Name;": "Bacterium Cerbrus - Amethyst",               # entry 2321213
-    "$Codex_Ent_Bacterial_12_D_Name;": "Bacterium Cerbrus - Ocher",                  # entry 2321214
-    "$Codex_Ent_Bacterial_12_N_Name;": "Bacterium Cerbrus - Indigo",                 # entry 2321215
-    "$Codex_Ent_Bacterial_13_Mercury_Name;": "Bacterium Verrata - Red",              # entry 2321301
-    "$Codex_Ent_Bacterial_13_Niobium_Name;": "Bacterium Verrata - Mulberry",         # entry 2321302
-    "$Codex_Ent_Bacterial_13_Tin_Name;": "Bacterium Verrata - Blue",                 # entry 2321303
-    "$Codex_Ent_Bacterial_13_Tungsten_Name;": "Bacterium Verrata - Lime",            # entry 2321304
-    "$Codex_Ent_Bacterial_13_Molybdenum_Name;": "Bacterium Verrata - White",         # entry 2321305
-    "$Codex_Ent_Bacterial_13_Cadmium_Name;": "Bacterium Verrata - Peach",            # entry 2321306
+    "$Codex_Ent_Bacterial_01_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Aurasus"},
+    "$Codex_Ent_Bacterial_02_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Nebulus"},
+    "$Codex_Ent_Bacterial_03_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Scopulum"},
+    "$Codex_Ent_Bacterial_04_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Acies"},
+    "$Codex_Ent_Bacterial_05_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Vesicula"},
+    "$Codex_Ent_Bacterial_06_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Alcyoneum"},
+    "$Codex_Ent_Bacterial_07_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Tela"},
+    "$Codex_Ent_Bacterial_08_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Informem"},
+    "$Codex_Ent_Bacterial_09_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Volu"},
+    "$Codex_Ent_Bacterial_10_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Bullaris"},
+    "$Codex_Ent_Bacterial_11_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Omentum"},
+    "$Codex_Ent_Bacterial_12_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Cerbrus"},
+    "$Codex_Ent_Bacterial_13_Name;" : {"genus" : "$Codex_Ent_Bacterial_Genus_Name;", "name" : "Bacterium Verrata"},
 
-    "$Codex_Ent_Cactoid_01_A_Name;": "Cactoida Cortexum - Green",                    # entry 2330103
-    "$Codex_Ent_Cactoid_01_F_Name;": "Cactoida Cortexum - Yellow",                   # entry 2330104
-    "$Codex_Ent_Cactoid_01_G_Name;": "Cactoida Cortexum - Teal",                     # entry 2330105
-    "$Codex_Ent_Cactoid_01_M_Name;": "Cactoida Cortexum - Amethyst",                 # entry 2330107
-    "$Codex_Ent_Cactoid_01_L_Name;": "Cactoida Cortexum - Mauve",                    # entry 2330108
-    "$Codex_Ent_Cactoid_01_T_Name;": "Cactoida Cortexum - Orange",                   # entry 2330109
-    "$Codex_Ent_Cactoid_01_TTS_Name;": "Cactoida Cortexum - Red",                    # entry 2330110
-    "$Codex_Ent_Cactoid_01_Y_Name;": "Cactoida Cortexum - Ocher",                    # entry 2330112
-    "$Codex_Ent_Cactoid_01_D_Name;": "Cactoida Cortexum - Turquoise",                # entry 2330114
-    "$Codex_Ent_Cactoid_01_N_Name;": "Cactoida Cortexum - Sage",                     # entry 2330115
-    "$Codex_Ent_Cactoid_02_O_Name;": "Cactoida Lapis - Grey",                        # entry 2330201
-    "$Codex_Ent_Cactoid_02_A_Name;": "Cactoida Lapis - Green",                       # entry 2330203
-    "$Codex_Ent_Cactoid_02_F_Name;": "Cactoida Lapis - Yellow",                      # entry 2330204
-    "$Codex_Ent_Cactoid_02_G_Name;": "Cactoida Lapis - Teal",                        # entry 2330205
-    "$Codex_Ent_Cactoid_02_M_Name;": "Cactoida Lapis - Amethyst",                    # entry 2330207
-    "$Codex_Ent_Cactoid_02_L_Name;": "Cactoida Lapis - Mauve",                       # entry 2330208
-    "$Codex_Ent_Cactoid_02_T_Name;": "Cactoida Lapis - Orange",                      # entry 2330209
-    "$Codex_Ent_Cactoid_02_TTS_Name;": "Cactoida Lapis - Red",                       # entry 2330210
-    "$Codex_Ent_Cactoid_02_Y_Name;": "Cactoida Lapis - Ocher",                       # entry 2330212
-    "$Codex_Ent_Cactoid_02_W_Name;": "Cactoida Lapis - Indigo",                      # entry 2330213
-    "$Codex_Ent_Cactoid_02_D_Name;": "Cactoida Lapis - Turquoise",                   # entry 2330214
-    "$Codex_Ent_Cactoid_02_N_Name;": "Cactoida Lapis - Sage",                        # entry 2330215
-    "$Codex_Ent_Cactoid_03_O_Name;": "Cactoida Vermis - Grey",                       # entry 2330301
-    "$Codex_Ent_Cactoid_03_A_Name;": "Cactoida Vermis - Green",                      # entry 2330403
-    "$Codex_Ent_Cactoid_03_F_Name;": "Cactoida Vermis - Yellow",                     # entry 2330304
-    "$Codex_Ent_Cactoid_03_G_Name;": "Cactoida Vermis - Teal",                       # entry 2330305
-    "$Codex_Ent_Cactoid_03_M_Name;": "Cactoida Vermis - Amethyst",                   # entry 2330307
-    "$Codex_Ent_Cactoid_03_L_Name;": "Cactoida Vermis - Mauve",                      # entry 2330308
-    "$Codex_Ent_Cactoid_03_T_Name;": "Cactoida Vermis - Orange",                     # entry 2330309
-    "$Codex_Ent_Cactoid_03_TTS_Name;": "Cactoida Vermis - Red",                      # entry 2330310
-    "$Codex_Ent_Cactoid_03_Y_Name;": "Cactoida Vermis - Ocher",                      # entry 2330312
-    "$Codex_Ent_Cactoid_03_D_Name;": "Cactoida Vermis - Turquoise",                  # entry 2330314
-    "$Codex_Ent_Cactoid_03_N_Name;": "Cactoida Vermis - Sage",                       # entry 2330315
-    "$Codex_Ent_Cactoid_04_A_Name;": "Cactoida Pullulanta - Green",                  # entry 2330403
-    "$Codex_Ent_Cactoid_04_F_Name;": "Cactoida Pullulanta - Yellow",                 # entry 2330404
-    "$Codex_Ent_Cactoid_04_G_Name;": "Cactoida Pullulanta - Teal",                   # entry 2330405
-    "$Codex_Ent_Cactoid_04_M_Name;": "Cactoida Pullulanta - Amethyst",               # entry 2330407
-    "$Codex_Ent_Cactoid_04_L_Name;": "Cactoida Pullulanta - Mauve",                  # entry 2330408
-    "$Codex_Ent_Cactoid_04_T_Name;": "Cactoida Pullulanta - Orange",                 # entry 2330409
-    "$Codex_Ent_Cactoid_04_TTS_Name;": "Cactoida Pullulanta - Red",                  # entry 2330410
-    "$Codex_Ent_Cactoid_04_Y_Name;": "Cactoida Pullulanta - Ocher",                  # entry 2330412
-    "$Codex_Ent_Cactoid_04_D_Name;": "Cactoida Pullulanta - Turquoise",              # entry 2330414
-    "$Codex_Ent_Cactoid_04_N_Name;": "Cactoida Pullulanta - Sage",                   # entry 2330415
-    "$Codex_Ent_Cactoid_05_A_Name;": "Cactoida Peperatis - Green",                   # entry 2330503
-    "$Codex_Ent_Cactoid_05_F_Name;": "Cactoida Peperatis - Yellow",                  # entry 2330504
-    "$Codex_Ent_Cactoid_05_G_Name;": "Cactoida Peperatis - Teal",                    # entry 2330505
-    "$Codex_Ent_Cactoid_05_M_Name;": "Cactoida Peperatis - Amethyst",                # entry 2330507
-    "$Codex_Ent_Cactoid_05_L_Name;": "Cactoida Peperatis - Mauve",                   # entry 2330508
-    "$Codex_Ent_Cactoid_05_T_Name;": "Cactoida Peperatis - Orange",                  # entry 2330509
-    "$Codex_Ent_Cactoid_05_TTS_Name;": "Cactoida Peperatis - Red",                   # entry 2330510
-    "$Codex_Ent_Cactoid_05_Y_Name;": "Cactoida Peperatis - Ocher",                   # entry 2330512
-    "$Codex_Ent_Cactoid_05_D_Name;": "Cactoida Peperatis - Turquoise",               # entry 2330514
-    "$Codex_Ent_Cactoid_05_N_Name;": "Cactoida Peperatis - Sage",                    # entry 2330515
+    "$Codex_Ent_Cactoid_01_Name;" : {"genus" : "$Codex_Ent_Cactoid_Genus_Name;", "name" : "Cactoida Cortexum"},
+    "$Codex_Ent_Cactoid_02_Name;" : {"genus" : "$Codex_Ent_Cactoid_Genus_Name;", "name" : "Cactoida Lapis"},
+    "$Codex_Ent_Cactoid_03_Name;" : {"genus" : "$Codex_Ent_Cactoid_Genus_Name;", "name" : "Cactoida Vermis"},
+    "$Codex_Ent_Cactoid_04_Name;" : {"genus" : "$Codex_Ent_Cactoid_Genus_Name;", "name" : "Cactoida Pullulanta"},
+    "$Codex_Ent_Cactoid_05_Name;" : {"genus" : "$Codex_Ent_Cactoid_Genus_Name;", "name" : "Cactoida Peperatis"},
 
-    "$Codex_Ent_Clypeus_01_B_Name;": "Clypeus Lacrimam - Maroon",                    # entry 2340102
-    "$Codex_Ent_Clypeus_01_A_Name;": "Clypeus Lacrimam - Orange",                    # entry 2340103
-    "$Codex_Ent_Clypeus_01_F_Name;": "Clypeus Lacrimam - Mauve",                     # entry 2340104
-    "$Codex_Ent_Clypeus_01_G_Name;": "Clypeus Lacrimam - Amethyst",                  # entry 2340105
-    "$Codex_Ent_Clypeus_01_K_Name;": "Clypeus Lacrimam - Grey",                      # entry 2340106
-    "$Codex_Ent_Clypeus_01_M_Name;": "Clypeus Lacrimam - Turquoise",                 # entry 2340107
-    "$Codex_Ent_Clypeus_01_L_Name;": "Clypeus Lacrimam - Teal",                      # entry 2340108
-    "$Codex_Ent_Clypeus_01_Y_Name;": "Clypeus Lacrimam - Green",                     # entry 2340110
-    "$Codex_Ent_Clypeus_01_D_Name;": "Clypeus Lacrimam - Lime",                      # entry 2340112
-    "$Codex_Ent_Clypeus_01_N_Name;": "Clypeus Lacrimam - Yellow",                    # entry 2340113
-    "$Codex_Ent_Clypeus_02_B_Name;": "Clypeus Margaritus - Maroon",                  # entry 2340202
-    "$Codex_Ent_Clypeus_02_A_Name;": "Clypeus Margaritus - Orange",                  # entry 2340203
-    "$Codex_Ent_Clypeus_02_F_Name;": "Clypeus Margaritus - Mauve",                   # entry 2340204
-    "$Codex_Ent_Clypeus_02_G_Name;": "Clypeus Margaritus - Amethyst",                # entry 2340205
-    "$Codex_Ent_Clypeus_02_K_Name;": "Clypeus Margaritus - Grey",                    # entry 2340206
-    "$Codex_Ent_Clypeus_02_M_Name;": "Clypeus Margaritus - Turquoise",               # entry 2340207
-    "$Codex_Ent_Clypeus_02_L_Name;": "Clypeus Margaritus - Teal",                    # entry 2340208
-    "$Codex_Ent_Clypeus_02_Y_Name;": "Clypeus Margaritus - Green",                   # entry 2340210
-    "$Codex_Ent_Clypeus_02_D_Name;": "Clypeus Margaritus - Lime",                    # entry 2340212
-    "$Codex_Ent_Clypeus_02_N_Name;": "Clypeus Margaritus - Yellow",                  # entry 2340213
-    "$Codex_Ent_Clypeus_03_B_Name;": "Clypeus Speculumi - Maroon",                   # entry 2340302
-    "$Codex_Ent_Clypeus_03_A_Name;": "Clypeus Speculumi - Orange",                   # entry 2340303
-    "$Codex_Ent_Clypeus_03_F_Name;": "Clypeus Speculumi - Mauve",                    # entry 2340304
-    "$Codex_Ent_Clypeus_03_G_Name;": "Clypeus Speculumi - Amethyst",                 # entry 2340305
-    "$Codex_Ent_Clypeus_03_K_Name;": "Clypeus Speculumi - Grey",                     # entry 2340306
-    "$Codex_Ent_Clypeus_03_M_Name;": "Clypeus Speculumi - Turquoise",                # entry 2340307
-    "$Codex_Ent_Clypeus_03_N_Name;": "Clypeus Speculumi - Yellow",                   # entry 2340313
+    "$Codex_Ent_Clypeus_01_Name;" : {"genus" : "$Codex_Ent_Clypeus_Genus_Name;", "name" : "Clypeus Lacrimam"},
+    "$Codex_Ent_Clypeus_02_Name;" : {"genus" : "$Codex_Ent_Clypeus_Genus_Name;", "name" : "Clypeus Margaritus"},
+    "$Codex_Ent_Clypeus_03_Name;" : {"genus" : "$Codex_Ent_Clypeus_Genus_Name;", "name" : "Clypeus Speculumi"},
 
-    "$Codex_Ent_Conchas_01_Mercury_Name;": "Concha Renibus - Mulberry",              # entry 2350101
-    "$Codex_Ent_Conchas_01_Niobium_Name;": "Concha Renibus - Blue",                  # entry 2350102
-    "$Codex_Ent_Conchas_01_Tin_Name;": "Concha Renibus - Aquamarine",                # entry 2350103
-    "$Codex_Ent_Conchas_01_Tungsten_Name;": "Concha Renibus - White",                # entry 2350104
-    "$Codex_Ent_Conchas_01_Molybdenum_Name;": "Concha Renibus - Peach",              # entry 2350105
-    "$Codex_Ent_Conchas_01_Cadmium_Name;": "Concha Renibus - Red",                   # entry 2350106
-    "$Codex_Ent_Conchas_02_B_Name;": "Concha Aureolas - Indigo",                     # entry 2350201
-    "$Codex_Ent_Conchas_02_A_Name;": "Concha Aureolas - Teal",                       # entry 2350202
-    "$Codex_Ent_Conchas_02_F_Name;": "Concha Aureolas - Grey",                       # entry 2350203
-    "$Codex_Ent_Conchas_02_G_Name;": "Concha Aureolas - Turquoise",                  # entry 2350204
-    "$Codex_Ent_Conchas_02_K_Name;": "Concha Aureolas - Red",                        # entry 2350205
-    "$Codex_Ent_Conchas_02_L_Name;": "Concha Aureolas - Orange",                     # entry 2350206
-    "$Codex_Ent_Conchas_02_Y_Name;": "Concha Aureolas - Yellow",                     # entry 2350207
-    "$Codex_Ent_Conchas_02_D_Name;": "Concha Aureolas - Green",                      # entry 2350209
-    "$Codex_Ent_Conchas_02_N_Name;": "Concha Aureolas - Emerald",                    # entry 2350210
-    "$Codex_Ent_Conchas_03_B_Name;": "Concha Labiata - Indigo",                      # entry 2350301
-    "$Codex_Ent_Conchas_03_A_Name;": "Concha Labiata - Teal",                        # entry 2350302
-    "$Codex_Ent_Conchas_03_F_Name;": "Concha Labiata - Grey",                        # entry 2350303
-    "$Codex_Ent_Conchas_03_G_Name;": "Concha Labiata - Turquoise",                   # entry 2350304
-    "$Codex_Ent_Conchas_03_K_Name;": "Concha Labiata - Red",                         # entry 2350305
-    "$Codex_Ent_Conchas_03_L_Name;": "Concha Labiata - Orange",                      # entry 2350306
-    "$Codex_Ent_Conchas_03_Y_Name;": "Concha Labiata - Yellow",                      # entry 2350307
-    "$Codex_Ent_Conchas_03_W_Name;": "Concha Labiata - Lime",                        # entry 2350308
-    "$Codex_Ent_Conchas_03_D_Name;": "Concha Labiata - Green",                       # entry 2350309
-    "$Codex_Ent_Conchas_03_N_Name;": "Concha Labiata - Emerald",                     # entry 2350310
-    "$Codex_Ent_Conchas_04_Technetium_Name;": "Concha Biconcavis - White",           # entry 2350401
-    "$Codex_Ent_Conchas_04_Tellurium_Name;": "Concha Biconcavis - Yellow",           # entry 2350402
-    "$Codex_Ent_Conchas_04_Polonium_Name;": "Concha Biconcavis - Red",               # entry 2350403
-    "$Codex_Ent_Conchas_04_Ruthenium_Name;": "Concha Biconcavis - Orange",           # entry 2350404
-    "$Codex_Ent_Conchas_04_Antimony_Name;": "Concha Biconcavis - Peach",             # entry 2350405
-    "$Codex_Ent_Conchas_04_Yttrium_Name;": "Concha Biconcavis - Gold",               # entry 2350406
+    "$Codex_Ent_Conchas_01_Name;" : {"genus" : "$Codex_Ent_Conchas_Genus_Name;", "name" : "Concha Renibus"},
+    "$Codex_Ent_Conchas_02_Name;" : {"genus" : "$Codex_Ent_Conchas_Genus_Name;", "name" : "Concha Aureolas"},
+    "$Codex_Ent_Conchas_03_Name;" : {"genus" : "$Codex_Ent_Conchas_Genus_Name;", "name" : "Concha Labiata"},
+    "$Codex_Ent_Conchas_04_Name;" : {"genus" : "$Codex_Ent_Conchas_Genus_Name;", "name" : "Concha Biconcavis"},
 
-    "$Codex_Ent_Electricae_01_Technetium_Name;": "Electricae Pluma - Magenta",       # entry 2360101
-    "$Codex_Ent_Electricae_01_Tellurium_Name;": "Electricae Pluma - Red",            # entry 2360102
-    "$Codex_Ent_Electricae_01_Polonium_Name;": "Electricae Pluma - Cyan",            # entry 2360103
-    "$Codex_Ent_Electricae_01_Ruthenium_Name;": "Electricae Pluma - Blue",           # entry 2360104
-    "$Codex_Ent_Electricae_01_Antimony_Name;": "Electricae Pluma - Cobalt",          # entry 2360105
-    "$Codex_Ent_Electricae_01_Yttrium_Name;": "Electricae Pluma - Mulberry",         # entry 2360106
-    "$Codex_Ent_Electricae_02_Technetium_Name;": "Electricae Radialem - Aquamarine", # entry 2360201
-    "$Codex_Ent_Electricae_02_Tellurium_Name;": "Electricae Radialem - Magenta",     # entry 2360202
-    "$Codex_Ent_Electricae_02_Polonium_Name;": "Electricae Radialem - Cobalt",       # entry 2360203
-    "$Codex_Ent_Electricae_02_Ruthenium_Name;": "Electricae Radialem - Blue",        # entry 2360204
-    "$Codex_Ent_Electricae_02_Antimony_Name;": "Electricae Radialem - Cyan",         # entry 2360205
-    "$Codex_Ent_Electricae_02_Yttrium_Name;": "Electricae Radialem - Green",         # entry 2360206
+    "$Codex_Ent_Electricae_01_Name;" : {"genus" : "$Codex_Ent_Electricae_Genus_Name;", "name" : "Electricae Pluma"},
+    "$Codex_Ent_Electricae_02_Name;" : {"genus" : "$Codex_Ent_Electricae_Genus_Name;", "name" : "Electricae Radialem"},
 
-    "$Codex_Ent_Fonticulus_01_B_Name;": "Fonticulua Segmentatus - Lime",             # entry 2370102
-    "$Codex_Ent_Fonticulus_01_A_Name;": "Fonticulua Segmentatus - Green",            # entry 2370103
-    "$Codex_Ent_Fonticulus_01_F_Name;": "Fonticulua Segmentatus - Yellow",           # entry 2370104
-    "$Codex_Ent_Fonticulus_01_G_Name;": "Fonticulua Segmentatus - Teal",             # entry 2370105
-    "$Codex_Ent_Fonticulus_01_K_Name;": "Fonticulua Segmentatus - Emerald",          # entry 2370106
-    "$Codex_Ent_Fonticulus_01_M_Name;": "Fonticulua Segmentatus - Amethyst",         # entry 2370107
-    "$Codex_Ent_Fonticulus_01_L_Name;": "Fonticulua Segmentatus - Mauve",            # entry 2370108
-    "$Codex_Ent_Fonticulus_01_T_Name;": "Fonticulua Segmentatus - Orange",           # entry 2370109
-    "$Codex_Ent_Fonticulus_01_TTS_Name;": "Fonticulua Segmentatus - Red",            # entry 2370110
-    "$Codex_Ent_Fonticulus_01_Ae_Name;": "Fonticulua Segmentatus - Maroon",          # entry 2370111
-    "$Codex_Ent_Fonticulus_01_Y_Name;": "Fonticulua Segmentatus - Ocher",            # entry 2370112
-    "$Codex_Ent_Fonticulus_01_D_Name;": "Fonticulua Segmentatus - Turquoise",        # entry 2370114
-    "$Codex_Ent_Fonticulus_01_N_Name;": "Fonticulua Segmentatus - Sage",             # entry 2370115
-    "$Codex_Ent_Fonticulus_02_O_Name;": "Fonticulua Campestris - Grey",              # entry 2370201
-    "$Codex_Ent_Fonticulus_02_B_Name;": "Fonticulua Campestris - Lime",              # entry 2370202
-    "$Codex_Ent_Fonticulus_02_A_Name;": "Fonticulua Campestris - Green",             # entry 2370203
-    "$Codex_Ent_Fonticulus_02_F_Name;": "Fonticulua Campestris - Yellow",            # entry 2370204
-    "$Codex_Ent_Fonticulus_02_G_Name;": "Fonticulua Campestris - Teal",              # entry 2370205
-    "$Codex_Ent_Fonticulus_02_K_Name;": "Fonticulua Campestris - Emerald",           # entry 2370206
-    "$Codex_Ent_Fonticulus_02_M_Name;": "Fonticulua Campestris - Amethyst",          # entry 2370207
-    "$Codex_Ent_Fonticulus_02_L_Name;": "Fonticulua Campestris - Mauve",             # entry 2370208
-    "$Codex_Ent_Fonticulus_02_T_Name;": "Fonticulua Campestris - Orange",            # entry 2370209
-    "$Codex_Ent_Fonticulus_02_TTS_Name;": "Fonticulua Campestris - Red",             # entry 2370210
-    "$Codex_Ent_Fonticulus_02_Ae_Name;": "Fonticulua Campestris - Maroon",           # entry 2370211
-    "$Codex_Ent_Fonticulus_02_Y_Name;": "Fonticulua Campestris - Ocher",             # entry 2370212
-    "$Codex_Ent_Fonticulus_02_D_Name;": "Fonticulua Campestris - Turquoise",         # entry 2370214
-    "$Codex_Ent_Fonticulus_02_N_Name;": "Fonticulua Campestris - Sage",              # entry 2370215
-    "$Codex_Ent_Fonticulus_03_B_Name;": "Fonticulua Upupam - Lime",                  # entry 2370302
-    "$Codex_Ent_Fonticulus_03_A_Name;": "Fonticulua Upupam - Green",                 # entry 2370303
-    "$Codex_Ent_Fonticulus_03_F_Name;": "Fonticulua Upupam - Yellow",                # entry 2370304
-    "$Codex_Ent_Fonticulus_03_G_Name;": "Fonticulua Upupam - Teal",                  # entry 2370305
-    "$Codex_Ent_Fonticulus_03_K_Name;": "Fonticulua Upupam - Emerald",               # entry 2370306
-    "$Codex_Ent_Fonticulus_03_M_Name;": "Fonticulua Upupam - Amethyst",              # entry 2370307
-    "$Codex_Ent_Fonticulus_03_L_Name;": "Fonticulua Upupam - Mauve",                 # entry 2370308
-    "$Codex_Ent_Fonticulus_03_T_Name;": "Fonticulua Upupam - Orange",                # entry 2370309
-    "$Codex_Ent_Fonticulus_03_TTS_Name;": "Fonticulua Upupam - Red",                 # entry 2370310
-    "$Codex_Ent_Fonticulus_03_Ae_Name;": "Fonticulua Upupam - Maroon",               # entry 2370311
-    "$Codex_Ent_Fonticulus_03_Y_Name;": "Fonticulua Upupam - Ocher",                 # entry 2370312
-    "$Codex_Ent_Fonticulus_03_W_Name;": "Fonticulua Upupam - Indigo",                # entry 2370313
-    "$Codex_Ent_Fonticulus_03_D_Name;": "Fonticulua Upupam - Turquoise",             # entry 2370314
-    "$Codex_Ent_Fonticulus_03_N_Name;": "Fonticulua Upupam - Sage",                  # entry 2370315
-    "$Codex_Ent_Fonticulus_04_O_Name;": "Fonticulua Lapida - Grey",                  # entry 2370401
-    "$Codex_Ent_Fonticulus_04_B_Name;": "Fonticulua Lapida - Lime",                  # entry 2370402
-    "$Codex_Ent_Fonticulus_04_A_Name;": "Fonticulua Lapida - Green",                 # entry 2370403
-    "$Codex_Ent_Fonticulus_04_F_Name;": "Fonticulua Lapida - Yellow",                # entry 2370404
-    "$Codex_Ent_Fonticulus_04_G_Name;": "Fonticulua Lapida - Teal",                  # entry 2370405
-    "$Codex_Ent_Fonticulus_04_K_Name;": "Fonticulua Lapida - Emerald",               # entry 2370406
-    "$Codex_Ent_Fonticulus_04_M_Name;": "Fonticulua Lapida - Amethyst",              # entry 2370407
-    "$Codex_Ent_Fonticulus_04_L_Name;": "Fonticulua Lapida - Mauve",                 # entry 2370408
-    "$Codex_Ent_Fonticulus_04_T_Name;": "Fonticulua Lapida - Orange",                # entry 2370409
-    "$Codex_Ent_Fonticulus_04_TTS_Name;": "Fonticulua Lapida - Red",                 # entry 2370410
-    "$Codex_Ent_Fonticulus_04_Ae_Name;": "Fonticulua Lapida - Maroon",               # entry 2370411
-    "$Codex_Ent_Fonticulus_04_Y_Name;": "Fonticulua Lapida - Ocher",                 # entry 2370412
-    "$Codex_Ent_Fonticulus_04_D_Name;": "Fonticulua Lapida - Turquoise",             # entry 2370414
-    "$Codex_Ent_Fonticulus_04_N_Name;": "Fonticulua Lapida - Sage",                  # entry 2370415
-    "$Codex_Ent_Fonticulus_05_B_Name;": "Fonticulua Fluctus - Lime",                 # entry 2370502
-    "$Codex_Ent_Fonticulus_05_A_Name;": "Fonticulua Fluctus - Green",                # entry 2370503
-    "$Codex_Ent_Fonticulus_05_F_Name;": "Fonticulua Fluctus - Yellow",               # entry 2370504
-    "$Codex_Ent_Fonticulus_05_G_Name;": "Fonticulua Fluctus - Teal",                 # entry 2370505
-    "$Codex_Ent_Fonticulus_05_K_Name;": "Fonticulua Fluctus - Emerald",              # entry 2370506
-    "$Codex_Ent_Fonticulus_05_M_Name;": "Fonticulua Fluctus - Amethyst",             # entry 2370507
-    "$Codex_Ent_Fonticulus_05_L_Name;": "Fonticulua Fluctus - Mauve",                # entry 2370508
-    "$Codex_Ent_Fonticulus_05_T_Name;": "Fonticulua Fluctus - Orange",               # entry 2370509
-    "$Codex_Ent_Fonticulus_05_TTS_Name;": "Fonticulua Fluctus - Red",                # entry 2370510
-    "$Codex_Ent_Fonticulus_05_N_Name;": "Fonticulua Fluctus - Sage",                 # entry 2370515
-    "$Codex_Ent_Fonticulus_06_B_Name;": "Fonticulua Digitos - Lime",                 # entry 2370602
-    "$Codex_Ent_Fonticulus_06_A_Name;": "Fonticulua Digitos - Green",                # entry 2370603
-    "$Codex_Ent_Fonticulus_06_F_Name;": "Fonticulua Digitos - Yellow",               # entry 2370604
-    "$Codex_Ent_Fonticulus_06_G_Name;": "Fonticulua Digitos - Teal",                 # entry 2370605
-    "$Codex_Ent_Fonticulus_06_K_Name;": "Fonticulua Digitos - Emerald",              # entry 2370606
-    "$Codex_Ent_Fonticulus_06_M_Name;": "Fonticulua Digitos - Amethyst",             # entry 2370607
-    "$Codex_Ent_Fonticulus_06_L_Name;": "Fonticulua Digitos - Mauve",                # entry 2370608
-    "$Codex_Ent_Fonticulus_06_T_Name;": "Fonticulua Digitos - Orange",               # entry 2370609
-    "$Codex_Ent_Fonticulus_06_TTS_Name;": "Fonticulua Digitos - Red",                # entry 2370610
-    "$Codex_Ent_Fonticulus_06_Y_Name;": "Fonticulua Digitos - Ocher",                # entry 2370612
-    "$Codex_Ent_Fonticulus_06_D_Name;": "Fonticulua Digitos - Turquoise",            # entry 2370614
-    "$Codex_Ent_Fonticulus_06_N_Name;": "Fonticulua Digitos - Sage",                 # entry 2370615
+    "$Codex_Ent_Fonticulus_01_Name;" : {"genus" : "$Codex_Ent_Fonticulus_Genus_Name;", "name" : "Fonticulua Segmentatus"},
+    "$Codex_Ent_Fonticulus_02_Name;" : {"genus" : "$Codex_Ent_Fonticulus_Genus_Name;", "name" : "Fonticulua Campestris"},
+    "$Codex_Ent_Fonticulus_03_Name;" : {"genus" : "$Codex_Ent_Fonticulus_Genus_Name;", "name" : "Fonticulua Upupam"},
+    "$Codex_Ent_Fonticulus_04_Name;" : {"genus" : "$Codex_Ent_Fonticulus_Genus_Name;", "name" : "Fonticulua Lapida"},
+    "$Codex_Ent_Fonticulus_05_Name;" : {"genus" : "$Codex_Ent_Fonticulus_Genus_Name;", "name" : "Fonticulua Fluctus"},
+    "$Codex_Ent_Fonticulus_06_Name;" : {"genus" : "$Codex_Ent_Fonticulus_Genus_Name;", "name" : "Fonticulua Digitos"},
 
-    "$Codex_Ent_Fumerolas_01_Mercury_Name;": "Fumerola Carbosis - Magenta",          # entry 2380101
-    "$Codex_Ent_Fumerolas_01_Niobium_Name;": "Fumerola Carbosis - Cobalt",           # entry 2380102
-    "$Codex_Ent_Fumerolas_01_Tin_Name;": "Fumerola Carbosis - Cyan",                 # entry 2380103
-    "$Codex_Ent_Fumerolas_01_Tungsten_Name;": "Fumerola Carbosis - Yellow",          # entry 2380104
-    "$Codex_Ent_Fumerolas_01_Molybdenum_Name;": "Fumerola Carbosis - Gold",          # entry 2380105
-    "$Codex_Ent_Fumerolas_01_Cadmium_Name;": "Fumerola Carbosis - Orange",           # entry 2380106
-    "$Codex_Ent_Fumerolas_02_Mercury_Name;": "Fumerola Extremus - Lime",             # entry 2380201
-    "$Codex_Ent_Fumerolas_02_Niobium_Name;": "Fumerola Extremus - White",            # entry 2380202
-    "$Codex_Ent_Fumerolas_02_Tin_Name;": "Fumerola Extremus - Peach",                # entry 2380203
-    "$Codex_Ent_Fumerolas_02_Tungsten_Name;": "Fumerola Extremus - Mulberry",        # entry 2380204
-    "$Codex_Ent_Fumerolas_02_Molybdenum_Name;": "Fumerola Extremus - Blue",          # entry 2380205
-    "$Codex_Ent_Fumerolas_02_Cadmium_Name;": "Fumerola Extremus - Aquamarine",       # entry 2380206
-    "$Codex_Ent_Fumerolas_03_Mercury_Name;": "Fumerola Nitris - Peach",              # entry 2380301
-    "$Codex_Ent_Fumerolas_03_Niobium_Name;": "Fumerola Nitris - Red",                # entry 2380302
-    "$Codex_Ent_Fumerolas_03_Tin_Name;": "Fumerola Nitris - Mulberry",               # entry 2380303
-    "$Codex_Ent_Fumerolas_03_Tungsten_Name;": "Fumerola Nitris - Aquamarine",        # entry 2380304
-    "$Codex_Ent_Fumerolas_03_Molybdenum_Name;": "Fumerola Nitris - Lime",            # entry 2380305
-    "$Codex_Ent_Fumerolas_03_Cadmium_Name;": "Fumerola Nitris - White",              # entry 2380306
-    "$Codex_Ent_Fumerolas_04_Mercury_Name;": "Fumerola Aquatis - Yellow",            # entry 2380401
-    "$Codex_Ent_Fumerolas_04_Niobium_Name;": "Fumerola Aquatis - Gold",              # entry 2380402
-    "$Codex_Ent_Fumerolas_04_Tin_Name;": "Fumerola Aquatis - Orange",                # entry 2380403
-    "$Codex_Ent_Fumerolas_04_Tungsten_Name;": "Fumerola Aquatis - Cobalt",           # entry 2380404
-    "$Codex_Ent_Fumerolas_04_Molybdenum_Name;": "Fumerola Aquatis - Cyan",           # entry 2380405
-    "$Codex_Ent_Fumerolas_04_Cadmium_Name;": "Fumerola Aquatis - Green",             # entry 2380406
+    "$Codex_Ent_Fumerolas_02_Name;" : {"genus" : "$Codex_Ent_Fumerolas_Genus_Name;", "name" : "Fumerola Extremus"},
+    "$Codex_Ent_Fumerolas_03_Name;" : {"genus" : "$Codex_Ent_Fumerolas_Genus_Name;", "name" : "Fumerola Nitris"},
+    "$Codex_Ent_Fumerolas_04_Name;" : {"genus" : "$Codex_Ent_Fumerolas_Genus_Name;", "name" : "Fumerola Aquatis"},
 
-    "$Codex_Ent_Fungoids_01_Technetium_Name;": "Fungoida Setisis - Lime",            # entry 2390101
-    "$Codex_Ent_Fungoids_01_Tellurium_Name;": "Fungoida Setisis - Yellow",           # entry 2390102
-    "$Codex_Ent_Fungoids_01_Polonium_Name;": "Fungoida Setisis - White",             # entry 2390103
-    "$Codex_Ent_Fungoids_01_Ruthenium_Name;": "Fungoida Setisis - Gold",             # entry 2390104
-    "$Codex_Ent_Fungoids_01_Antimony_Name;": "Fungoida Setisis - Peach",             # entry 2390105
-    "$Codex_Ent_Fungoids_01_Yttrium_Name;": "Fungoida Setisis - Orange",             # entry 2390106
-    "$Codex_Ent_Fungoids_02_Mercury_Name;": "Fungoida Stabitis - Green",             # entry 2390201
-    "$Codex_Ent_Fungoids_02_Niobium_Name;": "Fungoida Stabitis - White",             # entry 2390202
-    "$Codex_Ent_Fungoids_02_Tin_Name;": "Fungoida Stabitis - Orange",                # entry 2390203
-    "$Codex_Ent_Fungoids_02_Tungsten_Name;": "Fungoida Stabitis - Peach",            # entry 2390204
-    "$Codex_Ent_Fungoids_02_Molybdenum_Name;": "Fungoida Stabitis - Magenta",        # entry 2390205
-    "$Codex_Ent_Fungoids_02_Cadmium_Name;": "Fungoida Stabitis - Blue",              # entry 2390206
-    "$Codex_Ent_Fungoids_03_Technetium_Name;": "Fungoida Bullarum - Peach",          # entry 2390301
-    "$Codex_Ent_Fungoids_03_Tellurium_Name;": "Fungoida Bullarum - Gold",            # entry 2390302
-    "$Codex_Ent_Fungoids_03_Polonium_Name;": "Fungoida Bullarum - Mulberry",         # entry 2390303
-    "$Codex_Ent_Fungoids_03_Ruthenium_Name;": "Fungoida Bullarum - Magenta",         # entry 2390304
-    "$Codex_Ent_Fungoids_03_Antimony_Name;": "Fungoida Bullarum - Red",              # entry 2390305
-    "$Codex_Ent_Fungoids_03_Yttrium_Name;": "Fungoida Bullarum - Orange",            # entry 2390306
-    "$Codex_Ent_Fungoids_04_Mercury_Name;": "Fungoida Gelata - Lime",                # entry 2390401
-    "$Codex_Ent_Fungoids_04_Niobium_Name;": "Fungoida Gelata - Green",               # entry 2390402
-    "$Codex_Ent_Fungoids_04_Tin_Name;": "Fungoida Gelata - Red",                     # entry 2390403
-    "$Codex_Ent_Fungoids_04_Tungsten_Name;": "Fungoida Gelata - Orange",             # entry 2390404
-    "$Codex_Ent_Fungoids_04_Molybdenum_Name;": "Fungoida Gelata - Mulberry",         # entry 2390405
-    "$Codex_Ent_Fungoids_04_Cadmium_Name;": "Fungoida Gelata - Cyan",                # entry 2390406
+    "$Codex_Ent_Fungoids_01_Name;" : {"genus" : "$Codex_Ent_Fungoids_Genus_Name;", "name" : "Fungoida Setisis"},
+    "$Codex_Ent_Fungoids_02_Name;" : {"genus" : "$Codex_Ent_Fungoids_Genus_Name;", "name" : "Fungoida Stabitis"},
+    "$Codex_Ent_Fungoids_03_Name;" : {"genus" : "$Codex_Ent_Fungoids_Genus_Name;", "name" : "Fungoida Bullarum"},
+    "$Codex_Ent_Fungoids_04_Name;" : {"genus" : "$Codex_Ent_Fungoids_Genus_Name;", "name" : "Fungoida Gelata"},
 
-    "$Codex_Ent_Osseus_01_A_Name;": "Osseus Fractus - Lime",                         # entry 2400102
-    "$Codex_Ent_Osseus_01_F_Name;": "Osseus Fractus - Turquoise",                    # entry 2400103
-    "$Codex_Ent_Osseus_01_G_Name;": "Osseus Fractus - Grey",                         # entry 2400104
-    "$Codex_Ent_Osseus_01_K_Name;": "Osseus Fractus - Indigo",                       # entry 2400105
-    "$Codex_Ent_Osseus_01_T_Name;": "Osseus Fractus - Emerald",                      # entry 2400106
-    "$Codex_Ent_Osseus_01_TTS_Name;": "Osseus Fractus - Green",                      # entry 2400107
-    "$Codex_Ent_Osseus_01_Y_Name;": "Osseus Fractus - Maroon",                       # entry 2400109
-    "$Codex_Ent_Osseus_02_Mercury_Name;": "Osseus Discus - Lime",                    # entry 2400201
-    "$Codex_Ent_Osseus_02_Niobium_Name;": "Osseus Discus - Aquamarine",              # entry 2400202
-    "$Codex_Ent_Osseus_02_Tin_Name;": "Osseus Discus - Blue",                        # entry 2400203
-    "$Codex_Ent_Osseus_02_Tungsten_Name;": "Osseus Discus - Red",                    # entry 2400204
-    "$Codex_Ent_Osseus_02_Molybdenum_Name;": "Osseus Discus - Peach",                # entry 2400205
-    "$Codex_Ent_Osseus_02_Cadmium_Name;": "Osseus Discus - White",                   # entry 2400206
-    "$Codex_Ent_Osseus_03_O_Name;": "Osseus Spiralis - Yellow",                      # entry 2400301
-    "$Codex_Ent_Osseus_03_A_Name;": "Osseus Spiralis - Lime",                        # entry 2400302
-    "$Codex_Ent_Osseus_03_F_Name;": "Osseus Spiralis - Turquoise",                   # entry 2400303
-    "$Codex_Ent_Osseus_03_G_Name;": "Osseus Spiralis - Grey",                        # entry 2400304
-    "$Codex_Ent_Osseus_03_K_Name;": "Osseus Spiralis - Indigo",                      # entry 2400305
-    "$Codex_Ent_Osseus_03_T_Name;": "Osseus Spiralis - Emerald",                     # entry 2400306
-    "$Codex_Ent_Osseus_03_TTS_Name;": "Osseus Spiralis - Green",                     # entry 2400307
-    "$Codex_Ent_Osseus_03_Y_Name;": "Osseus Spiralis - Maroon",                      # entry 2400309
-    "$Codex_Ent_Osseus_04_Technetium_Name;": "Osseus Pumice - Lime",                 # entry 2400401
-    "$Codex_Ent_Osseus_04_Tellurium_Name;": "Osseus Pumice - Green",                 # entry 2400402
-    "$Codex_Ent_Osseus_04_Polonium_Name;": "Osseus Pumice - Peach",                  # entry 2400403
-    "$Codex_Ent_Osseus_04_Ruthenium_Name;": "Osseus Pumice - Gold",                  # entry 2400404
-    "$Codex_Ent_Osseus_04_Antimony_Name;": "Osseus Pumice - White",                  # entry 2400405
-    "$Codex_Ent_Osseus_04_Yttrium_Name;": "Osseus Pumice - Yellow",                  # entry 2400406
-    "$Codex_Ent_Osseus_05_A_Name;": "Osseus Cornibus - Lime",                        # entry 2400502
-    "$Codex_Ent_Osseus_05_F_Name;": "Osseus Cornibus - Turquoise",                   # entry 2400503
-    "$Codex_Ent_Osseus_05_G_Name;": "Osseus Cornibus - Grey",                        # entry 2400504
-    "$Codex_Ent_Osseus_05_K_Name;": "Osseus Cornibus - Indigo",                      # entry 2400505
-    "$Codex_Ent_Osseus_05_T_Name;": "Osseus Cornibus - Emerald",                     # entry 2400506
-    "$Codex_Ent_Osseus_05_TTS_Name;": "Osseus Cornibus - Green",                     # entry 2400507
-    "$Codex_Ent_Osseus_05_Y_Name;": "Osseus Cornibus - Maroon",                      # entry 2400509
-    "$Codex_Ent_Osseus_06_A_Name;": "Osseus Pellebantus - Lime",                     # entry 2400602
-    "$Codex_Ent_Osseus_06_F_Name;": "Osseus Pellebantus - Turquoise",                # entry 2400603
-    "$Codex_Ent_Osseus_06_G_Name;": "Osseus Pellebantus - Grey",                     # entry 2400604
-    "$Codex_Ent_Osseus_06_K_Name;": "Osseus Pellebantus - Indigo",                   # entry 2400605
-    "$Codex_Ent_Osseus_06_T_Name;": "Osseus Pellebantus - Emerald",                  # entry 2400606
-    "$Codex_Ent_Osseus_06_TTS_Name;": "Osseus Pellebantus - Green",                  # entry 2400607
-    "$Codex_Ent_Osseus_06_Y_Name;": "Osseus Pellebantus - Maroon",                   # entry 2400609
+    "$Codex_Ent_Ingensradices_Unicus_Name;" : {"genus" : "$Codex_Ent_Ingensradices_Genus_Name;", "name" : "Radicoida Unica"},
 
-    "$Codex_Ent_Recepta_01_O_Name;": "Recepta Umbrux - Indigo",                      # entry 2410101
-    "$Codex_Ent_Recepta_01_B_Name;": "Recepta Umbrux - Turquoise",                   # entry 2410102
-    "$Codex_Ent_Recepta_01_A_Name;": "Recepta Umbrux - Amethyst",                    # entry 2410103
-    "$Codex_Ent_Recepta_01_F_Name;": "Recepta Umbrux - Mauve",                       # entry 2410104
-    "$Codex_Ent_Recepta_01_G_Name;": "Recepta Umbrux - Orange",                      # entry 2410105
-    "$Codex_Ent_Recepta_01_K_Name;": "Recepta Umbrux - Red",                         # entry 2410106
-    "$Codex_Ent_Recepta_01_M_Name;": "Recepta Umbrux - Maroon",                      # entry 2410107
-    "$Codex_Ent_Recepta_01_L_Name;": "Recepta Umbrux - Ocher",                       # entry 2410108
-    "$Codex_Ent_Recepta_01_T_Name;": "Recepta Umbrux - Teal",                        # entry 2410109
-    "$Codex_Ent_Recepta_01_TTS_Name;": "Recepta Umbrux - Sage",                      # entry 2410110
-    "$Codex_Ent_Recepta_01_Ae_Name;": "Recepta Umbrux - Grey",                       # entry 2410111
-    "$Codex_Ent_Recepta_01_Y_Name;": "Recepta Umbrux - Lime",                        # entry 2410112
-    "$Codex_Ent_Recepta_01_D_Name;": "Recepta Umbrux - Yellow",                      # entry 2410114
-    "$Codex_Ent_Recepta_01_N_Name;": "Recepta Umbrux - Emerald",                     # entry 2410115
-    "$Codex_Ent_Recepta_02_Mercury_Name;": "Recepta Deltahedronix - Cyan",           # entry 2410201
-    "$Codex_Ent_Recepta_02_Niobium_Name;": "Recepta Deltahedronix - Mulberry",       # entry 2410202
-    "$Codex_Ent_Recepta_02_Tin_Name;": "Recepta Deltahedronix - Orange",             # entry 2410203
-    "$Codex_Ent_Recepta_02_Tungsten_Name;": "Recepta Deltahedronix - Red",           # entry 2410204
-    "$Codex_Ent_Recepta_02_Molybdenum_Name;": "Recepta Deltahedronix - Gold",        # entry 2410205
-    "$Codex_Ent_Recepta_02_Cadmium_Name;": "Recepta Deltahedronix - Lime",           # entry 2410206
-    "$Codex_Ent_Recepta_03_Technetium_Name;": "Recepta Conditivus - Aquamarine",     # entry 2410301
-    "$Codex_Ent_Recepta_03_Tellurium_Name;": "Recepta Conditivus - Cyan",            # entry 2410302
-    "$Codex_Ent_Recepta_03_Polonium_Name;": "Recepta Conditivus - White",            # entry 2410303
-    "$Codex_Ent_Recepta_03_Ruthenium_Name;": "Recepta Conditivus - Yellow",          # entry 2410304
-    "$Codex_Ent_Recepta_03_Antimony_Name;": "Recepta Conditivus - Lime",             # entry 2410305
-    "$Codex_Ent_Recepta_03_Yttrium_Name;": "Recepta Conditivus - Green",             # entry 2410306
+    "$Codex_Ent_Osseus_01_Name;" : {"genus" : "$Codex_Ent_Osseus_Genus_Name;", "name" : "Osseus Fractus"},
+    "$Codex_Ent_Osseus_02_Name;" : {"genus" : "$Codex_Ent_Osseus_Genus_Name;", "name" : "Osseus Discus"},
+    "$Codex_Ent_Osseus_03_Name;" : {"genus" : "$Codex_Ent_Osseus_Genus_Name;", "name" : "Osseus Spiralis"},
+    "$Codex_Ent_Osseus_04_Name;" : {"genus" : "$Codex_Ent_Osseus_Genus_Name;", "name" : "Osseus Pumice"},
+    "$Codex_Ent_Osseus_05_Name;" : {"genus" : "$Codex_Ent_Osseus_Genus_Name;", "name" : "Osseus Cornibus"},
+    "$Codex_Ent_Osseus_06_Name;" : {"genus" : "$Codex_Ent_Osseus_Genus_Name;", "name" : "Osseus Pellebantus"},
 
-    "$Codex_Ent_Stratum_01_F_Name;": "Stratum Excutitus - Emerald",                  # entry 2420101
-    "$Codex_Ent_Stratum_01_K_Name;": "Stratum Excutitus - Lime",                     # entry 2420102
-    "$Codex_Ent_Stratum_01_M_Name;": "Stratum Excutitus - Green",                    # entry 2420103
-    "$Codex_Ent_Stratum_01_L_Name;": "Stratum Excutitus - Turquoise",                # entry 2420104
-    "$Codex_Ent_Stratum_01_T_Name;": "Stratum Excutitus - Grey",                     # entry 2420105
-    "$Codex_Ent_Stratum_01_TTS_Name;": "Stratum Excutitus - Amethyst",               # entry 2420106
-    "$Codex_Ent_Stratum_01_Ae_Name;": "Stratum Excutitus - Teal",                    # entry 2420107
-    "$Codex_Ent_Stratum_01_Y_Name;": "Stratum Excutitus - Indigo",                   # entry 2420108
-    "$Codex_Ent_Stratum_01_W_Name;": "Stratum Excutitus - Red",                      # entry 2420109
-    "$Codex_Ent_Stratum_01_D_Name;": "Stratum Excutitus - Mauve",                    # entry 2420110
-    "$Codex_Ent_Stratum_02_F_Name;": "Stratum Paleas - Emerald",                     # entry 2420201
-    "$Codex_Ent_Stratum_02_K_Name;": "Stratum Paleas - Lime",                        # entry 2420202
-    "$Codex_Ent_Stratum_02_M_Name;": "Stratum Paleas - Green",                       # entry 2420203
-    "$Codex_Ent_Stratum_02_L_Name;": "Stratum Paleas - Turquoise",                   # entry 2420204
-    "$Codex_Ent_Stratum_02_T_Name;": "Stratum Paleas - Grey",                        # entry 2420205
-    "$Codex_Ent_Stratum_02_TTS_Name;": "Stratum Paleas - Amethyst",                  # entry 2420206
-    "$Codex_Ent_Stratum_02_Ae_Name;": "Stratum Paleas - Teal",                       # entry 2420207
-    "$Codex_Ent_Stratum_02_Y_Name;": "Stratum Paleas - Indigo",                      # entry 2420208
-    "$Codex_Ent_Stratum_02_W_Name;": "Stratum Paleas - Red",                         # entry 2420209
-    "$Codex_Ent_Stratum_02_D_Name;": "Stratum Paleas - Mauve",                       # entry 2420210
-    "$Codex_Ent_Stratum_03_F_Name;": "Stratum Laminamus - Emerald",                  # entry 2420301
-    "$Codex_Ent_Stratum_03_K_Name;": "Stratum Laminamus - Lime",                     # entry 2420302
-    "$Codex_Ent_Stratum_03_M_Name;": "Stratum Laminamus - Green",                    # entry 2420303
-    "$Codex_Ent_Stratum_03_L_Name;": "Stratum Laminamus - Turquoise",                # entry 2420304
-    "$Codex_Ent_Stratum_03_T_Name;": "Stratum Laminamus - Grey",                     # entry 2420305
-    "$Codex_Ent_Stratum_03_TTS_Name;": "Stratum Laminamus - Amethyst",               # entry 2420306
-    "$Codex_Ent_Stratum_03_Y_Name;": "Stratum Laminamus - Indigo",                   # entry 2420308
-    "$Codex_Ent_Stratum_03_W_Name;": "Stratum Laminamus - Red",                      # entry 2420309
-    "$Codex_Ent_Stratum_03_D_Name;": "Stratum Laminamus - Mauve",                    # entry 2420310
-    "$Codex_Ent_Stratum_04_F_Name;": "Stratum Araneamus - Emerald",                  # entry 2420401
-    "$Codex_Ent_Stratum_05_F_Name;": "Stratum Limaxus - Emerald",                    # entry 2420501
-    "$Codex_Ent_Stratum_05_K_Name;": "Stratum Limaxus - Lime",                       # entry 2420502
-    "$Codex_Ent_Stratum_05_M_Name;": "Stratum Limaxus - Green",                      # entry 2420503
-    "$Codex_Ent_Stratum_05_L_Name;": "Stratum Limaxus - Turquoise",                  # entry 2420504
-    "$Codex_Ent_Stratum_05_T_Name;": "Stratum Limaxus - Grey",                       # entry 2420505
-    "$Codex_Ent_Stratum_05_TTS_Name;": "Stratum Limaxus - Amethyst",                 # entry 2420506
-    "$Codex_Ent_Stratum_05_Ae_Name;": "Stratum Limaxus - Teal",                      # entry 2420507
-    "$Codex_Ent_Stratum_05_Y_Name;": "Stratum Limaxus - Indigo",                     # entry 2420508
-    "$Codex_Ent_Stratum_05_D_Name;": "Stratum Limaxus - Mauve",                      # entry 2420510
-    "$Codex_Ent_Stratum_06_F_Name;": "Stratum Cucumisis - Emerald",                  # entry 2420601
-    "$Codex_Ent_Stratum_06_K_Name;": "Stratum Cucumisis - Lime",                     # entry 2420602
-    "$Codex_Ent_Stratum_06_M_Name;": "Stratum Cucumisis - Green",                    # entry 2420603
-    "$Codex_Ent_Stratum_06_L_Name;": "Stratum Cucumisis - Turquoise",                # entry 2420604
-    "$Codex_Ent_Stratum_06_T_Name;": "Stratum Cucumisis - Grey",                     # entry 2420605
-    "$Codex_Ent_Stratum_06_TTS_Name;": "Stratum Cucumisis - Amethyst",               # entry 2420606
-    "$Codex_Ent_Stratum_06_Ae_Name;": "Stratum Cucumisis - Teal",                    # entry 2420607
-    "$Codex_Ent_Stratum_06_Y_Name;": "Stratum Cucumisis - Indigo",                   # entry 2420608
-    "$Codex_Ent_Stratum_06_W_Name;": "Stratum Cucumisis - Red",                      # entry 2420609
-    "$Codex_Ent_Stratum_06_D_Name;": "Stratum Cucumisis - Mauve",                    # entry 2420610
-    "$Codex_Ent_Stratum_07_F_Name;": "Stratum Tectonicas - Emerald",                 # entry 2420701
-    "$Codex_Ent_Stratum_07_K_Name;": "Stratum Tectonicas - Lime",                    # entry 2420702
-    "$Codex_Ent_Stratum_07_M_Name;": "Stratum Tectonicas - Green",                   # entry 2420703
-    "$Codex_Ent_Stratum_07_L_Name;": "Stratum Tectonicas - Turquoise",               # entry 2420704
-    "$Codex_Ent_Stratum_07_T_Name;": "Stratum Tectonicas - Grey",                    # entry 2420705
-    "$Codex_Ent_Stratum_07_TTS_Name;": "Stratum Tectonicas - Amethyst",              # entry 2420706
-    "$Codex_Ent_Stratum_07_Y_Name;": "Stratum Tectonicas - Indigo",                  # entry 2420708
-    "$Codex_Ent_Stratum_07_W_Name;": "Stratum Tectonicas - Red",                     # entry 2420709
-    "$Codex_Ent_Stratum_07_D_Name;": "Stratum Tectonicas - Mauve",                   # entry 2420710
-    "$Codex_Ent_Stratum_08_F_Name;": "Stratum Frigus - Emerald",                     # entry 2420801
-    "$Codex_Ent_Stratum_08_K_Name;": "Stratum Frigus - Lime",                        # entry 2420802
-    "$Codex_Ent_Stratum_08_M_Name;": "Stratum Frigus - Green",                       # entry 2420803
-    "$Codex_Ent_Stratum_08_L_Name;": "Stratum Frigus - Turquoise",                   # entry 2420804
-    "$Codex_Ent_Stratum_08_T_Name;": "Stratum Frigus - Grey",                        # entry 2420805
-    "$Codex_Ent_Stratum_08_TTS_Name;": "Stratum Frigus - Amethyst",                  # entry 2420806
-    "$Codex_Ent_Stratum_08_Ae_Name;": "Stratum Frigus - Teal",                       # entry 2420807
-    "$Codex_Ent_Stratum_08_Y_Name;": "Stratum Frigus - Indigo",                      # entry 2420808
-    "$Codex_Ent_Stratum_08_D_Name;": "Stratum Frigus - Mauve",                       # entry 2420810
+    "$Codex_Ent_Recepta_01_Name;" : {"genus" : "$Codex_Ent_Recepta_Genus_Name;", "name" : "Recepta Umbrux"},
+    "$Codex_Ent_Recepta_02_Name;" : {"genus" : "$Codex_Ent_Recepta_Genus_Name;", "name" : "Recepta Deltahedronix"},
+    "$Codex_Ent_Recepta_03_Name;" : {"genus" : "$Codex_Ent_Recepta_Genus_Name;", "name" : "Recepta Conditivus"},
 
-    "$Codex_Ent_Tubus_01_B_Name;": "Tubus Conifer - Emerald",                        # entry 2430102
-    "$Codex_Ent_Tubus_01_A_Name;": "Tubus Conifer - Indigo",                         # entry 2430103
-    "$Codex_Ent_Tubus_01_F_Name;": "Tubus Conifer - Grey",                           # entry 2430104
-    "$Codex_Ent_Tubus_01_G_Name;": "Tubus Conifer - Red",                            # entry 2430105
-    "$Codex_Ent_Tubus_01_K_Name;": "Tubus Conifer - Maroon",                         # entry 2430106
-    "$Codex_Ent_Tubus_01_M_Name;": "Tubus Conifer - Teal",                           # entry 2430107
-    "$Codex_Ent_Tubus_01_L_Name;": "Tubus Conifer - Turquoise",                      # entry 2430108
-    "$Codex_Ent_Tubus_01_T_Name;": "Tubus Conifer - Mauve",                          # entry 2430109
-    "$Codex_Ent_Tubus_01_TTS_Name;": "Tubus Conifer - Ocher",                        # entry 2430110
-    "$Codex_Ent_Tubus_01_D_Name;": "Tubus Conifer - Yellow",                         # entry 2430112
-    "$Codex_Ent_Tubus_01_N_Name;": "Tubus Conifer - Amethyst",                       # entry 2430113
-    "$Codex_Ent_Tubus_02_B_Name;": "Tubus Sororibus - Emerald",                      # entry 2430202
-    "$Codex_Ent_Tubus_02_A_Name;": "Tubus Sororibus - Indigo",                       # entry 2430203
-    "$Codex_Ent_Tubus_02_F_Name;": "Tubus Sororibus - Grey",                         # entry 2430204
-    "$Codex_Ent_Tubus_02_G_Name;": "Tubus Sororibus - Red",                          # entry 2430205
-    "$Codex_Ent_Tubus_02_K_Name;": "Tubus Sororibus - Maroon",                       # entry 2430206
-    "$Codex_Ent_Tubus_02_M_Name;": "Tubus Sororibus - Teal",                         # entry 2430207
-    "$Codex_Ent_Tubus_02_L_Name;": "Tubus Sororibus - Turquoise",                    # entry 2430208
-    "$Codex_Ent_Tubus_02_T_Name;": "Tubus Sororibus - Mauve",                        # entry 2430209
-    "$Codex_Ent_Tubus_02_TTS_Name;": "Tubus Sororibus - Ocher",                      # entry 2430210
-    "$Codex_Ent_Tubus_02_D_Name;": "Tubus Sororibus - Yellow",                       # entry 2430212
-    "$Codex_Ent_Tubus_02_N_Name;": "Tubus Sororibus - Amethyst",                     # entry 2430213
-    "$Codex_Ent_Tubus_03_B_Name;": "Tubus Cavas - Emerald",                          # entry 2430302
-    "$Codex_Ent_Tubus_03_A_Name;": "Tubus Cavas - Indigo",                           # entry 2430303
-    "$Codex_Ent_Tubus_03_F_Name;": "Tubus Cavas - Grey",                             # entry 2430304
-    "$Codex_Ent_Tubus_03_G_Name;": "Tubus Cavas - Red",                              # entry 2430305
-    "$Codex_Ent_Tubus_03_K_Name;": "Tubus Cavas - Maroon",                           # entry 2430306
-    "$Codex_Ent_Tubus_03_M_Name;": "Tubus Cavas - Teal",                             # entry 2430307
-    "$Codex_Ent_Tubus_03_L_Name;": "Tubus Cavas - Turquoise",                        # entry 2430308
-    "$Codex_Ent_Tubus_03_T_Name;": "Tubus Cavas - Mauve",                            # entry 2430309
-    "$Codex_Ent_Tubus_03_TTS_Name;": "Tubus Cavas - Ocher",                          # entry 2430310
-    "$Codex_Ent_Tubus_03_D_Name;": "Tubus Cavas - Yellow",                           # entry 2430312
-    "$Codex_Ent_Tubus_03_N_Name;": "Tubus Cavas - Amethyst",                         # entry 2430313
-    "$Codex_Ent_Tubus_04_O_Name;": "Tubus Rosarium - Green",                         # entry 2430401
-    "$Codex_Ent_Tubus_04_B_Name;": "Tubus Rosarium - Emerald",                       # entry 2430402
-    "$Codex_Ent_Tubus_04_A_Name;": "Tubus Rosarium - Indigo",                        # entry 2430403
-    "$Codex_Ent_Tubus_04_F_Name;": "Tubus Rosarium - Grey",                          # entry 2430404
-    "$Codex_Ent_Tubus_04_G_Name;": "Tubus Rosarium - Red",                           # entry 2430405
-    "$Codex_Ent_Tubus_04_K_Name;": "Tubus Rosarium - Maroon",                        # entry 2430406
-    "$Codex_Ent_Tubus_04_M_Name;": "Tubus Rosarium - Teal",                          # entry 2430407
-    "$Codex_Ent_Tubus_04_L_Name;": "Tubus Rosarium - Turquoise",                     # entry 2430408
-    "$Codex_Ent_Tubus_04_T_Name;": "Tubus Rosarium - Mauve",                         # entry 2430409
-    "$Codex_Ent_Tubus_04_TTS_Name;": "Tubus Rosarium - Ocher",                       # entry 2430410
-    "$Codex_Ent_Tubus_04_D_Name;": "Tubus Rosarium - Yellow",                        # entry 2430412
-    "$Codex_Ent_Tubus_04_N_Name;": "Tubus Rosarium - Amethyst",                      # entry 2430413
-    "$Codex_Ent_Tubus_05_B_Name;": "Tubus Compagibus - Emerald",                     # entry 2430502
-    "$Codex_Ent_Tubus_05_A_Name;": "Tubus Compagibus - Indigo",                      # entry 2430503
-    "$Codex_Ent_Tubus_05_F_Name;": "Tubus Compagibus - Grey",                        # entry 2430504
-    "$Codex_Ent_Tubus_05_G_Name;": "Tubus Compagibus - Red",                         # entry 2430505
-    "$Codex_Ent_Tubus_05_K_Name;": "Tubus Compagibus - Maroon",                      # entry 2430506
-    "$Codex_Ent_Tubus_05_M_Name;": "Tubus Compagibus - Teal",                        # entry 2430507
-    "$Codex_Ent_Tubus_05_L_Name;": "Tubus Compagibus - Turquoise",                   # entry 2430508
-    "$Codex_Ent_Tubus_05_T_Name;": "Tubus Compagibus - Mauve",                       # entry 2430509
-    "$Codex_Ent_Tubus_05_TTS_Name;": "Tubus Compagibus - Ocher",                     # entry 2430510
-    "$Codex_Ent_Tubus_05_W_Name;": "Tubus Compagibus - Lime",                        # entry 2430511
-    "$Codex_Ent_Tubus_05_D_Name;": "Tubus Compagibus - Yellow",                      # entry 2430512
-    "$Codex_Ent_Tubus_05_N_Name;": "Tubus Compagibus - Amethyst",                    # entry 2430513
+    "$Codex_Ent_Shrubs_01_Name;" : {"genus" : "$Codex_Ent_Shrubs_Genus_Name;", "name" : "Frutexa Flabellum"},
+    "$Codex_Ent_Shrubs_02_Name;" : {"genus" : "$Codex_Ent_Shrubs_Genus_Name;", "name" : "Frutexa Acus"},
+    "$Codex_Ent_Shrubs_03_Name;" : {"genus" : "$Codex_Ent_Shrubs_Genus_Name;", "name" : "Frutexa Metallicum"},
+    "$Codex_Ent_Shrubs_04_Name;" : {"genus" : "$Codex_Ent_Shrubs_Genus_Name;", "name" : "Frutexa Flammasis"},
+    "$Codex_Ent_Shrubs_05_Name;" : {"genus" : "$Codex_Ent_Shrubs_Genus_Name;", "name" : "Frutexa Fera"},
+    "$Codex_Ent_Shrubs_06_Name;" : {"genus" : "$Codex_Ent_Shrubs_Genus_Name;", "name" : "Frutexa Sponsae"},
+    "$Codex_Ent_Shrubs_07_Name;" : {"genus" : "$Codex_Ent_Shrubs_Genus_Name;", "name" : "Frutexa Collum"},
 
-    "$Codex_Ent_Shrubs_01_O_Name;": "Frutexa Flabellum - Yellow",                    # entry 2440101
-    "$Codex_Ent_Shrubs_01_B_Name;": "Frutexa Flabellum - Lime",                      # entry 2440102
-    "$Codex_Ent_Shrubs_01_F_Name;": "Frutexa Flabellum - Green",                     # entry 2440103
-    "$Codex_Ent_Shrubs_01_G_Name;": "Frutexa Flabellum - Emerald",                   # entry 2440104
-    "$Codex_Ent_Shrubs_01_M_Name;": "Frutexa Flabellum - Grey",                      # entry 2440105
-    "$Codex_Ent_Shrubs_01_L_Name;": "Frutexa Flabellum - Teal",                      # entry 2440106
-    "$Codex_Ent_Shrubs_01_TTS_Name;": "Frutexa Flabellum - Mauve",                   # entry 2440107
-    "$Codex_Ent_Shrubs_01_W_Name;": "Frutexa Flabellum - Orange",                    # entry 2440109
-    "$Codex_Ent_Shrubs_01_D_Name;": "Frutexa Flabellum - Indigo",                    # entry 2440110
-    "$Codex_Ent_Shrubs_01_N_Name;": "Frutexa Flabellum - Red",                       # entry 2440111
-    "$Codex_Ent_Shrubs_02_B_Name;": "Frutexa Acus - Lime",                           # entry 2440202
-    "$Codex_Ent_Shrubs_02_F_Name;": "Frutexa Acus - Green",                          # entry 2440203
-    "$Codex_Ent_Shrubs_02_G_Name;": "Frutexa Acus - Emerald",                        # entry 2440204
-    "$Codex_Ent_Shrubs_02_M_Name;": "Frutexa Acus - Grey",                           # entry 2440205
-    "$Codex_Ent_Shrubs_02_L_Name;": "Frutexa Acus - Teal",                           # entry 2440206
-    "$Codex_Ent_Shrubs_02_TTS_Name;": "Frutexa Acus - Mauve",                        # entry 2440207
-    "$Codex_Ent_Shrubs_02_W_Name;": "Frutexa Acus - Orange",                         # entry 2440209
-    "$Codex_Ent_Shrubs_02_D_Name;": "Frutexa Acus - Indigo",                         # entry 2440210
-    "$Codex_Ent_Shrubs_02_N_Name;": "Frutexa Acus - Red",                            # entry 2440211
-    "$Codex_Ent_Shrubs_03_B_Name;": "Frutexa Metallicum - Lime",                     # entry 2440302
-    "$Codex_Ent_Shrubs_03_F_Name;": "Frutexa Metallicum - Green",                    # entry 2440303
-    "$Codex_Ent_Shrubs_03_G_Name;": "Frutexa Metallicum - Emerald",                  # entry 2440304
-    "$Codex_Ent_Shrubs_03_M_Name;": "Frutexa Metallicum - Grey",                     # entry 2440305
-    "$Codex_Ent_Shrubs_03_L_Name;": "Frutexa Metallicum - Teal",                     # entry 2440306
-    "$Codex_Ent_Shrubs_03_TTS_Name;": "Frutexa Metallicum - Mauve",                  # entry 2440307
-    "$Codex_Ent_Shrubs_03_D_Name;": "Frutexa Metallicum - Indigo",                   # entry 2440310
-    "$Codex_Ent_Shrubs_03_N_Name;": "Frutexa Metallicum - Red",                      # entry 2440311
-    "$Codex_Ent_Shrubs_04_B_Name;": "Frutexa Flammasis - Lime",                      # entry 2440402
-    "$Codex_Ent_Shrubs_04_F_Name;": "Frutexa Flammasis - Green",                     # entry 2440403
-    "$Codex_Ent_Shrubs_04_G_Name;": "Frutexa Flammasis - Emerald",                   # entry 2440404
-    "$Codex_Ent_Shrubs_04_M_Name;": "Frutexa Flammasis - Grey",                      # entry 2440405
-    "$Codex_Ent_Shrubs_04_L_Name;": "Frutexa Flammasis - Teal",                      # entry 2440406
-    "$Codex_Ent_Shrubs_04_TTS_Name;": "Frutexa Flammasis - Mauve",                   # entry 2440407
-    "$Codex_Ent_Shrubs_04_D_Name;": "Frutexa Flammasis - Indigo",                    # entry 2440410
-    "$Codex_Ent_Shrubs_04_N_Name;": "Frutexa Flammasis - Red",                       # entry 2440411
-    "$Codex_Ent_Shrubs_05_B_Name;": "Frutexa Fera - Lime",                           # entry 2440502
-    "$Codex_Ent_Shrubs_05_F_Name;": "Frutexa Fera - Green",                          # entry 2440503
-    "$Codex_Ent_Shrubs_05_G_Name;": "Frutexa Fera - Emerald",                        # entry 2440504
-    "$Codex_Ent_Shrubs_05_M_Name;": "Frutexa Fera - Grey",                           # entry 2440505
-    "$Codex_Ent_Shrubs_05_L_Name;": "Frutexa Fera - Teal",                           # entry 2440506
-    "$Codex_Ent_Shrubs_05_TTS_Name;": "Frutexa Fera - Mauve",                        # entry 2440507
-    "$Codex_Ent_Shrubs_05_D_Name;": "Frutexa Fera - Indigo",                         # entry 2440510
-    "$Codex_Ent_Shrubs_05_N_Name;": "Frutexa Fera - Red",                            # entry 2440511
-    "$Codex_Ent_Shrubs_06_B_Name;": "Frutexa Sponsae - Lime",                        # entry 2440602
-    "$Codex_Ent_Shrubs_06_F_Name;": "Frutexa Sponsae - Green",                       # entry 2440603
-    "$Codex_Ent_Shrubs_06_G_Name;": "Frutexa Sponsae - Emerald",                     # entry 2440604
-    "$Codex_Ent_Shrubs_06_M_Name;": "Frutexa Sponsae - Grey",                        # entry 2440605
-    "$Codex_Ent_Shrubs_06_L_Name;": "Frutexa Sponsae - Teal",                        # entry 2440606
-    "$Codex_Ent_Shrubs_06_TTS_Name;": "Frutexa Sponsae - Mauve",                     # entry 2440607
-    "$Codex_Ent_Shrubs_06_D_Name;": "Frutexa Sponsae - Indigo",                      # entry 2440610
-    "$Codex_Ent_Shrubs_06_N_Name;": "Frutexa Sponsae - Red",                         # entry 2440611
-    "$Codex_Ent_Shrubs_07_O_Name;": "Frutexa Collum - Yellow",                       # entry 2440701
-    "$Codex_Ent_Shrubs_07_B_Name;": "Frutexa Collum - Lime",                         # entry 2440702
-    "$Codex_Ent_Shrubs_07_F_Name;": "Frutexa Collum - Green",                        # entry 2440703
-    "$Codex_Ent_Shrubs_07_G_Name;": "Frutexa Collum - Emerald",                      # entry 2440704
-    "$Codex_Ent_Shrubs_07_M_Name;": "Frutexa Collum - Grey",                         # entry 2440705
-    "$Codex_Ent_Shrubs_07_L_Name;": "Frutexa Collum - Teal",                         # entry 2440706
-    "$Codex_Ent_Shrubs_07_TTS_Name;": "Frutexa Collum - Mauve",                      # entry 2440707
-    "$Codex_Ent_Shrubs_07_D_Name;": "Frutexa Collum - Indigo",                       # entry 2440710
-    "$Codex_Ent_Shrubs_07_N_Name;": "Frutexa Collum - Red",                          # entry 2440711
+    "$Codex_Ent_Stratum_01_Name;" : {"genus" : "$Codex_Ent_Stratum_Genus_Name;", "name" : "Stratum Excutitus"},
+    "$Codex_Ent_Stratum_02_Name;" : {"genus" : "$Codex_Ent_Stratum_Genus_Name;", "name" : "Stratum Paleas"},
+    "$Codex_Ent_Stratum_03_Name;" : {"genus" : "$Codex_Ent_Stratum_Genus_Name;", "name" : "Stratum Laminamus"},
+    "$Codex_Ent_Stratum_04_Name;" : {"genus" : "$Codex_Ent_Stratum_Genus_Name;", "name" : "Stratum Araneamus"},
+    "$Codex_Ent_Stratum_05_Name;" : {"genus" : "$Codex_Ent_Stratum_Genus_Name;", "name" : "Stratum Limaxus"},
+    "$Codex_Ent_Stratum_06_Name;" : {"genus" : "$Codex_Ent_Stratum_Genus_Name;", "name" : "Stratum Cucumisis"},
+    "$Codex_Ent_Stratum_07_Name;" : {"genus" : "$Codex_Ent_Stratum_Genus_Name;", "name" : "Stratum Tectonicas"},
+    "$Codex_Ent_Stratum_08_Name;" : {"genus" : "$Codex_Ent_Stratum_Genus_Name;", "name" : "Stratum Frigus"},
 
-    "$Codex_Ent_Tussocks_01_F_Name;": "Tussock Pennata - Yellow",                    # entry 2450101
-    "$Codex_Ent_Tussocks_01_G_Name;": "Tussock Pennata - Lime",                      # entry 2450102
-    "$Codex_Ent_Tussocks_01_K_Name;": "Tussock Pennata - Green",                     # entry 2450103
-    "$Codex_Ent_Tussocks_01_M_Name;": "Tussock Pennata - Emerald",                   # entry 2450104
-    "$Codex_Ent_Tussocks_01_L_Name;": "Tussock Pennata - Sage",                      # entry 2450105
-    "$Codex_Ent_Tussocks_01_T_Name;": "Tussock Pennata - Teal",                      # entry 2450106
-    "$Codex_Ent_Tussocks_01_Y_Name;": "Tussock Pennata - Red",                       # entry 2450109
-    "$Codex_Ent_Tussocks_01_W_Name;": "Tussock Pennata - Orange",                    # entry 2450110
-    "$Codex_Ent_Tussocks_01_D_Name;": "Tussock Pennata - Maroon",                    # entry 2450111
-    "$Codex_Ent_Tussocks_02_F_Name;": "Tussock Ventusa - Yellow",                    # entry 2450201
-    "$Codex_Ent_Tussocks_02_G_Name;": "Tussock Ventusa - Lime",                      # entry 2450202
-    "$Codex_Ent_Tussocks_02_K_Name;": "Tussock Ventusa - Green",                     # entry 2450203
-    "$Codex_Ent_Tussocks_02_M_Name;": "Tussock Ventusa - Emerald",                   # entry 2450204
-    "$Codex_Ent_Tussocks_02_L_Name;": "Tussock Ventusa - Sage",                      # entry 2450205
-    "$Codex_Ent_Tussocks_02_T_Name;": "Tussock Ventusa - Teal",                      # entry 2450206
-    "$Codex_Ent_Tussocks_02_Y_Name;": "Tussock Ventusa - Red",                       # entry 2450209
-    "$Codex_Ent_Tussocks_02_W_Name;": "Tussock Ventusa - Orange",                    # entry 2450210
-    "$Codex_Ent_Tussocks_02_D_Name;": "Tussock Ventusa - Maroon",                    # entry 2450211
-    "$Codex_Ent_Tussocks_03_F_Name;": "Tussock Ignis - Yellow",                      # entry 2450301
-    "$Codex_Ent_Tussocks_03_G_Name;": "Tussock Ignis - Lime",                        # entry 2450302
-    "$Codex_Ent_Tussocks_03_K_Name;": "Tussock Ignis - Green",                       # entry 2450303
-    "$Codex_Ent_Tussocks_03_M_Name;": "Tussock Ignis - Emerald",                     # entry 2450304
-    "$Codex_Ent_Tussocks_03_L_Name;": "Tussock Ignis - Sage",                        # entry 2450305
-    "$Codex_Ent_Tussocks_03_T_Name;": "Tussock Ignis - Teal",                        # entry 2450306
-    "$Codex_Ent_Tussocks_03_Y_Name;": "Tussock Ignis - Red",                         # entry 2450309
-    "$Codex_Ent_Tussocks_03_W_Name;": "Tussock Ignis - Orange",                      # entry 2450310
-    "$Codex_Ent_Tussocks_03_D_Name;": "Tussock Ignis - Maroon",                      # entry 2450311
-    "$Codex_Ent_Tussocks_04_F_Name;": "Tussock Cultro - Yellow",                     # entry 2450401
-    "$Codex_Ent_Tussocks_04_G_Name;": "Tussock Cultro - Lime",                       # entry 2450402
-    "$Codex_Ent_Tussocks_04_K_Name;": "Tussock Cultro - Green",                      # entry 2450403
-    "$Codex_Ent_Tussocks_04_M_Name;": "Tussock Cultro - Emerald",                    # entry 2450404
-    "$Codex_Ent_Tussocks_04_L_Name;": "Tussock Cultro - Sage",                       # entry 2450405
-    "$Codex_Ent_Tussocks_04_T_Name;": "Tussock Cultro - Teal",                       # entry 2450406
-    "$Codex_Ent_Tussocks_04_Y_Name;": "Tussock Cultro - Red",                        # entry 2450409
-    "$Codex_Ent_Tussocks_04_W_Name;": "Tussock Cultro - Orange",                     # entry 2450410
-    "$Codex_Ent_Tussocks_04_D_Name;": "Tussock Cultro - Maroon",                     # entry 2450411
-    "$Codex_Ent_Tussocks_05_F_Name;": "Tussock Catena - Yellow",                     # entry 2450501
-    "$Codex_Ent_Tussocks_05_G_Name;": "Tussock Catena - Lime",                       # entry 2450502
-    "$Codex_Ent_Tussocks_05_K_Name;": "Tussock Catena - Green",                      # entry 2450503
-    "$Codex_Ent_Tussocks_05_M_Name;": "Tussock Catena - Emerald",                    # entry 2450504
-    "$Codex_Ent_Tussocks_05_L_Name;": "Tussock Catena - Sage",                       # entry 2450505
-    "$Codex_Ent_Tussocks_05_T_Name;": "Tussock Catena - Teal",                       # entry 2450506
-    "$Codex_Ent_Tussocks_05_Y_Name;": "Tussock Catena - Red",                        # entry 2450509
-    "$Codex_Ent_Tussocks_05_D_Name;": "Tussock Catena - Maroon",                     # entry 2450511
-    "$Codex_Ent_Tussocks_06_F_Name;": "Tussock Pennatis - Yellow",                   # entry 2450601
-    "$Codex_Ent_Tussocks_06_G_Name;": "Tussock Pennatis - Lime",                     # entry 2450602
-    "$Codex_Ent_Tussocks_06_K_Name;": "Tussock Pennatis - Green",                    # entry 2450603
-    "$Codex_Ent_Tussocks_06_M_Name;": "Tussock Pennatis - Emerald",                  # entry 2450604
-    "$Codex_Ent_Tussocks_06_L_Name;": "Tussock Pennatis - Sage",                     # entry 2450605
-    "$Codex_Ent_Tussocks_06_T_Name;": "Tussock Pennatis - Teal",                     # entry 2450606
-    "$Codex_Ent_Tussocks_06_Y_Name;": "Tussock Pennatis - Red",                      # entry 2450609
-    "$Codex_Ent_Tussocks_06_D_Name;": "Tussock Pennatis - Maroon",                   # entry 2450611
-    "$Codex_Ent_Tussocks_07_F_Name;": "Tussock Serrati - Yellow",                    # entry 2450701
-    "$Codex_Ent_Tussocks_07_G_Name;": "Tussock Serrati - Lime",                      # entry 2450702
-    "$Codex_Ent_Tussocks_07_K_Name;": "Tussock Serrati - Green",                     # entry 2450703
-    "$Codex_Ent_Tussocks_07_M_Name;": "Tussock Serrati - Emerald",                   # entry 2450704
-    "$Codex_Ent_Tussocks_07_L_Name;": "Tussock Serrati - Sage",                      # entry 2450705
-    "$Codex_Ent_Tussocks_07_T_Name;": "Tussock Serrati - Teal",                      # entry 2450706
-    "$Codex_Ent_Tussocks_07_Y_Name;": "Tussock Serrati - Red",                       # entry 2450709
-    "$Codex_Ent_Tussocks_07_D_Name;": "Tussock Serrati - Maroon",                    # entry 2450711
-    "$Codex_Ent_Tussocks_08_F_Name;": "Tussock Albata - Yellow",                     # entry 2450801
-    "$Codex_Ent_Tussocks_08_G_Name;": "Tussock Albata - Lime",                       # entry 2450802
-    "$Codex_Ent_Tussocks_08_K_Name;": "Tussock Albata - Green",                      # entry 2450803
-    "$Codex_Ent_Tussocks_08_M_Name;": "Tussock Albata - Emerald",                    # entry 2450804
-    "$Codex_Ent_Tussocks_08_L_Name;": "Tussock Albata - Sage",                       # entry 2450805
-    "$Codex_Ent_Tussocks_08_T_Name;": "Tussock Albata - Teal",                       # entry 2450806
-    "$Codex_Ent_Tussocks_08_Y_Name;": "Tussock Albata - Red",                        # entry 2450809
-    "$Codex_Ent_Tussocks_08_W_Name;": "Tussock Albata - Orange",                     # entry 2450810
-    "$Codex_Ent_Tussocks_08_D_Name;": "Tussock Albata - Maroon",                     # entry 2450811
-    "$Codex_Ent_Tussocks_09_F_Name;": "Tussock Propagito - Yellow",                  # entry 2450901
-    "$Codex_Ent_Tussocks_09_G_Name;": "Tussock Propagito - Lime",                    # entry 2450902
-    "$Codex_Ent_Tussocks_09_K_Name;": "Tussock Propagito - Green",                   # entry 2450903
-    "$Codex_Ent_Tussocks_09_M_Name;": "Tussock Propagito - Emerald",                 # entry 2450904
-    "$Codex_Ent_Tussocks_09_L_Name;": "Tussock Propagito - Sage",                    # entry 2450905
-    "$Codex_Ent_Tussocks_09_T_Name;": "Tussock Propagito - Teal",                    # entry 2450906
-    "$Codex_Ent_Tussocks_09_Y_Name;": "Tussock Propagito - Red",                     # entry 2450909
-    "$Codex_Ent_Tussocks_09_D_Name;": "Tussock Propagito - Maroon",                  # entry 2450911
-    "$Codex_Ent_Tussocks_10_F_Name;": "Tussock Divisa - Yellow",                     # entry 2451001
-    "$Codex_Ent_Tussocks_10_G_Name;": "Tussock Divisa - Lime",                       # entry 2451002
-    "$Codex_Ent_Tussocks_10_K_Name;": "Tussock Divisa - Green",                      # entry 2451003
-    "$Codex_Ent_Tussocks_10_M_Name;": "Tussock Divisa - Emerald",                    # entry 2451004
-    "$Codex_Ent_Tussocks_10_L_Name;": "Tussock Divisa - Sage",                       # entry 2451005
-    "$Codex_Ent_Tussocks_10_T_Name;": "Tussock Divisa - Teal",                       # entry 2451006
-    "$Codex_Ent_Tussocks_10_Y_Name;": "Tussock Divisa - Red",                        # entry 2451009
-    "$Codex_Ent_Tussocks_10_D_Name;": "Tussock Divisa - Maroon",                     # entry 2451011
-    "$Codex_Ent_Tussocks_11_F_Name;": "Tussock Caputus - Yellow",                    # entry 2451101
-    "$Codex_Ent_Tussocks_11_G_Name;": "Tussock Caputus - Lime",                      # entry 2451102
-    "$Codex_Ent_Tussocks_11_K_Name;": "Tussock Caputus - Green",                     # entry 2451103
-    "$Codex_Ent_Tussocks_11_M_Name;": "Tussock Caputus - Emerald",                   # entry 2451104
-    "$Codex_Ent_Tussocks_11_L_Name;": "Tussock Caputus - Sage",                      # entry 2451105
-    "$Codex_Ent_Tussocks_11_T_Name;": "Tussock Caputus - Teal",                      # entry 2451106
-    "$Codex_Ent_Tussocks_11_Y_Name;": "Tussock Caputus - Red",                       # entry 2451109
-    "$Codex_Ent_Tussocks_11_D_Name;": "Tussock Caputus - Maroon",                    # entry 2451111
-    "$Codex_Ent_Tussocks_12_F_Name;": "Tussock Triticum - Yellow",                   # entry 2451201
-    "$Codex_Ent_Tussocks_12_G_Name;": "Tussock Triticum - Lime",                     # entry 2451202
-    "$Codex_Ent_Tussocks_12_K_Name;": "Tussock Triticum - Green",                    # entry 2451203
-    "$Codex_Ent_Tussocks_12_M_Name;": "Tussock Triticum - Emerald",                  # entry 2451204
-    "$Codex_Ent_Tussocks_12_L_Name;": "Tussock Triticum - Sage",                     # entry 2451205
-    "$Codex_Ent_Tussocks_12_T_Name;": "Tussock Triticum - Teal",                     # entry 2451206
-    "$Codex_Ent_Tussocks_12_Y_Name;": "Tussock Triticum - Red",                      # entry 2451209
-    "$Codex_Ent_Tussocks_12_D_Name;": "Tussock Triticum - Maroon",                   # entry 2451211
-    "$Codex_Ent_Tussocks_13_F_Name;": "Tussock Stigmasis - Yellow",                  # entry 2451301
-    "$Codex_Ent_Tussocks_13_G_Name;": "Tussock Stigmasis - Lime",                    # entry 2451302
-    "$Codex_Ent_Tussocks_13_K_Name;": "Tussock Stigmasis - Green",                   # entry 2451303
-    "$Codex_Ent_Tussocks_13_M_Name;": "Tussock Stigmasis - Emerald",                 # entry 2451304
-    "$Codex_Ent_Tussocks_13_L_Name;": "Tussock Stigmasis - Sage",                    # entry 2451305
-    "$Codex_Ent_Tussocks_13_T_Name;": "Tussock Stigmasis - Teal",                    # entry 2451306
-    "$Codex_Ent_Tussocks_13_Y_Name;": "Tussock Stigmasis - Red",                     # entry 2451309
-    "$Codex_Ent_Tussocks_13_D_Name;": "Tussock Stigmasis - Maroon",                  # entry 2451311
-    "$Codex_Ent_Tussocks_14_F_Name;": "Tussock Virgam - Yellow",                     # entry 2451401
-    "$Codex_Ent_Tussocks_14_G_Name;": "Tussock Virgam - Lime",                       # entry 2451402
-    "$Codex_Ent_Tussocks_14_K_Name;": "Tussock Virgam - Green",                      # entry 2451403
-    "$Codex_Ent_Tussocks_14_M_Name;": "Tussock Virgam - Emerald",                    # entry 2451404
-    "$Codex_Ent_Tussocks_14_L_Name;": "Tussock Virgam - Sage",                       # entry 2451405
-    "$Codex_Ent_Tussocks_14_T_Name;": "Tussock Virgam - Teal",                       # entry 2451406
-    "$Codex_Ent_Tussocks_14_D_Name;": "Tussock Virgam - Maroon",                     # entry 2451411
-    "$Codex_Ent_Tussocks_15_F_Name;": "Tussock Capillum - Yellow",                   # entry 2451501
-    "$Codex_Ent_Tussocks_15_G_Name;": "Tussock Capillum - Lime",                     # entry 2451502
-    "$Codex_Ent_Tussocks_15_K_Name;": "Tussock Capillum - Green",                    # entry 2451503
-    "$Codex_Ent_Tussocks_15_M_Name;": "Tussock Capillum - Emerald",                  # entry 2451504
-    "$Codex_Ent_Tussocks_15_L_Name;": "Tussock Capillum - Sage",                     # entry 2451505
-    "$Codex_Ent_Tussocks_15_T_Name;": "Tussock Capillum - Teal",                     # entry 2451506
-    "$Codex_Ent_Tussocks_15_Y_Name;": "Tussock Capillum - Red",                      # entry 2451509
-    "$Codex_Ent_Tussocks_15_D_Name;": "Tussock Capillum - Maroon"                    # entry 2451511
+    "$Codex_Ent_Tubus_01_Name;" : {"genus" : "$Codex_Ent_Tubus_Genus_Name;", "name" : "Tubus Conifer"},
+    "$Codex_Ent_Tubus_02_Name;" : {"genus" : "$Codex_Ent_Tubus_Genus_Name;", "name" : "Tubus Sororibus"},
+    "$Codex_Ent_Tubus_03_Name;" : {"genus" : "$Codex_Ent_Tubus_Genus_Name;", "name" : "Tubus Cavas"},
+    "$Codex_Ent_Tubus_04_Name;" : {"genus" : "$Codex_Ent_Tubus_Genus_Name;", "name" : "Tubus Rosarium"},
+    "$Codex_Ent_Tubus_05_Name;" : {"genus" : "$Codex_Ent_Tubus_Genus_Name;", "name" : "Tubus Compagibus"},
+
+    "$Codex_Ent_Tussocks_01_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Pennata"},
+    "$Codex_Ent_Tussocks_02_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Ventusa"},
+    "$Codex_Ent_Tussocks_03_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Ignis"},
+    "$Codex_Ent_Tussocks_04_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Cultro"},
+    "$Codex_Ent_Tussocks_05_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Catena"},
+    "$Codex_Ent_Tussocks_06_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Pennatis"},
+    "$Codex_Ent_Tussocks_07_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Serrati"},
+    "$Codex_Ent_Tussocks_08_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Albata"},
+    "$Codex_Ent_Tussocks_09_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Propagito"},
+    "$Codex_Ent_Tussocks_10_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Divisa"},
+    "$Codex_Ent_Tussocks_11_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Caputus"},
+    "$Codex_Ent_Tussocks_12_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Triticum"},
+    "$Codex_Ent_Tussocks_13_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Stigmasis"},
+    "$Codex_Ent_Tussocks_14_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Virgam"},
+    "$Codex_Ent_Tussocks_15_Name;" : {"genus" : "$Codex_Ent_Tussocks_Genus_Name;", "name" : "Tussock Capillum"}
+}
+
+codex_variants = {
+    # Horizons
+    "$Codex_Ent_Cone_Name;" : { # entry 2100301
+        "name" : "Bark Mounds",
+        "species" : "$Codex_Ent_Cone_Name;"
+    },
+    "$Codex_Ent_Tube_Name;" : { # entry 2100501
+        "name" : "Roseum Sinuous Tubers",
+        "species" : "$Codex_Ent_Tube_Name;"
+    },
+    "$Codex_Ent_SPOI_Ball_Name;" : { # entry 1410100
+        "name" : "Solid Mineral Spheres",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_SphereABCD_02_Name;" : { # entry 2100403
+        "name" : "Luteolum Anemone",
+        "species" : "Codex_Ent_SphereABCD_02_Name;"
+    },
+    "$Codex_Ent_SphereEFGH_02_Name;" : { # entry 2100407
+        "name" : "Prasinum Bioluminescent Anemone",
+        "species" : "$Codex_Ent_SphereEFGH_02_Name;"
+    },
+    "$Codex_Ent_Ingensradices_Unicus_Name;" : { # entry 2460101
+        "name" : "Radicoida Unica",
+        "species" : "$Codex_Ent_Ingensradices_Unicus_Name;"
+    },
+
+    "$Codex_Ent_Aleoids_01_B_Name;" : { # entry 2310101
+        "name" : "Aleoida Arcus - Yellow",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_A_Name;" : { # entry 2310102
+        "name" : "Aleoida Arcus - Green",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_F_Name;" : { # entry 2310103
+        "name" : "Aleoida Arcus - Teal",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_K_Name;" : { # entry 2310104
+        "name" : "Aleoida Arcus - Turquoise",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_M_Name;" : { # entry 2310105
+        "name" : "Aleoida Arcus - Emerald",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_L_Name;" : { # entry 2310106
+        "name" : "Aleoida Arcus - Lime",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_T_Name;" : { # entry 2310107
+        "name" : "Aleoida Arcus - Sage",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_TTS_Name;" : { # entry 2310108
+        "name" : "Aleoida Arcus - Mauve",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_Y_Name;" : { # entry 2310110
+        "name" : "Aleoida Arcus - Amethyst",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_W_Name;" : { # entry 2310111
+        "name" : "Aleoida Arcus - Grey",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_D_Name;" : { # entry 2310112
+        "name" : "Aleoida Arcus - Indigo",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_01_N_Name;" : { # entry 2310113
+        "name" : "Aleoida Arcus - Ocher",
+        "species" : "$Codex_Ent_Aleoids_01_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_B_Name;" : { # entry 2310201
+        "name" : "Aleoida Coronamus - Yellow",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_A_Name;" : { # entry 2310202
+        "name" : "Aleoida Coronamus - Green",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_F_Name;" : { # entry 2310203
+        "name" : "Aleoida Coronamus - Teal",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_K_Name;" : { # entry 2310204
+        "name" : "Aleoida Coronamus - Turquoise",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_M_Name;" : { # entry 2310205
+        "name" : "Aleoida Coronamus - Emerald",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_L_Name;" : { # entry 2310206
+        "name" : "Aleoida Coronamus - Lime",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_T_Name;" : { # entry 2310207
+        "name" : "Aleoida Coronamus - Sage",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_TTS_Name;" : { # entry 2310208
+        "name" : "Aleoida Coronamus - Mauve",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_Y_Name;" : { # entry 2310210
+        "name" : "Aleoida Coronamus - Amethyst",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_D_Name;" : { # entry 2310212
+        "name" : "Aleoida Coronamus - Indigo",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_02_N_Name;" : { # entry 2310213
+        "name" : "Aleoida Coronamus - Ocher",
+        "species" : "$Codex_Ent_Aleoids_02_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_B_Name;" : { # entry 2310301
+        "name" : "Aleoida Spica - Yellow",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_A_Name;" : { # entry 2310302
+        "name" : "Aleoida Spica - Green",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_F_Name;" : { # entry 2310303
+        "name" : "Aleoida Spica - Teal",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_K_Name;" : { # entry 2310304
+        "name" : "Aleoida Spica - Turquoise",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_M_Name;" : { # entry 2310305
+        "name" : "Aleoida Spica - Emerald",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_L_Name;" : { # entry 2310306
+        "name" : "Aleoida Spica - Lime",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_T_Name;" : { # entry 2310307
+        "name" : "Aleoida Spica - Sage",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_TTS_Name;" : { # entry 2310308
+        "name" : "Aleoida Spica - Mauve",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_Y_Name;" : { # entry 2310310
+        "name" : "Aleoida Spica - Amethyst",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_D_Name;" : { # entry 2310312
+        "name" : "Aleoida Spica - Indigo",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_03_N_Name;" : { # entry 2310313
+        "name" : "Aleoida Spica - Ocher",
+        "species" : "$Codex_Ent_Aleoids_03_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_B_Name;" : { # entry 2310401
+        "name" : "Aleoida Laminiae - Yellow",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_A_Name;" : { # entry 2310402
+        "name" : "Aleoida Laminiae - Green",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_F_Name;" : { # entry 2310403
+        "name" : "Aleoida Laminiae - Teal",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_K_Name;" : { # entry 2310404
+        "name" : "Aleoida Laminiae - Turquoise",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_M_Name;" : { # entry 2310405
+        "name" : "Aleoida Laminiae - Emerald",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_L_Name;" : { # entry 2310406
+        "name" : "Aleoida Laminiae - Lime",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_T_Name;" : { # entry 2310407
+        "name" : "Aleoida Laminiae - Sage",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_TTS_Name;" : { # entry 2310408
+        "name" : "Aleoida Laminiae - Mauve",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_Y_Name;" : { # entry 2310410
+        "name" : "Aleoida Laminiae - Amethyst",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_W_Name;" : { # entry 2310411
+        "name" : "Aleoida Laminiae - Grey",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_D_Name;" : { # entry 2310412
+        "name" : "Aleoida Laminiae - Indigo",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_04_N_Name;" : { # entry 2310413
+        "name" : "Aleoida Laminiae - Ocher",
+        "species" : "$Codex_Ent_Aleoids_04_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_B_Name;" : { # entry 2310501
+        "name" : "Aleoida Gravis - Yellow",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_A_Name;" : { # entry 2310502
+        "name" : "Aleoida Gravis - Green",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_F_Name;" : { # entry 2310503
+        "name" : "Aleoida Gravis - Teal",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_K_Name;" : { # entry 2310504
+        "name" : "Aleoida Gravis - Turquoise",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_M_Name;" : { # entry 2310505
+        "name" : "Aleoida Gravis - Emerald",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_L_Name;" : { # entry 2310506
+        "name" : "Aleoida Gravis - Lime",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_T_Name;" : { # entry 2310507
+        "name" : "Aleoida Gravis - Sage",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_TTS_Name;" : { # entry 2310508
+        "name" : "Aleoida Gravis - Mauve",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_Y_Name;" : { # entry 2310510
+        "name" : "Aleoida Gravis - Amethyst",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_D_Name;" : { # entry 2310512
+        "name" : "Aleoida Gravis - Indigo",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+    "$Codex_Ent_Aleoids_05_N_Name;" : { # entry 2310513
+        "name" : "Aleoida Gravis - Ocher",
+        "species" : "$Codex_Ent_Aleoids_05_Name;"
+    },
+
+    "$Codex_Ent_Bacterial_01_O_Name;" : { # entry 2320101
+        "name" : "Bacterium Aurasus - Turquoise",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_B_Name;" : { # entry 2320102
+        "name" : "Bacterium Aurasus - Grey",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_A_Name;" : { # entry 2320103
+        "name" : "Bacterium Aurasus - Yellow",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_F_Name;" : { # entry 2320104
+        "name" : "Bacterium Aurasus - Lime",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_G_Name;" : { # entry 2320105
+        "name" : "Bacterium Aurasus - Emerald",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_K_Name;" : { # entry 2320106
+        "name" : "Bacterium Aurasus - Green",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_M_Name;" : { # entry 2320107
+        "name" : "Bacterium Aurasus - Teal",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_L_Name;" : { # entry 2320108
+        "name" : "Bacterium Aurasus - Sage",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_T_Name;" : { # entry 2320109
+        "name" : "Bacterium Aurasus - Red",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_TTS_Name;" : { # entry 2320110
+        "name" : "Bacterium Aurasus - Maroon",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_Ae_Name;" : { # entry 2320111
+        "name" : "Bacterium Aurasus - Orange",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_Y_Name;" : { # entry 2320112
+        "name" : "Bacterium Aurasus - Mauve",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_W_Name;" : { # entry 2320113
+        "name" : "Bacterium Aurasus - Amethyst",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_D_Name;" : { # entry 2320114
+        "name" : "Bacterium Aurasus - Ocher",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_01_N_Name;" : { # entry 2320115
+        "name" : "Bacterium Aurasus - Indigo",
+        "species" : "$Codex_Ent_Bacterial_01_Name;"
+    },
+    "$Codex_Ent_Bacterial_02_Technetium_Name;" : { # entry 2320201
+        "name" : "Bacterium Nebulus - Cyan",
+        "species" : "$Codex_Ent_Bacterial_02_Name;"
+    },
+    "$Codex_Ent_Bacterial_02_Tellurium_Name;" : { # entry 2320202
+        "name" : "Bacterium Nebulus - Green",
+        "species" : "$Codex_Ent_Bacterial_02_Name;"
+    },
+    "$Codex_Ent_Bacterial_02_Polonium_Name;" : { # entry 2320203
+        "name" : "Bacterium Nebulus - Gold",
+        "species" : "$Codex_Ent_Bacterial_02_Name;"
+    },
+    "$Codex_Ent_Bacterial_02_Ruthenium_Name;" : { # entry 2320204
+        "name" : "Bacterium Nebulus - Orange",
+        "species" : "$Codex_Ent_Bacterial_02_Name;"
+    },
+    "$Codex_Ent_Bacterial_02_Antimony_Name;" : { # entry 2320205
+        "name" : "Bacterium Nebulus - Magenta",
+        "species" : "$Codex_Ent_Bacterial_02_Name;"
+    },
+    "$Codex_Ent_Bacterial_02_Yttrium_Name;" : { # entry 2320206
+        "name" : "Bacterium Nebulus - Cobalt",
+        "species" : "$Codex_Ent_Bacterial_02_Name;"
+    },
+    "$Codex_Ent_Bacterial_03_Mercury_Name;" : { # entry 2320301
+        "name" : "Bacterium Scopulum - Peach",
+        "species" : "$Codex_Ent_Bacterial_03_Name;"
+    },
+    "$Codex_Ent_Bacterial_03_Niobium_Name;" : { # entry 2320302
+        "name" : "Bacterium Scopulum - Red",
+        "species" : "$Codex_Ent_Bacterial_03_Name;"
+    },
+    "$Codex_Ent_Bacterial_03_Tin_Name;" : { # entry 2320303
+        "name" : "Bacterium Scopulum - Mulberry",
+        "species" : "$Codex_Ent_Bacterial_03_Name;"
+    },
+    "$Codex_Ent_Bacterial_03_Tungsten_Name;" : { # entry 2320304
+        "name" : "Bacterium Scopulum - Aquamarine",
+        "species" : "$Codex_Ent_Bacterial_03_Name;"
+    },
+    "$Codex_Ent_Bacterial_03_Molybdenum_Name;" : { # entry 2320305
+        "name" : "Bacterium Scopulum - Lime",
+        "species" : "$Codex_Ent_Bacterial_03_Name;"
+    },
+    "$Codex_Ent_Bacterial_03_Cadmium_Name;" : { # entry 2320306
+        "name" : "Bacterium Scopulum - White",
+        "species" : "$Codex_Ent_Bacterial_03_Name;"
+    },
+    "$Codex_Ent_Bacterial_04_Technetium_Name;" : { # entry 2320401
+        "name" : "Bacterium Acies - Lime",
+        "species" : "$Codex_Ent_Bacterial_04_Name;"
+    },
+    "$Codex_Ent_Bacterial_04_Tellurium_Name;" : { # entry 2320402
+        "name" : "Bacterium Acies - White",
+        "species" : "$Codex_Ent_Bacterial_04_Name;"
+    },
+    "$Codex_Ent_Bacterial_04_Polonium_Name;" : { # entry 2320403
+        "name" : "Bacterium Acies - Magenta",
+        "species" : "$Codex_Ent_Bacterial_04_Name;"
+    },
+    "$Codex_Ent_Bacterial_04_Ruthenium_Name;" : { # entry 2320404
+        "name" : "Bacterium Acies - Cobalt",
+        "species" : "$Codex_Ent_Bacterial_04_Name;"
+    },
+    "$Codex_Ent_Bacterial_04_Antimony_Name;" : { # entry 2320405
+        "name" : "Bacterium Acies - Cyan",
+        "species" : "$Codex_Ent_Bacterial_04_Name;"
+    },
+    "$Codex_Ent_Bacterial_04_Yttrium_Name;" : { # entry 2320406
+        "name" : "Bacterium Acies - Aquamarine",
+        "species" : "$Codex_Ent_Bacterial_04_Name;"
+    },
+    "$Codex_Ent_Bacterial_05_Technetium_Name;" : { # entry 2320501
+        "name" : "Bacterium Vesicula - Gold",
+        "species" : "$Codex_Ent_Bacterial_05_Name;"
+    },
+    "$Codex_Ent_Bacterial_05_Tellurium_Name;" : { # entry 2320502
+        "name" : "Bacterium Vesicula - Red",
+        "species" : "$Codex_Ent_Bacterial_05_Name;"
+    },
+    "$Codex_Ent_Bacterial_05_Polonium_Name;" : { # entry 2320503
+        "name" : "Bacterium Vesicula - Orange",
+        "species" : "$Codex_Ent_Bacterial_05_Name;"
+    },
+    "$Codex_Ent_Bacterial_05_Ruthenium_Name;" : { # entry 2320504
+        "name" : "Bacterium Vesicula - Mulberry",
+        "species" : "$Codex_Ent_Bacterial_05_Name;"
+    },
+    "$Codex_Ent_Bacterial_05_Antimony_Name;" : { # entry 2320505
+        "name" : "Bacterium Vesicula - Cyan",
+        "species" : "$Codex_Ent_Bacterial_05_Name;"
+    },
+    "$Codex_Ent_Bacterial_05_Yttrium_Name;" : { # entry 2320506
+        "name" : "Bacterium Vesicula - Lime",
+        "species" : "$Codex_Ent_Bacterial_05_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_O_Name;" : { # entry 2320601
+        "name" : "Bacterium Alcyoneum - Turquoise",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_B_Name;" : { # entry 2320602
+        "name" : "Bacterium Alcyoneum - Grey",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_A_Name;" : { # entry 2320603
+        "name" : "Bacterium Alcyoneum - Yellow",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_F_Name;" : { # entry 2320604
+        "name" : "Bacterium Alcyoneum - Lime",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_G_Name;" : { # entry 2320605
+        "name" : "Bacterium Alcyoneum - Emerald",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_K_Name;" : { # entry 2320606
+        "name" : "Bacterium Alcyoneum - Green",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_M_Name;" : { # entry 2320607
+        "name" : "Bacterium Alcyoneum - Teal",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_L_Name;" : { # entry 2320608
+        "name" : "Bacterium Alcyoneum - Sage",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_T_Name;" : { # entry 2320609
+        "name" : "Bacterium Alcyoneum - Red",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_TTS_Name;" : { # entry 2320610
+        "name" : "Bacterium Alcyoneum - Maroon",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_Ae_Name;" : { # entry 2320611
+        "name" : "Bacterium Alcyoneum - Orange",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_Y_Name;" : { # entry 2320612
+        "name" : "Bacterium Alcyoneum - Mauve",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_W_Name;" : { # entry 2320613
+        "name" : "Bacterium Alcyoneum - Amethyst",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_D_Name;" : { # entry 2320614
+        "name" : "Bacterium Alcyoneum - Ocher",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_06_N_Name;" : { # entry 2320615
+        "name" : "Bacterium Alcyoneum - Indigo",
+        "species" : "$Codex_Ent_Bacterial_06_Name;"
+    },
+    "$Codex_Ent_Bacterial_07_Mercury_Name;" : { # entry 2320701
+        "name" : "Bacterium Tela - Orange",
+        "species" : "$Codex_Ent_Bacterial_07_Name;"
+    },
+    "$Codex_Ent_Bacterial_07_Niobium_Name;" : { # entry 2320702
+        "name" : "Bacterium Tela - Magenta",
+        "species" : "$Codex_Ent_Bacterial_07_Name;"
+    },
+    "$Codex_Ent_Bacterial_07_Tin_Name;" : { # entry 2320703
+        "name" : "Bacterium Tela - Cobalt",
+        "species" : "$Codex_Ent_Bacterial_07_Name;"
+    },
+    "$Codex_Ent_Bacterial_07_Tungsten_Name;" : { # entry 2320704
+        "name" : "Bacterium Tela - Green",
+        "species" : "$Codex_Ent_Bacterial_07_Name;"
+    },
+    "$Codex_Ent_Bacterial_07_Molybdenum_Name;" : { # entry 2320705
+        "name" : "Bacterium Tela - Yellow",
+        "species" : "$Codex_Ent_Bacterial_07_Name;"
+    },
+    "$Codex_Ent_Bacterial_07_Cadmium_Name;" : { # entry 2320706
+        "name" : "Bacterium Tela - Gold",
+        "species" : "$Codex_Ent_Bacterial_07_Name;"
+    },
+    "$Codex_Ent_Bacterial_08_Technetium_Name;" : { # entry 2320801
+        "name" : "Bacterium Informem - Aquamarine",
+        "species" : "$Codex_Ent_Bacterial_08_Name;"
+    },
+    "$Codex_Ent_Bacterial_08_Tellurium_Name;" : { # entry 2320802
+        "name" : "Bacterium Informem - Yellow",
+        "species" : "$Codex_Ent_Bacterial_08_Name;"
+    },
+    "$Codex_Ent_Bacterial_08_Polonium_Name;" : { # entry 2320803
+        "name" : "Bacterium Informem - Lime",
+        "species" : "$Codex_Ent_Bacterial_08_Name;"
+    },
+    "$Codex_Ent_Bacterial_08_Ruthenium_Name;" : { # entry 2320804
+        "name" : "Bacterium Informem - Gold",
+        "species" : "$Codex_Ent_Bacterial_08_Name;"
+    },
+    "$Codex_Ent_Bacterial_08_Antimony_Name;" : { # entry 2320805
+        "name" : "Bacterium Informem - Red",
+        "species" : "$Codex_Ent_Bacterial_08_Name;"
+    },
+    "$Codex_Ent_Bacterial_08_Yttrium_Name;" : { # entry 2320806
+        "name" : "Bacterium Informem - Cobalt",
+        "species" : "$Codex_Ent_Bacterial_08_Name;"
+    },
+    "$Codex_Ent_Bacterial_09_Technetium_Name;" : { # entry 2320901
+        "name" : "Bacterium Volu - Lime",
+        "species" : "$Codex_Ent_Bacterial_09_Name;"
+    },
+    "$Codex_Ent_Bacterial_09_Tellurium_Name;" : { # entry 2320902
+        "name" : "Bacterium Volu - Cyan",
+        "species" : "$Codex_Ent_Bacterial_09_Name;"
+    },
+    "$Codex_Ent_Bacterial_09_Polonium_Name;" : { # entry 2320903
+        "name" : "Bacterium Volu - Aquamarine",
+        "species" : "$Codex_Ent_Bacterial_09_Name;"
+    },
+    "$Codex_Ent_Bacterial_09_Ruthenium_Name;" : { # entry 2320904
+        "name" : "Bacterium Volu - Cobalt",
+        "species" : "$Codex_Ent_Bacterial_09_Name;"
+    },
+    "$Codex_Ent_Bacterial_09_Antimony_Name;" : { # entry 2320905
+        "name" : "Bacterium Volu - Red",
+        "species" : "$Codex_Ent_Bacterial_09_Name;"
+    },
+    "$Codex_Ent_Bacterial_09_Yttrium_Name;" : { # entry 2320906
+        "name" : "Bacterium Volu - Gold",
+        "species" : "$Codex_Ent_Bacterial_09_Name;"
+    },
+    "$Codex_Ent_Bacterial_10_Technetium_Name;" : { # entry 2321001
+        "name" : "Bacterium Bullaris - Gold",
+        "species" : "$Codex_Ent_Bacterial_10_Name;"
+    },
+    "$Codex_Ent_Bacterial_10_Tellurium_Name;" : { # entry 2321002
+        "name" : "Bacterium Bullaris - Lime",
+        "species" : "$Codex_Ent_Bacterial_10_Name;"
+    },
+    "$Codex_Ent_Bacterial_10_Polonium_Name;" : { # entry 2321003
+        "name" : "Bacterium Bullaris - Yellow",
+        "species" : "$Codex_Ent_Bacterial_10_Name;"
+    },
+    "$Codex_Ent_Bacterial_10_Ruthenium_Name;" : { # entry 2321004
+        "name" : "Bacterium Bullaris - Aquamarine",
+        "species" : "$Codex_Ent_Bacterial_10_Name;"
+    },
+    "$Codex_Ent_Bacterial_10_Antimony_Name;" : { # entry 2321005
+        "name" : "Bacterium Bullaris - Cobalt",
+        "species" : "$Codex_Ent_Bacterial_10_Name;"
+    },
+    "$Codex_Ent_Bacterial_10_Yttrium_Name;" : { # entry 2321006
+        "name" : "Bacterium Bullaris - Red",
+        "species" : "$Codex_Ent_Bacterial_10_Name;"
+    },
+    "$Codex_Ent_Bacterial_11_Mercury_Name;" : { # entry 2321101
+        "name" : "Bacterium Omentum - White",
+        "species" : "$Codex_Ent_Bacterial_11_Name;"
+    },
+    "$Codex_Ent_Bacterial_11_Niobium_Name;" : { # entry 2321102
+        "name" : "Bacterium Omentum - Peach",
+        "species" : "$Codex_Ent_Bacterial_11_Name;"
+    },
+    "$Codex_Ent_Bacterial_11_Tin_Name;" : { # entry 2321103
+        "name" : "Bacterium Omentum - Red",
+        "species" : "$Codex_Ent_Bacterial_11_Name;"
+    },
+    "$Codex_Ent_Bacterial_11_Tungsten_Name;" : { # entry 2321104
+        "name" : "Bacterium Omentum - Blue",
+        "species" : "$Codex_Ent_Bacterial_11_Name;"
+    },
+    "$Codex_Ent_Bacterial_11_Molybdenum_Name;" : { # entry 2321105
+        "name" : "Bacterium Omentum - Aquamarine",
+        "species" : "$Codex_Ent_Bacterial_11_Name;"
+    },
+    "$Codex_Ent_Bacterial_11_Cadmium_Name;" : { # entry 2321106
+        "name" : "Bacterium Omentum - Lime",
+        "species" : "$Codex_Ent_Bacterial_11_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_O_Name;" : { # entry 2321201
+        "name" : "Bacterium Cerbrus - Turquoise",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_B_Name;" : { # entry 2321202
+        "name" : "Bacterium Cerbrus - Grey",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_A_Name;" : { # entry 2321203
+        "name" : "Bacterium Cerbrus - Yellow",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_F_Name;" : { # entry 2321204
+        "name" : "Bacterium Cerbrus - Lime",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_G_Name;" : { # entry 2321205
+        "name" : "Bacterium Cerbrus - Emerald",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_K_Name;" : { # entry 2321206
+        "name" : "Bacterium Cerbrus - Green",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_M_Name;" : { # entry 2321207
+        "name" : "Bacterium Cerbrus - Teal",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_L_Name;" : { # entry 2321208
+        "name" : "Bacterium Cerbrus - Sage",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_T_Name;" : { # entry 2321209
+        "name" : "Bacterium Cerbrus - Red",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_TTS_Name;" : { # entry 2321210
+        "name" : "Bacterium Cerbrus - Maroon",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_Ae_Name;" : { # entry 2321211
+        "name" : "Bacterium Cerbrus - Orange",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_Y_Name;" : { # entry 2321212
+        "name" : "Bacterium Cerbrus - Mauve",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_W_Name;" : { # entry 2321213
+        "name" : "Bacterium Cerbrus - Amethyst",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_D_Name;" : { # entry 2321214
+        "name" : "Bacterium Cerbrus - Ocher",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_12_N_Name;" : { # entry 2321215
+        "name" : "Bacterium Cerbrus - Indigo",
+        "species" : "$Codex_Ent_Bacterial_12_Name;"
+    },
+    "$Codex_Ent_Bacterial_13_Mercury_Name;" : { # entry 2321301
+        "name" : "Bacterium Verrata - Red",
+        "species" : "$Codex_Ent_Bacterial_13_Name;"
+    },
+    "$Codex_Ent_Bacterial_13_Niobium_Name;" : { # entry 2321302
+        "name" : "Bacterium Verrata - Mulberry",
+        "species" : "$Codex_Ent_Bacterial_13_Name;"
+    },
+    "$Codex_Ent_Bacterial_13_Tin_Name;" : { # entry 2321303
+        "name" : "Bacterium Verrata - Blue",
+        "species" : "$Codex_Ent_Bacterial_13_Name;"
+    },
+    "$Codex_Ent_Bacterial_13_Tungsten_Name;" : { # entry 2321304
+        "name" : "Bacterium Verrata - Lime",
+        "species" : "$Codex_Ent_Bacterial_13_Name;"
+    },
+    "$Codex_Ent_Bacterial_13_Molybdenum_Name;" : { # entry 2321305
+        "name" : "Bacterium Verrata - White",
+        "species" : "$Codex_Ent_Bacterial_13_Name;"
+    },
+    "$Codex_Ent_Bacterial_13_Cadmium_Name;" : { # entry 2321306
+        "name" : "Bacterium Verrata - Peach",
+        "species" : "$Codex_Ent_Bacterial_13_Name;"
+    },
+
+    "$Codex_Ent_Cactoid_01_A_Name;" : { # entry 2330103
+        "name" : "Cactoida Cortexum - Green",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_01_F_Name;" : { # entry 2330104
+        "name" : "Cactoida Cortexum - Yellow",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_01_G_Name;" : { # entry 2330105
+        "name" : "Cactoida Cortexum - Teal",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_01_M_Name;" : { # entry 2330107
+        "name" : "Cactoida Cortexum - Amethyst",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_01_L_Name;" : { # entry 2330108
+        "name" : "Cactoida Cortexum - Mauve",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_01_T_Name;" : { # entry 2330109
+        "name" : "Cactoida Cortexum - Orange",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_01_TTS_Name;" : { # entry 2330110
+        "name" : "Cactoida Cortexum - Red",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_01_Y_Name;" : { # entry 2330112
+        "name" : "Cactoida Cortexum - Ocher",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_01_D_Name;" : { # entry 2330114
+        "name" : "Cactoida Cortexum - Turquoise",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_01_N_Name;" : { # entry 2330115
+        "name" : "Cactoida Cortexum - Sage",
+        "species" : "$Codex_Ent_Cactoid_01_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_O_Name;" : { # entry 2330201
+        "name" : "Cactoida Lapis - Grey",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_A_Name;" : { # entry 2330203
+        "name" : "Cactoida Lapis - Green",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_F_Name;" : { # entry 2330204
+        "name" : "Cactoida Lapis - Yellow",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_G_Name;" : { # entry 2330205
+        "name" : "Cactoida Lapis - Teal",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_M_Name;" : { # entry 2330207
+        "name" : "Cactoida Lapis - Amethyst",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_L_Name;" : { # entry 2330208
+        "name" : "Cactoida Lapis - Mauve",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_T_Name;" : { # entry 2330209
+        "name" : "Cactoida Lapis - Orange",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_TTS_Name;" : { # entry 2330210
+        "name" : "Cactoida Lapis - Red",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_Y_Name;" : { # entry 2330212
+        "name" : "Cactoida Lapis - Ocher",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_W_Name;" : { # entry 2330213
+        "name" : "Cactoida Lapis - Indigo",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_D_Name;" : { # entry 2330214
+        "name" : "Cactoida Lapis - Turquoise",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_02_N_Name;" : { # entry 2330215
+        "name" : "Cactoida Lapis - Sage",
+        "species" : "$Codex_Ent_Cactoid_02_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_O_Name;" : { # entry 2330301
+        "name" : "Cactoida Vermis - Grey",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_A_Name;" : { # entry 2330403
+        "name" : "Cactoida Vermis - Green",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_F_Name;" : { # entry 2330304
+        "name" : "Cactoida Vermis - Yellow",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_G_Name;" : { # entry 2330305
+        "name" : "Cactoida Vermis - Teal",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_M_Name;" : { # entry 2330307
+        "name" : "Cactoida Vermis - Amethyst",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_L_Name;" : { # entry 2330308
+        "name" : "Cactoida Vermis - Mauve",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_T_Name;" : { # entry 2330309
+        "name" : "Cactoida Vermis - Orange",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_TTS_Name;" : { # entry 2330310
+        "name" : "Cactoida Vermis - Red",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_Y_Name;" : { # entry 2330312
+        "name" : "Cactoida Vermis - Ocher",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_D_Name;" : { # entry 2330314
+        "name" : "Cactoida Vermis - Turquoise",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_03_N_Name;" : { # entry 2330315
+        "name" : "Cactoida Vermis - Sage",
+        "species" : "$Codex_Ent_Cactoid_03_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_A_Name;" : { # entry 2330403
+        "name" : "Cactoida Pullulanta - Green",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_F_Name;" : { # entry 2330404
+        "name" : "Cactoida Pullulanta - Yellow",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_G_Name;" : { # entry 2330405
+        "name" : "Cactoida Pullulanta - Teal",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_M_Name;" : { # entry 2330407
+        "name" : "Cactoida Pullulanta - Amethyst",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_L_Name;" : { # entry 2330408
+        "name" : "Cactoida Pullulanta - Mauve",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_T_Name;" : { # entry 2330409
+        "name" : "Cactoida Pullulanta - Orange",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_TTS_Name;" : { # entry 2330410
+        "name" : "Cactoida Pullulanta - Red",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_Y_Name;" : { # entry 2330412
+        "name" : "Cactoida Pullulanta - Ocher",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_D_Name;" : { # entry 2330414
+        "name" : "Cactoida Pullulanta - Turquoise",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_04_N_Name;" : { # entry 2330415
+        "name" : "Cactoida Pullulanta - Sage",
+        "species" : "$Codex_Ent_Cactoid_04_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_A_Name;" : { # entry 2330503
+        "name" : "Cactoida Peperatis - Green",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_F_Name;" : { # entry 2330504
+        "name" : "Cactoida Peperatis - Yellow",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_G_Name;" : { # entry 2330505
+        "name" : "Cactoida Peperatis - Teal",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_M_Name;" : { # entry 2330507
+        "name" : "Cactoida Peperatis - Amethyst",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_L_Name;" : { # entry 2330508
+        "name" : "Cactoida Peperatis - Mauve",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_T_Name;" : { # entry 2330509
+        "name" : "Cactoida Peperatis - Orange",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_TTS_Name;" : { # entry 2330510
+        "name" : "Cactoida Peperatis - Red",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_Y_Name;" : { # entry 2330512
+        "name" : "Cactoida Peperatis - Ocher",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_D_Name;" : { # entry 2330514
+        "name" : "Cactoida Peperatis - Turquoise",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+    "$Codex_Ent_Cactoid_05_N_Name;" : { # entry 2330515
+        "name" : "Cactoida Peperatis - Sage",
+        "species" : "$Codex_Ent_Cactoid_05_Name;"
+    },
+
+    "$Codex_Ent_Clypeus_01_B_Name;" : { # entry 2340102
+        "name" : "Clypeus Lacrimam - Maroon",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_01_A_Name;" : { # entry 2340103
+        "name" : "Clypeus Lacrimam - Orange",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_01_F_Name;" : { # entry 2340104
+        "name" : "Clypeus Lacrimam - Mauve",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_01_G_Name;" : { # entry 2340105
+        "name" : "Clypeus Lacrimam - Amethyst",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_01_K_Name;" : { # entry 2340106
+        "name" : "Clypeus Lacrimam - Grey",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_01_M_Name;" : { # entry 2340107
+        "name" : "Clypeus Lacrimam - Turquoise",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_01_L_Name;" : { # entry 2340108
+        "name" : "Clypeus Lacrimam - Teal",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_01_Y_Name;" : { # entry 2340110
+        "name" : "Clypeus Lacrimam - Green",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_01_D_Name;" : { # entry 2340112
+        "name" : "Clypeus Lacrimam - Lime",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_01_N_Name;" : { # entry 2340113
+        "name" : "Clypeus Lacrimam - Yellow",
+        "species" : "$Codex_Ent_Clypeus_01_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_B_Name;" : { # entry 2340202
+        "name" : "Clypeus Margaritus - Maroon",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_A_Name;" : { # entry 2340203
+        "name" : "Clypeus Margaritus - Orange",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_F_Name;" : { # entry 2340204
+        "name" : "Clypeus Margaritus - Mauve",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_G_Name;" : { # entry 2340205
+        "name" : "Clypeus Margaritus - Amethyst",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_K_Name;" : { # entry 2340206
+        "name" : "Clypeus Margaritus - Grey",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_M_Name;" : { # entry 2340207
+        "name" : "Clypeus Margaritus - Turquoise",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_L_Name;" : { # entry 2340208
+        "name" : "Clypeus Margaritus - Teal",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_Y_Name;" : { # entry 2340210
+        "name" : "Clypeus Margaritus - Green",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_D_Name;" : { # entry 2340212
+        "name" : "Clypeus Margaritus - Lime",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_02_N_Name;" : { # entry 2340213
+        "name" : "Clypeus Margaritus - Yellow",
+        "species" : "$Codex_Ent_Clypeus_02_Name;"
+    },
+    "$Codex_Ent_Clypeus_03_B_Name;" : { # entry 2340302
+        "name" : "Clypeus Speculumi - Maroon",
+        "species" : "$Codex_Ent_Clypeus_03_Name;"
+    },
+    "$Codex_Ent_Clypeus_03_A_Name;" : { # entry 2340303
+        "name" : "Clypeus Speculumi - Orange",
+        "species" : "$Codex_Ent_Clypeus_03_Name;"
+    },
+    "$Codex_Ent_Clypeus_03_F_Name;" : { # entry 2340304
+        "name" : "Clypeus Speculumi - Mauve",
+        "species" : "$Codex_Ent_Clypeus_03_Name;"
+    },
+    "$Codex_Ent_Clypeus_03_G_Name;" : { # entry 2340305
+        "name" : "Clypeus Speculumi - Amethyst",
+        "species" : "$Codex_Ent_Clypeus_03_Name;"
+    },
+    "$Codex_Ent_Clypeus_03_K_Name;" : { # entry 2340306
+        "name" : "Clypeus Speculumi - Grey",
+        "species" : "$Codex_Ent_Clypeus_03_Name;"
+    },
+    "$Codex_Ent_Clypeus_03_M_Name;" : { # entry 2340307
+        "name" : "Clypeus Speculumi - Turquoise",
+        "species" : "$Codex_Ent_Clypeus_03_Name;"
+    },
+    "$Codex_Ent_Clypeus_03_N_Name;" : { # entry 2340313
+        "name" : "Clypeus Speculumi - Yellow",
+        "species" : "$Codex_Ent_Clypeus_03_Name;"
+    },
+
+    "$Codex_Ent_Conchas_01_Mercury_Name;" : { # entry 2350101
+        "name" : "Concha Renibus - Mulberry",
+        "species" : "$Codex_Ent_Conchas_01_Name;"
+    },
+    "$Codex_Ent_Conchas_01_Niobium_Name;" : { # entry 2350102
+        "name" : "Concha Renibus - Blue",
+        "species" : "$Codex_Ent_Conchas_01_Name;"
+    },
+    "$Codex_Ent_Conchas_01_Tin_Name;" : { # entry 2350103
+        "name" : "Concha Renibus - Aquamarine",
+        "species" : "$Codex_Ent_Conchas_01_Name;"
+    },
+    "$Codex_Ent_Conchas_01_Tungsten_Name;" : { # entry 2350104
+        "name" : "Concha Renibus - White",
+        "species" : "$Codex_Ent_Conchas_01_Name;"
+    },
+    "$Codex_Ent_Conchas_01_Molybdenum_Name;" : { # entry 2350105
+        "name" : "Concha Renibus - Peach",
+        "species" : "$Codex_Ent_Conchas_01_Name;"
+    },
+    "$Codex_Ent_Conchas_01_Cadmium_Name;" : { # entry 2350106
+        "name" : "Concha Renibus - Red",
+        "species" : "$Codex_Ent_Conchas_01_Name;"
+    },
+    "$Codex_Ent_Conchas_02_B_Name;" : { # entry 2350201
+        "name" : "Concha Aureolas - Indigo",
+        "species" : "$Codex_Ent_Conchas_02_Name;"
+    },
+    "$Codex_Ent_Conchas_02_A_Name;" : { # entry 2350202
+        "name" : "Concha Aureolas - Teal",
+        "species" : "$Codex_Ent_Conchas_02_Name;"
+    },
+    "$Codex_Ent_Conchas_02_F_Name;" : { # entry 2350203
+        "name" : "Concha Aureolas - Grey",
+        "species" : "$Codex_Ent_Conchas_02_Name;"
+    },
+    "$Codex_Ent_Conchas_02_G_Name;" : { # entry 2350204
+        "name" : "Concha Aureolas - Turquoise",
+        "species" : "$Codex_Ent_Conchas_02_Name;"
+    },
+    "$Codex_Ent_Conchas_02_K_Name;" : { # entry 2350205
+        "name" : "Concha Aureolas - Red",
+        "species" : "$Codex_Ent_Conchas_02_Name;"
+    },
+    "$Codex_Ent_Conchas_02_L_Name;" : { # entry 2350206
+        "name" : "Concha Aureolas - Orange",
+        "species" : "$Codex_Ent_Conchas_02_Name;"
+    },
+    "$Codex_Ent_Conchas_02_Y_Name;" : { # entry 2350207
+        "name" : "Concha Aureolas - Yellow",
+        "species" : "$Codex_Ent_Conchas_02_Name;"
+    },
+    "$Codex_Ent_Conchas_02_D_Name;" : { # entry 2350209
+        "name" : "Concha Aureolas - Green",
+        "species" : "$Codex_Ent_Conchas_02_Name;"
+    },
+    "$Codex_Ent_Conchas_02_N_Name;" : { # entry 2350210
+        "name" : "Concha Aureolas - Emerald",
+        "species" : "$Codex_Ent_Conchas_02_Name;"
+    },
+    "$Codex_Ent_Conchas_03_B_Name;" : { # entry 2350301
+        "name" : "Concha Labiata - Indigo",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_03_A_Name;" : { # entry 2350302
+        "name" : "Concha Labiata - Teal",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_03_F_Name;" : { # entry 2350303
+        "name" : "Concha Labiata - Grey",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_03_G_Name;" : { # entry 2350304
+        "name" : "Concha Labiata - Turquoise",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_03_K_Name;" : { # entry 2350305
+        "name" : "Concha Labiata - Red",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_03_L_Name;" : { # entry 2350306
+        "name" : "Concha Labiata - Orange",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_03_Y_Name;" : { # entry 2350307
+        "name" : "Concha Labiata - Yellow",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_03_W_Name;" : { # entry 2350308
+        "name" : "Concha Labiata - Lime",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_03_D_Name;" : { # entry 2350309
+        "name" : "Concha Labiata - Green",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_03_N_Name;" : { # entry 2350310
+        "name" : "Concha Labiata - Emerald",
+        "species" : "$Codex_Ent_Conchas_03_Name;"
+    },
+    "$Codex_Ent_Conchas_04_Technetium_Name;" : { # entry 2350401
+        "name" : "Concha Biconcavis - White",
+        "species" : "$Codex_Ent_Conchas_04_Name;"
+    },
+    "$Codex_Ent_Conchas_04_Tellurium_Name;" : { # entry 2350402
+        "name" : "Concha Biconcavis - Yellow",
+        "species" : "$Codex_Ent_Conchas_04_Name;"
+    },
+    "$Codex_Ent_Conchas_04_Polonium_Name;" : { # entry 2350403
+        "name" : "Concha Biconcavis - Red",
+        "species" : "$Codex_Ent_Conchas_04_Name;"
+    },
+    "$Codex_Ent_Conchas_04_Ruthenium_Name;" : { # entry 2350404
+        "name" : "Concha Biconcavis - Orange",
+        "species" : "$Codex_Ent_Conchas_04_Name;"
+    },
+    "$Codex_Ent_Conchas_04_Antimony_Name;" : { # entry 2350405
+        "name" : "Concha Biconcavis - Peach",
+        "species" : "$Codex_Ent_Conchas_04_Name;"
+    },
+    "$Codex_Ent_Conchas_04_Yttrium_Name;" : { # entry 2350406
+        "name" : "Concha Biconcavis - Gold",
+        "species" : "$Codex_Ent_Conchas_04_Name;"
+    },
+
+    "$Codex_Ent_Electricae_01_Technetium_Name;" : { # entry 2360101
+        "name" : "Electricae Pluma - Magenta",
+        "species" : "$Codex_Ent_Electricae_01_Name;"
+    },
+    "$Codex_Ent_Electricae_01_Tellurium_Name;" : { # entry 2360102
+        "name" : "Electricae Pluma - Red",
+        "species" : "$Codex_Ent_Electricae_01_Name;"
+    },
+    "$Codex_Ent_Electricae_01_Polonium_Name;" : { # entry 2360103
+        "name" : "Electricae Pluma - Cyan",
+        "species" : "$Codex_Ent_Electricae_01_Name;"
+    },
+    "$Codex_Ent_Electricae_01_Ruthenium_Name;" : { # entry 2360104
+        "name" : "Electricae Pluma - Blue",
+        "species" : "$Codex_Ent_Electricae_01_Name;"
+    },
+    "$Codex_Ent_Electricae_01_Antimony_Name;" : { # entry 2360105
+        "name" : "Electricae Pluma - Cobalt",
+        "species" : "$Codex_Ent_Electricae_01_Name;"
+    },
+    "$Codex_Ent_Electricae_01_Yttrium_Name;" : { # entry 2360106
+        "name" : "Electricae Pluma - Mulberry",
+        "species" : "$Codex_Ent_Electricae_01_Name;"
+    },
+    "$Codex_Ent_Electricae_02_Technetium_Name;" : { # entry 2360201
+        "name" : "Electricae Radialem - Aquamarine",
+        "species" : "$Codex_Ent_Electricae_02_Name;"
+    },
+    "$Codex_Ent_Electricae_02_Tellurium_Name;" : { # entry 2360202
+        "name" : "Electricae Radialem - Magenta",
+        "species" : "$Codex_Ent_Electricae_02_Name;"
+    },
+    "$Codex_Ent_Electricae_02_Polonium_Name;" : { # entry 2360203
+        "name" : "Electricae Radialem - Cobalt",
+        "species" : "$Codex_Ent_Electricae_02_Name;"
+    },
+    "$Codex_Ent_Electricae_02_Ruthenium_Name;" : { # entry 2360204
+        "name" : "Electricae Radialem - Blue",
+        "species" : "$Codex_Ent_Electricae_02_Name;"
+    },
+    "$Codex_Ent_Electricae_02_Antimony_Name;" : { # entry 2360205
+        "name" : "Electricae Radialem - Cyan",
+        "species" : "$Codex_Ent_Electricae_02_Name;"
+    },
+    "$Codex_Ent_Electricae_02_Yttrium_Name;" : { # entry 2360206
+        "name" : "Electricae Radialem - Green",
+        "species" : "$Codex_Ent_Electricae_02_Name;"
+    },
+
+    "$Codex_Ent_Fonticulus_01_B_Name;" : { # entry 2370102
+        "name" : "Fonticulua Segmentatus - Lime",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_A_Name;" : { # entry 2370103
+        "name" : "Fonticulua Segmentatus - Green",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_F_Name;" : { # entry 2370104
+        "name" : "Fonticulua Segmentatus - Yellow",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_G_Name;" : { # entry 2370105
+        "name" : "Fonticulua Segmentatus - Teal",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_K_Name;" : { # entry 2370106
+        "name" : "Fonticulua Segmentatus - Emerald",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_M_Name;" : { # entry 2370107
+        "name" : "Fonticulua Segmentatus - Amethyst",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_L_Name;" : { # entry 2370108
+        "name" : "Fonticulua Segmentatus - Mauve",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_T_Name;" : { # entry 2370109
+        "name" : "Fonticulua Segmentatus - Orange",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_TTS_Name;" : { # entry 2370110
+        "name" : "Fonticulua Segmentatus - Red",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_Ae_Name;" : { # entry 2370111
+        "name" : "Fonticulua Segmentatus - Maroon",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_Y_Name;" : { # entry 2370112
+        "name" : "Fonticulua Segmentatus - Ocher",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_D_Name;" : { # entry 2370114
+        "name" : "Fonticulua Segmentatus - Turquoise",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_01_N_Name;" : { # entry 2370115
+        "name" : "Fonticulua Segmentatus - Sage",
+        "species" : "$Codex_Ent_Fonticulus_01_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_O_Name;" : { # entry 2370201
+        "name" : "Fonticulua Campestris - Grey",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_B_Name;" : { # entry 2370202
+        "name" : "Fonticulua Campestris - Lime",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_A_Name;" : { # entry 2370203
+        "name" : "Fonticulua Campestris - Green",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_F_Name;" : { # entry 2370204
+        "name" : "Fonticulua Campestris - Yellow",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_G_Name;" : { # entry 2370205
+        "name" : "Fonticulua Campestris - Teal",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_K_Name;" : { # entry 2370206
+        "name" : "Fonticulua Campestris - Emerald",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_M_Name;" : { # entry 2370207
+        "name" : "Fonticulua Campestris - Amethyst",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_L_Name;" : { # entry 2370208
+        "name" : "Fonticulua Campestris - Mauve",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_T_Name;" : { # entry 2370209
+        "name" : "Fonticulua Campestris - Orange",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_TTS_Name;" : { # entry 2370210
+        "name" : "Fonticulua Campestris - Red",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_Ae_Name;" : { # entry 2370211
+        "name" : "Fonticulua Campestris - Maroon",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_Y_Name;" : { # entry 2370212
+        "name" : "Fonticulua Campestris - Ocher",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_D_Name;" : { # entry 2370214
+        "name" : "Fonticulua Campestris - Turquoise",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_02_N_Name;" : { # entry 2370215
+        "name" : "Fonticulua Campestris - Sage",
+        "species" : "$Codex_Ent_Fonticulus_02_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_B_Name;" : { # entry 2370302
+        "name" : "Fonticulua Upupam - Lime",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_A_Name;" : { # entry 2370303
+        "name" : "Fonticulua Upupam - Green",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_F_Name;" : { # entry 2370304
+        "name" : "Fonticulua Upupam - Yellow",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_G_Name;" : { # entry 2370305
+        "name" : "Fonticulua Upupam - Teal",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_K_Name;" : { # entry 2370306
+        "name" : "Fonticulua Upupam - Emerald",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_M_Name;" : { # entry 2370307
+        "name" : "Fonticulua Upupam - Amethyst",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_L_Name;" : { # entry 2370308
+        "name" : "Fonticulua Upupam - Mauve",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_T_Name;" : { # entry 2370309
+        "name" : "Fonticulua Upupam - Orange",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_TTS_Name;" : { # entry 2370310
+        "name" : "Fonticulua Upupam - Red",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_Ae_Name;" : { # entry 2370311
+        "name" : "Fonticulua Upupam - Maroon",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_Y_Name;" : { # entry 2370312
+        "name" : "Fonticulua Upupam - Ocher",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_W_Name;" : { # entry 2370313
+        "name" : "Fonticulua Upupam - Indigo",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_D_Name;" : { # entry 2370314
+        "name" : "Fonticulua Upupam - Turquoise",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_03_N_Name;" : { # entry 2370315
+        "name" : "Fonticulua Upupam - Sage",
+        "species" : "$Codex_Ent_Fonticulus_03_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_O_Name;" : { # entry 2370401
+        "name" : "Fonticulua Lapida - Grey",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_B_Name;" : { # entry 2370402
+        "name" : "Fonticulua Lapida - Lime",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_A_Name;" : { # entry 2370403
+        "name" : "Fonticulua Lapida - Green",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_F_Name;" : { # entry 2370404
+        "name" : "Fonticulua Lapida - Yellow",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_G_Name;" : { # entry 2370405
+        "name" : "Fonticulua Lapida - Teal",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_K_Name;" : { # entry 2370406
+        "name" : "Fonticulua Lapida - Emerald",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_M_Name;" : { # entry 2370407
+        "name" : "Fonticulua Lapida - Amethyst",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_L_Name;" : { # entry 2370408
+        "name" : "Fonticulua Lapida - Mauve",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_T_Name;" : { # entry 2370409
+        "name" : "Fonticulua Lapida - Orange",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_TTS_Name;" : { # entry 2370410
+        "name" : "Fonticulua Lapida - Red",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_Ae_Name;" : { # entry 2370411
+        "name" : "Fonticulua Lapida - Maroon",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_Y_Name;" : { # entry 2370412
+        "name" : "Fonticulua Lapida - Ocher",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_D_Name;" : { # entry 2370414
+        "name" : "Fonticulua Lapida - Turquoise",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_04_N_Name;" : { # entry 2370415
+        "name" : "Fonticulua Lapida - Sage",
+        "species" : "$Codex_Ent_Fonticulus_04_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_B_Name;" : { # entry 2370502
+        "name" : "Fonticulua Fluctus - Lime",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_A_Name;" : { # entry 2370503
+        "name" : "Fonticulua Fluctus - Green",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_F_Name;" : { # entry 2370504
+        "name" : "Fonticulua Fluctus - Yellow",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_G_Name;" : { # entry 2370505
+        "name" : "Fonticulua Fluctus - Teal",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_K_Name;" : { # entry 2370506
+        "name" : "Fonticulua Fluctus - Emerald",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_M_Name;" : { # entry 2370507
+        "name" : "Fonticulua Fluctus - Amethyst",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_L_Name;" : { # entry 2370508
+        "name" : "Fonticulua Fluctus - Mauve",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_T_Name;" : { # entry 2370509
+        "name" : "Fonticulua Fluctus - Orange",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_TTS_Name;" : { # entry 2370510
+        "name" : "Fonticulua Fluctus - Red",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_05_N_Name;" : { # entry 2370515
+        "name" : "Fonticulua Fluctus - Sage",
+        "species" : "$Codex_Ent_Fonticulus_05_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_B_Name;" : { # entry 2370602
+        "name" : "Fonticulua Digitos - Lime",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_A_Name;" : { # entry 2370603
+        "name" : "Fonticulua Digitos - Green",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_F_Name;" : { # entry 2370604
+        "name" : "Fonticulua Digitos - Yellow",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_G_Name;" : { # entry 2370605
+        "name" : "Fonticulua Digitos - Teal",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_K_Name;" : { # entry 2370606
+        "name" : "Fonticulua Digitos - Emerald",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_M_Name;" : { # entry 2370607
+        "name" : "Fonticulua Digitos - Amethyst",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_L_Name;" : { # entry 2370608
+        "name" : "Fonticulua Digitos - Mauve",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_T_Name;" : { # entry 2370609
+        "name" : "Fonticulua Digitos - Orange",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_TTS_Name;" : { # entry 2370610
+        "name" : "Fonticulua Digitos - Red",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_Y_Name;" : { # entry 2370612
+        "name" : "Fonticulua Digitos - Ocher",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_D_Name;" : { # entry 2370614
+        "name" : "Fonticulua Digitos - Turquoise",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+    "$Codex_Ent_Fonticulus_06_N_Name;" : { # entry 2370615
+        "name" : "Fonticulua Digitos - Sage",
+        "species" : "$Codex_Ent_Fonticulus_06_Name;"
+    },
+
+    "$Codex_Ent_Fumerolas_01_Mercury_Name;" : { # entry 2380101
+        "name" : "Fumerola Carbosis - Magenta",
+        "species" : "$Codex_Ent_Fumerolas_01_Name;"
+    },
+    "$Codex_Ent_Fumerolas_01_Niobium_Name;" : { # entry 2380102
+        "name" : "Fumerola Carbosis - Cobalt",
+        "species" : "$Codex_Ent_Fumerolas_01_Name;"
+    },
+    "$Codex_Ent_Fumerolas_01_Tin_Name;" : { # entry 2380103
+        "name" : "Fumerola Carbosis - Cyan",
+        "species" : "$Codex_Ent_Fumerolas_01_Name;"
+    },
+    "$Codex_Ent_Fumerolas_01_Tungsten_Name;" : { # entry 2380104
+        "name" : "Fumerola Carbosis - Yellow",
+        "species" : "$Codex_Ent_Fumerolas_01_Name;"
+    },
+    "$Codex_Ent_Fumerolas_01_Molybdenum_Name;" : { # entry 2380105
+        "name" : "Fumerola Carbosis - Gold",
+        "species" : "$Codex_Ent_Fumerolas_01_Name;"
+    },
+    "$Codex_Ent_Fumerolas_01_Cadmium_Name;" : { # entry 2380106
+        "name" : "Fumerola Carbosis - Orange",
+        "species" : "$Codex_Ent_Fumerolas_01_Name;"
+    },
+    "$Codex_Ent_Fumerolas_02_Mercury_Name;" : { # entry 2380201
+        "name" : "Fumerola Extremus - Lime",
+        "species" : "$Codex_Ent_Fumerolas_02_Name;"
+    },
+    "$Codex_Ent_Fumerolas_02_Niobium_Name;" : { # entry 2380202
+        "name" : "Fumerola Extremus - White",
+        "species" : "$Codex_Ent_Fumerolas_02_Name;"
+    },
+    "$Codex_Ent_Fumerolas_02_Tin_Name;" : { # entry 2380203
+        "name" : "Fumerola Extremus - Peach",
+        "species" : "$Codex_Ent_Fumerolas_02_Name;"
+    },
+    "$Codex_Ent_Fumerolas_02_Tungsten_Name;" : { # entry 2380204
+        "name" : "Fumerola Extremus - Mulberry",
+        "species" : "$Codex_Ent_Fumerolas_02_Name;"
+    },
+    "$Codex_Ent_Fumerolas_02_Molybdenum_Name;" : { # entry 2380205
+        "name" : "Fumerola Extremus - Blue",
+        "species" : "$Codex_Ent_Fumerolas_02_Name;"
+    },
+    "$Codex_Ent_Fumerolas_02_Cadmium_Name;" : { # entry 2380206
+        "name" : "Fumerola Extremus - Aquamarine",
+        "species" : "$Codex_Ent_Fumerolas_02_Name;"
+    },
+    "$Codex_Ent_Fumerolas_03_Mercury_Name;" : { # entry 2380301
+        "name" : "Fumerola Nitris - Peach",
+        "species" : "$Codex_Ent_Fumerolas_03_Name;"
+    },
+    "$Codex_Ent_Fumerolas_03_Niobium_Name;" : { # entry 2380302
+        "name" : "Fumerola Nitris - Red",
+        "species" : "$Codex_Ent_Fumerolas_03_Name;"
+    },
+    "$Codex_Ent_Fumerolas_03_Tin_Name;" : { # entry 2380303
+        "name" : "Fumerola Nitris - Mulberry",
+        "species" : "$Codex_Ent_Fumerolas_03_Name;"
+    },
+    "$Codex_Ent_Fumerolas_03_Tungsten_Name;" : { # entry 2380304
+        "name" : "Fumerola Nitris - Aquamarine",
+        "species" : "$Codex_Ent_Fumerolas_03_Name;"
+    },
+    "$Codex_Ent_Fumerolas_03_Molybdenum_Name;" : { # entry 2380305
+        "name" : "Fumerola Nitris - Lime",
+        "species" : "$Codex_Ent_Fumerolas_03_Name;"
+    },
+    "$Codex_Ent_Fumerolas_03_Cadmium_Name;" : { # entry 2380306
+        "name" : "Fumerola Nitris - White",
+        "species" : "$Codex_Ent_Fumerolas_03_Name;"
+    },
+    "$Codex_Ent_Fumerolas_04_Mercury_Name;" : { # entry 2380401
+        "name" : "Fumerola Aquatis - Yellow",
+        "species" : "$Codex_Ent_Fumerolas_04_Name;"
+    },
+    "$Codex_Ent_Fumerolas_04_Niobium_Name;" : { # entry 2380402
+        "name" : "Fumerola Aquatis - Gold",
+        "species" : "$Codex_Ent_Fumerolas_04_Name;"
+    },
+    "$Codex_Ent_Fumerolas_04_Tin_Name;" : { # entry 2380403
+        "name" : "Fumerola Aquatis - Orange",
+        "species" : "$Codex_Ent_Fumerolas_04_Name;"
+    },
+    "$Codex_Ent_Fumerolas_04_Tungsten_Name;" : { # entry 2380404
+        "name" : "Fumerola Aquatis - Cobalt",
+        "species" : "$Codex_Ent_Fumerolas_04_Name;"
+    },
+    "$Codex_Ent_Fumerolas_04_Molybdenum_Name;" : { # entry 2380405
+        "name" : "Fumerola Aquatis - Cyan",
+        "species" : "$Codex_Ent_Fumerolas_04_Name;"
+    },
+    "$Codex_Ent_Fumerolas_04_Cadmium_Name;" : { # entry 2380406
+        "name" : "Fumerola Aquatis - Green",
+        "species" : "$Codex_Ent_Fumerolas_04_Name;"
+    },
+
+    "$Codex_Ent_Fungoids_01_Technetium_Name;" : { # entry 2390101
+        "name" : "Fungoida Setisis - Lime",
+        "species" : "$Codex_Ent_Fungoids_01_Name;"
+    },
+    "$Codex_Ent_Fungoids_01_Tellurium_Name;" : { # entry 2390102
+        "name" : "Fungoida Setisis - Yellow",
+        "species" : "$Codex_Ent_Fungoids_01_Name;"
+    },
+    "$Codex_Ent_Fungoids_01_Polonium_Name;" : { # entry 2390103
+        "name" : "Fungoida Setisis - White",
+        "species" : "$Codex_Ent_Fungoids_01_Name;"
+    },
+    "$Codex_Ent_Fungoids_01_Ruthenium_Name;" : { # entry 2390104
+        "name" : "Fungoida Setisis - Gold",
+        "species" : "$Codex_Ent_Fungoids_01_Name;"
+    },
+    "$Codex_Ent_Fungoids_01_Antimony_Name;" : { # entry 2390105
+        "name" : "Fungoida Setisis - Peach",
+        "species" : "$Codex_Ent_Fungoids_01_Name;"
+    },
+    "$Codex_Ent_Fungoids_01_Yttrium_Name;" : { # entry 2390106
+        "name" : "Fungoida Setisis - Orange",
+        "species" : "$Codex_Ent_Fungoids_01_Name;"
+    },
+    "$Codex_Ent_Fungoids_02_Mercury_Name;" : { # entry 2390201
+        "name" : "Fungoida Stabitis - Green",
+        "species" : "$Codex_Ent_Fungoids_02_Name;"
+    },
+    "$Codex_Ent_Fungoids_02_Niobium_Name;" : { # entry 2390202
+        "name" : "Fungoida Stabitis - White",
+        "species" : "$Codex_Ent_Fungoids_02_Name;"
+    },
+    "$Codex_Ent_Fungoids_02_Tin_Name;" : { # entry 2390203
+        "name" : "Fungoida Stabitis - Orange",
+        "species" : "$Codex_Ent_Fungoids_02_Name;"
+    },
+    "$Codex_Ent_Fungoids_02_Tungsten_Name;" : { # entry 2390204
+        "name" : "Fungoida Stabitis - Peach",
+        "species" : "$Codex_Ent_Fungoids_02_Name;"
+    },
+    "$Codex_Ent_Fungoids_02_Molybdenum_Name;" : { # entry 2390205
+        "name" : "Fungoida Stabitis - Magenta",
+        "species" : "$Codex_Ent_Fungoids_02_Name;"
+    },
+    "$Codex_Ent_Fungoids_02_Cadmium_Name;" : { # entry 2390206
+        "name" : "Fungoida Stabitis - Blue",
+        "species" : "$Codex_Ent_Fungoids_02_Name;"
+    },
+    "$Codex_Ent_Fungoids_03_Technetium_Name;" : { # entry 2390301
+        "name" : "Fungoida Bullarum - Peach",
+        "species" : "$Codex_Ent_Fungoids_03_Name;"
+    },
+    "$Codex_Ent_Fungoids_03_Tellurium_Name;" : { # entry 2390302
+        "name" : "Fungoida Bullarum - Gold",
+        "species" : "$Codex_Ent_Fungoids_03_Name;"
+    },
+    "$Codex_Ent_Fungoids_03_Polonium_Name;" : { # entry 2390303
+        "name" : "Fungoida Bullarum - Mulberry",
+        "species" : "$Codex_Ent_Fungoids_03_Name;"
+    },
+    "$Codex_Ent_Fungoids_03_Ruthenium_Name;" : { # entry 2390304
+        "name" : "Fungoida Bullarum - Magenta",
+        "species" : "$Codex_Ent_Fungoids_03_Name;"
+    },
+    "$Codex_Ent_Fungoids_03_Antimony_Name;" : { # entry 2390305
+        "name" : "Fungoida Bullarum - Red",
+        "species" : "$Codex_Ent_Fungoids_03_Name;"
+    },
+    "$Codex_Ent_Fungoids_03_Yttrium_Name;" : { # entry 2390306
+        "name" : "Fungoida Bullarum - Orange",
+        "species" : "$Codex_Ent_Fungoids_03_Name;"
+    },
+    "$Codex_Ent_Fungoids_04_Mercury_Name;" : { # entry 2390401
+        "name" : "Fungoida Gelata - Lime",
+        "species" : "$Codex_Ent_Fungoids_04_Name;"
+    },
+    "$Codex_Ent_Fungoids_04_Niobium_Name;" : { # entry 2390402
+        "name" : "Fungoida Gelata - Green",
+        "species" : "$Codex_Ent_Fungoids_04_Name;"
+    },
+    "$Codex_Ent_Fungoids_04_Tin_Name;" : { # entry 2390403
+        "name" : "Fungoida Gelata - Red",
+        "species" : "$Codex_Ent_Fungoids_04_Name;"
+    },
+    "$Codex_Ent_Fungoids_04_Tungsten_Name;" : { # entry 2390404
+        "name" : "Fungoida Gelata - Orange",
+        "species" : "$Codex_Ent_Fungoids_04_Name;"
+    },
+    "$Codex_Ent_Fungoids_04_Molybdenum_Name;" : { # entry 2390405
+        "name" : "Fungoida Gelata - Mulberry",
+        "species" : "$Codex_Ent_Fungoids_04_Name;"
+    },
+    "$Codex_Ent_Fungoids_04_Cadmium_Name;" : { # entry 2390406
+        "name" : "Fungoida Gelata - Cyan",
+        "species" : "$Codex_Ent_Fungoids_04_Name;"
+    },
+
+    "$Codex_Ent_Osseus_01_A_Name;" : { # entry 2400102
+        "name" : "Osseus Fractus - Lime",
+        "species" : "$Codex_Ent_Osseus_01_Name;"
+    },
+    "$Codex_Ent_Osseus_01_F_Name;" : { # entry 2400103
+        "name" : "Osseus Fractus - Turquoise",
+        "species" : "$Codex_Ent_Osseus_01_Name;"
+    },
+    "$Codex_Ent_Osseus_01_G_Name;" : { # entry 2400104
+        "name" : "Osseus Fractus - Grey",
+        "species" : "$Codex_Ent_Osseus_01_Name;"
+    },
+    "$Codex_Ent_Osseus_01_K_Name;" : { # entry 2400105
+        "name" : "Osseus Fractus - Indigo",
+        "species" : "$Codex_Ent_Osseus_01_Name;"
+    },
+    "$Codex_Ent_Osseus_01_T_Name;" : { # entry 2400106
+        "name" : "Osseus Fractus - Emerald",
+        "species" : "$Codex_Ent_Osseus_01_Name;"
+    },
+    "$Codex_Ent_Osseus_01_TTS_Name;" : { # entry 2400107
+        "name" : "Osseus Fractus - Green",
+        "species" : "$Codex_Ent_Osseus_01_Name;"
+    },
+    "$Codex_Ent_Osseus_01_Y_Name;" : { # entry 2400109
+        "name" : "Osseus Fractus - Maroon",
+        "species" : "$Codex_Ent_Osseus_01_Name;"
+    },
+    "$Codex_Ent_Osseus_02_Mercury_Name;" : { # entry 2400201
+        "name" : "Osseus Discus - Lime",
+        "species" : "$Codex_Ent_Osseus_02_Name;"
+    },
+    "$Codex_Ent_Osseus_02_Niobium_Name;" : { # entry 2400202
+        "name" : "Osseus Discus - Aquamarine",
+        "species" : "$Codex_Ent_Osseus_02_Name;"
+    },
+    "$Codex_Ent_Osseus_02_Tin_Name;" : { # entry 2400203
+        "name" : "Osseus Discus - Blue",
+        "species" : "$Codex_Ent_Osseus_02_Name;"
+    },
+    "$Codex_Ent_Osseus_02_Tungsten_Name;" : { # entry 2400204
+        "name" : "Osseus Discus - Red",
+        "species" : "$Codex_Ent_Osseus_02_Name;"
+    },
+    "$Codex_Ent_Osseus_02_Molybdenum_Name;" : { # entry 2400205
+        "name" : "Osseus Discus - Peach",
+        "species" : "$Codex_Ent_Osseus_02_Name;"
+    },
+    "$Codex_Ent_Osseus_02_Cadmium_Name;" : { # entry 2400206
+        "name" : "Osseus Discus - White",
+        "species" : "$Codex_Ent_Osseus_02_Name;"
+    },
+    "$Codex_Ent_Osseus_03_O_Name;" : { # entry 2400301
+        "name" : "Osseus Spiralis - Yellow",
+        "species" : "$Codex_Ent_Osseus_03_Name;"
+    },
+    "$Codex_Ent_Osseus_03_A_Name;" : { # entry 2400302
+        "name" : "Osseus Spiralis - Lime",
+        "species" : "$Codex_Ent_Osseus_03_Name;"
+    },
+    "$Codex_Ent_Osseus_03_F_Name;" : { # entry 2400303
+        "name" : "Osseus Spiralis - Turquoise",
+        "species" : "$Codex_Ent_Osseus_03_Name;"
+    },
+    "$Codex_Ent_Osseus_03_G_Name;" : { # entry 2400304
+        "name" : "Osseus Spiralis - Grey",
+        "species" : "$Codex_Ent_Osseus_03_Name;"
+    },
+    "$Codex_Ent_Osseus_03_K_Name;" : { # entry 2400305
+        "name" : "Osseus Spiralis - Indigo",
+        "species" : "$Codex_Ent_Osseus_03_Name;"
+    },
+    "$Codex_Ent_Osseus_03_T_Name;" : { # entry 2400306
+        "name" : "Osseus Spiralis - Emerald",
+        "species" : "$Codex_Ent_Osseus_03_Name;"
+    },
+    "$Codex_Ent_Osseus_03_TTS_Name;" : { # entry 2400307
+        "name" : "Osseus Spiralis - Green",
+        "species" : "$Codex_Ent_Osseus_03_Name;"
+    },
+    "$Codex_Ent_Osseus_03_Y_Name;" : { # entry 2400309
+        "name" : "Osseus Spiralis - Maroon",
+        "species" : "$Codex_Ent_Osseus_03_Name;"
+    },
+    "$Codex_Ent_Osseus_04_Technetium_Name;" : { # entry 2400401
+        "name" : "Osseus Pumice - Lime",
+        "species" : "$Codex_Ent_Osseus_04_Name;"
+    },
+    "$Codex_Ent_Osseus_04_Tellurium_Name;" : { # entry 2400402
+        "name" : "Osseus Pumice - Green",
+        "species" : "$Codex_Ent_Osseus_04_Name;"
+    },
+    "$Codex_Ent_Osseus_04_Polonium_Name;" : { # entry 2400403
+        "name" : "Osseus Pumice - Peach",
+        "species" : "$Codex_Ent_Osseus_04_Name;"
+    },
+    "$Codex_Ent_Osseus_04_Ruthenium_Name;" : { # entry 2400404
+        "name" : "Osseus Pumice - Gold",
+        "species" : "$Codex_Ent_Osseus_04_Name;"
+    },
+    "$Codex_Ent_Osseus_04_Antimony_Name;" : { # entry 2400405
+        "name" : "Osseus Pumice - White",
+        "species" : "$Codex_Ent_Osseus_04_Name;"
+    },
+    "$Codex_Ent_Osseus_04_Yttrium_Name;" : { # entry 2400406
+        "name" : "Osseus Pumice - Yellow",
+        "species" : "$Codex_Ent_Osseus_04_Name;"
+    },
+    "$Codex_Ent_Osseus_05_A_Name;" : { # entry 2400502
+        "name" : "Osseus Cornibus - Lime",
+        "species" : "$Codex_Ent_Osseus_05_Name;"
+    },
+    "$Codex_Ent_Osseus_05_F_Name;" : { # entry 2400503
+        "name" : "Osseus Cornibus - Turquoise",
+        "species" : "$Codex_Ent_Osseus_05_Name;"
+    },
+    "$Codex_Ent_Osseus_05_G_Name;" : { # entry 2400504
+        "name" : "Osseus Cornibus - Grey",
+        "species" : "$Codex_Ent_Osseus_05_Name;"
+    },
+    "$Codex_Ent_Osseus_05_K_Name;" : { # entry 2400505
+        "name" : "Osseus Cornibus - Indigo",
+        "species" : "$Codex_Ent_Osseus_05_Name;"
+    },
+    "$Codex_Ent_Osseus_05_T_Name;" : { # entry 2400506
+        "name" : "Osseus Cornibus - Emerald",
+        "species" : "$Codex_Ent_Osseus_05_Name;"
+    },
+    "$Codex_Ent_Osseus_05_TTS_Name;" : { # entry 2400507
+        "name" : "Osseus Cornibus - Green",
+        "species" : "$Codex_Ent_Osseus_05_Name;"
+    },
+    "$Codex_Ent_Osseus_05_Y_Name;" : { # entry 2400509
+        "name" : "Osseus Cornibus - Maroon",
+        "species" : "$Codex_Ent_Osseus_05_Name;"
+    },
+    "$Codex_Ent_Osseus_06_A_Name;" : { # entry 2400602
+        "name" : "Osseus Pellebantus - Lime",
+        "species" : "$Codex_Ent_Osseus_06_Name;"
+    },
+    "$Codex_Ent_Osseus_06_F_Name;" : { # entry 2400603
+        "name" : "Osseus Pellebantus - Turquoise",
+        "species" : "$Codex_Ent_Osseus_06_Name;"
+    },
+    "$Codex_Ent_Osseus_06_G_Name;" : { # entry 2400604
+        "name" : "Osseus Pellebantus - Grey",
+        "species" : "$Codex_Ent_Osseus_06_Name;"
+    },
+    "$Codex_Ent_Osseus_06_K_Name;" : { # entry 2400605
+        "name" : "Osseus Pellebantus - Indigo",
+        "species" : "$Codex_Ent_Osseus_06_Name;"
+    },
+    "$Codex_Ent_Osseus_06_T_Name;" : { # entry 2400606
+        "name" : "Osseus Pellebantus - Emerald",
+        "species" : "$Codex_Ent_Osseus_06_Name;"
+    },
+    "$Codex_Ent_Osseus_06_TTS_Name;" : { # entry 2400607
+        "name" : "Osseus Pellebantus - Green",
+        "species" : "$Codex_Ent_Osseus_06_Name;"
+    },
+    "$Codex_Ent_Osseus_06_Y_Name;" : { # entry 2400609
+        "name" : "Osseus Pellebantus - Maroon",
+        "species" : "$Codex_Ent_Osseus_06_Name;"
+    },
+
+    "$Codex_Ent_Recepta_01_O_Name;" : { # entry 2410101
+        "name" : "Recepta Umbrux - Indigo",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_B_Name;" : { # entry 2410102
+        "name" : "Recepta Umbrux - Turquoise",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_A_Name;" : { # entry 2410103
+        "name" : "Recepta Umbrux - Amethyst",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_F_Name;" : { # entry 2410104
+        "name" : "Recepta Umbrux - Mauve",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_G_Name;" : { # entry 2410105
+        "name" : "Recepta Umbrux - Orange",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_K_Name;" : { # entry 2410106
+        "name" : "Recepta Umbrux - Red",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_M_Name;" : { # entry 2410107
+        "name" : "Recepta Umbrux - Maroon",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_L_Name;" : { # entry 2410108
+        "name" : "Recepta Umbrux - Ocher",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_T_Name;" : { # entry 2410109
+        "name" : "Recepta Umbrux - Teal",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_TTS_Name;" : { # entry 2410110
+        "name" : "Recepta Umbrux - Sage",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_Ae_Name;" : { # entry 2410111
+        "name" : "Recepta Umbrux - Grey",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_Y_Name;" : { # entry 2410112
+        "name" : "Recepta Umbrux - Lime",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_D_Name;" : { # entry 2410114
+        "name" : "Recepta Umbrux - Yellow",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_01_N_Name;" : { # entry 2410115
+        "name" : "Recepta Umbrux - Emerald",
+        "species" : "$Codex_Ent_Recepta_01_Name;"
+    },
+    "$Codex_Ent_Recepta_02_Mercury_Name;" : { # entry 2410201
+        "name" : "Recepta Deltahedronix - Cyan",
+        "species" : "$Codex_Ent_Recepta_02_Name;"
+    },
+    "$Codex_Ent_Recepta_02_Niobium_Name;" : { # entry 2410202
+        "name" : "Recepta Deltahedronix - Mulberry",
+        "species" : "$Codex_Ent_Recepta_02_Name;"
+    },
+    "$Codex_Ent_Recepta_02_Tin_Name;" : { # entry 2410203
+        "name" : "Recepta Deltahedronix - Orange",
+        "species" : "$Codex_Ent_Recepta_02_Name;"
+    },
+    "$Codex_Ent_Recepta_02_Tungsten_Name;" : { # entry 2410204
+        "name" : "Recepta Deltahedronix - Red",
+        "species" : "$Codex_Ent_Recepta_02_Name;"
+    },
+    "$Codex_Ent_Recepta_02_Molybdenum_Name;" : { # entry 2410205
+        "name" : "Recepta Deltahedronix - Gold",
+        "species" : "$Codex_Ent_Recepta_02_Name;"
+    },
+    "$Codex_Ent_Recepta_02_Cadmium_Name;" : { # entry 2410206
+        "name" : "Recepta Deltahedronix - Lime",
+        "species" : "$Codex_Ent_Recepta_02_Name;"
+    },
+    "$Codex_Ent_Recepta_03_Technetium_Name;" : { # entry 2410301
+        "name" : "Recepta Conditivus - Aquamarine",
+        "species" : "$Codex_Ent_Recepta_03_Name;"
+    },
+    "$Codex_Ent_Recepta_03_Tellurium_Name;" : { # entry 2410302
+        "name" : "Recepta Conditivus - Cyan",
+        "species" : "$Codex_Ent_Recepta_03_Name;"
+    },
+    "$Codex_Ent_Recepta_03_Polonium_Name;" : { # entry 2410303
+        "name" : "Recepta Conditivus - White",
+        "species" : "$Codex_Ent_Recepta_03_Name;"
+    },
+    "$Codex_Ent_Recepta_03_Ruthenium_Name;" : { # entry 2410304
+        "name" : "Recepta Conditivus - Yellow",
+        "species" : "$Codex_Ent_Recepta_03_Name;"
+    },
+    "$Codex_Ent_Recepta_03_Antimony_Name;" : { # entry 2410305
+        "name" : "Recepta Conditivus - Lime",
+        "species" : "$Codex_Ent_Recepta_03_Name;"
+    },
+    "$Codex_Ent_Recepta_03_Yttrium_Name;" : { # entry 2410306
+        "name" : "Recepta Conditivus - Green",
+        "species" : "$Codex_Ent_Recepta_03_Name;"
+    },
+
+    "$Codex_Ent_Stratum_01_F_Name;" : { # entry 2420101
+        "name" : "Stratum Excutitus - Emerald",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_01_K_Name;" : { # entry 2420102
+        "name" : "Stratum Excutitus - Lime",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_01_M_Name;" : { # entry 2420103
+        "name" : "Stratum Excutitus - Green",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_01_L_Name;" : { # entry 2420104
+        "name" : "Stratum Excutitus - Turquoise",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_01_T_Name;" : { # entry 2420105
+        "name" : "Stratum Excutitus - Grey",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_01_TTS_Name;" : { # entry 2420106
+        "name" : "Stratum Excutitus - Amethyst",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_01_Ae_Name;" : { # entry 2420107
+        "name" : "Stratum Excutitus - Teal",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_01_Y_Name;" : { # entry 2420108
+        "name" : "Stratum Excutitus - Indigo",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_01_W_Name;" : { # entry 2420109
+        "name" : "Stratum Excutitus - Red",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_01_D_Name;" : { # entry 2420110
+        "name" : "Stratum Excutitus - Mauve",
+        "species" : "$Codex_Ent_Stratum_01_Name;"
+    },
+    "$Codex_Ent_Stratum_02_F_Name;" : { # entry 2420201
+        "name" : "Stratum Paleas - Emerald",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_02_K_Name;" : { # entry 2420202
+        "name" : "Stratum Paleas - Lime",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_02_M_Name;" : { # entry 2420203
+        "name" : "Stratum Paleas - Green",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_02_L_Name;" : { # entry 2420204
+        "name" : "Stratum Paleas - Turquoise",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_02_T_Name;" : { # entry 2420205
+        "name" : "Stratum Paleas - Grey",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_02_TTS_Name;" : { # entry 2420206
+        "name" : "Stratum Paleas - Amethyst",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_02_Ae_Name;" : { # entry 2420207
+        "name" : "Stratum Paleas - Teal",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_02_Y_Name;" : { # entry 2420208
+        "name" : "Stratum Paleas - Indigo",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_02_W_Name;" : { # entry 2420209
+        "name" : "Stratum Paleas - Red",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_02_D_Name;" : { # entry 2420210
+        "name" : "Stratum Paleas - Mauve",
+        "species" : "$Codex_Ent_Stratum_02_Name;"
+    },
+    "$Codex_Ent_Stratum_03_F_Name;" : { # entry 2420301
+        "name" : "Stratum Laminamus - Emerald",
+        "species" : "$Codex_Ent_Stratum_03_Name;"
+    },
+    "$Codex_Ent_Stratum_03_K_Name;" : { # entry 2420302
+        "name" : "Stratum Laminamus - Lime",
+        "species" : "$Codex_Ent_Stratum_03_Name;"
+    },
+    "$Codex_Ent_Stratum_03_M_Name;" : { # entry 2420303
+        "name" : "Stratum Laminamus - Green",
+        "species" : "$Codex_Ent_Stratum_03_Name;"
+    },
+    "$Codex_Ent_Stratum_03_L_Name;" : { # entry 2420304
+        "name" : "Stratum Laminamus - Turquoise",
+        "species" : "$Codex_Ent_Stratum_03_Name;"
+    },
+    "$Codex_Ent_Stratum_03_T_Name;" : { # entry 2420305
+        "name" : "Stratum Laminamus - Grey",
+        "species" : "$Codex_Ent_Stratum_03_Name;"
+    },
+    "$Codex_Ent_Stratum_03_TTS_Name;" : { # entry 2420306
+        "name" : "Stratum Laminamus - Amethyst",
+        "species" : "$Codex_Ent_Stratum_03_Name;"
+    },
+    "$Codex_Ent_Stratum_03_Y_Name;" : { # entry 2420308
+        "name" : "Stratum Laminamus - Indigo",
+        "species" : "$Codex_Ent_Stratum_03_Name;"
+    },
+    "$Codex_Ent_Stratum_03_W_Name;" : { # entry 2420309
+        "name" : "Stratum Laminamus - Red",
+        "species" : "$Codex_Ent_Stratum_03_Name;"
+    },
+    "$Codex_Ent_Stratum_03_D_Name;" : { # entry 2420310
+        "name" : "Stratum Laminamus - Mauve",
+        "species" : "$Codex_Ent_Stratum_03_Name;"
+    },
+    "$Codex_Ent_Stratum_04_F_Name;" : { # entry 2420401
+        "name" : "Stratum Araneamus - Emerald",
+        "species" : "$Codex_Ent_Stratum_04_Name;"
+    },
+    "$Codex_Ent_Stratum_05_F_Name;" : { # entry 2420501
+        "name" : "Stratum Limaxus - Emerald",
+        "species" : "$Codex_Ent_Stratum_05_Name;"
+    },
+    "$Codex_Ent_Stratum_05_K_Name;" : { # entry 2420502
+        "name" : "Stratum Limaxus - Lime",
+        "species" : "$Codex_Ent_Stratum_05_Name;"
+    },
+    "$Codex_Ent_Stratum_05_M_Name;" : { # entry 2420503
+        "name" : "Stratum Limaxus - Green",
+        "species" : "$Codex_Ent_Stratum_05_Name;"
+    },
+    "$Codex_Ent_Stratum_05_L_Name;" : { # entry 2420504
+        "name" : "Stratum Limaxus - Turquoise",
+        "species" : "$Codex_Ent_Stratum_05_Name;"
+    },
+    "$Codex_Ent_Stratum_05_T_Name;" : { # entry 2420505
+        "name" : "Stratum Limaxus - Grey",
+        "species" : "$Codex_Ent_Stratum_05_Name;"
+    },
+    "$Codex_Ent_Stratum_05_TTS_Name;" : { # entry 2420506
+        "name" : "Stratum Limaxus - Amethyst",
+        "species" : "$Codex_Ent_Stratum_05_Name;"
+    },
+    "$Codex_Ent_Stratum_05_Ae_Name;" : { # entry 2420507
+        "name" : "Stratum Limaxus - Teal",
+        "species" : "$Codex_Ent_Stratum_05_Name;"
+    },
+    "$Codex_Ent_Stratum_05_Y_Name;" : { # entry 2420508
+        "name" : "Stratum Limaxus - Indigo",
+        "species" : "$Codex_Ent_Stratum_05_Name;"
+    },
+    "$Codex_Ent_Stratum_05_D_Name;" : { # entry 2420510
+        "name" : "Stratum Limaxus - Mauve",
+        "species" : "$Codex_Ent_Stratum_05_Name;"
+    },
+    "$Codex_Ent_Stratum_06_F_Name;" : { # entry 2420601
+        "name" : "Stratum Cucumisis - Emerald",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_06_K_Name;" : { # entry 2420602
+        "name" : "Stratum Cucumisis - Lime",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_06_M_Name;" : { # entry 2420603
+        "name" : "Stratum Cucumisis - Green",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_06_L_Name;" : { # entry 2420604
+        "name" : "Stratum Cucumisis - Turquoise",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_06_T_Name;" : { # entry 2420605
+        "name" : "Stratum Cucumisis - Grey",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_06_TTS_Name;" : { # entry 2420606
+        "name" : "Stratum Cucumisis - Amethyst",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_06_Ae_Name;" : { # entry 2420607
+        "name" : "Stratum Cucumisis - Teal",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_06_Y_Name;" : { # entry 2420608
+        "name" : "Stratum Cucumisis - Indigo",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_06_W_Name;" : { # entry 2420609
+        "name" : "Stratum Cucumisis - Red",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_06_D_Name;" : { # entry 2420610
+        "name" : "Stratum Cucumisis - Mauve",
+        "species" : "$Codex_Ent_Stratum_06_Name;"
+    },
+    "$Codex_Ent_Stratum_07_F_Name;" : { # entry 2420701
+        "name" : "Stratum Tectonicas - Emerald",
+        "species" : "$Codex_Ent_Stratum_07_Name;"
+    },
+    "$Codex_Ent_Stratum_07_K_Name;" : { # entry 2420702
+        "name" : "Stratum Tectonicas - Lime",
+        "species" : "$Codex_Ent_Stratum_07_Name;"
+    },
+    "$Codex_Ent_Stratum_07_M_Name;" : { # entry 2420703
+        "name" : "Stratum Tectonicas - Green",
+        "species" : "$Codex_Ent_Stratum_07_Name;"
+    },
+    "$Codex_Ent_Stratum_07_L_Name;" : { # entry 2420704
+        "name" : "Stratum Tectonicas - Turquoise",
+        "species" : "$Codex_Ent_Stratum_07_Name;"
+    },
+    "$Codex_Ent_Stratum_07_T_Name;" : { # entry 2420705
+        "name" : "Stratum Tectonicas - Grey",
+        "species" : "$Codex_Ent_Stratum_07_Name;"
+    },
+    "$Codex_Ent_Stratum_07_TTS_Name;" : { # entry 2420706
+        "name" : "Stratum Tectonicas - Amethyst",
+        "species" : "$Codex_Ent_Stratum_07_Name;"
+    },
+    "$Codex_Ent_Stratum_07_Y_Name;" : { # entry 2420708
+        "name" : "Stratum Tectonicas - Indigo",
+        "species" : "$Codex_Ent_Stratum_07_Name;"
+    },
+    "$Codex_Ent_Stratum_07_W_Name;" : { # entry 2420709
+        "name" : "Stratum Tectonicas - Red",
+        "species" : "$Codex_Ent_Stratum_07_Name;"
+    },
+    "$Codex_Ent_Stratum_07_D_Name;" : { # entry 2420710
+        "name" : "Stratum Tectonicas - Mauve",
+        "species" : "$Codex_Ent_Stratum_07_Name;"
+    },
+    "$Codex_Ent_Stratum_08_F_Name;" : { # entry 2420801
+        "name" : "Stratum Frigus - Emerald",
+        "species" : "$Codex_Ent_Stratum_08_Name;"
+    },
+    "$Codex_Ent_Stratum_08_K_Name;" : { # entry 2420802
+        "name" : "Stratum Frigus - Lime",
+        "species" : "$Codex_Ent_Stratum_08_Name;"
+    },
+    "$Codex_Ent_Stratum_08_M_Name;" : { # entry 2420803
+        "name" : "Stratum Frigus - Green",
+        "species" : "$Codex_Ent_Stratum_08_Name;"
+    },
+    "$Codex_Ent_Stratum_08_L_Name;" : { # entry 2420804
+        "name" : "Stratum Frigus - Turquoise",
+        "species" : "$Codex_Ent_Stratum_08_Name;"
+    },
+    "$Codex_Ent_Stratum_08_T_Name;" : { # entry 2420805
+        "name" : "Stratum Frigus - Grey",
+        "species" : "$Codex_Ent_Stratum_08_Name;"
+    },
+    "$Codex_Ent_Stratum_08_TTS_Name;" : { # entry 2420806
+        "name" : "Stratum Frigus - Amethyst",
+        "species" : "$Codex_Ent_Stratum_08_Name;"
+    },
+    "$Codex_Ent_Stratum_08_Ae_Name;" : { # entry 2420807
+        "name" : "Stratum Frigus - Teal",
+        "species" : "$Codex_Ent_Stratum_08_Name;"
+    },
+    "$Codex_Ent_Stratum_08_Y_Name;" : { # entry 2420808
+        "name" : "Stratum Frigus - Indigo",
+        "species" : "$Codex_Ent_Stratum_08_Name;"
+    },
+    "$Codex_Ent_Stratum_08_D_Name;" : { # entry 2420810
+        "name" : "Stratum Frigus - Mauve",
+        "species" : "$Codex_Ent_Stratum_08_Name;"
+    },
+
+    "$Codex_Ent_Tubus_01_B_Name;" : { # entry 2430102
+        "name" : "Tubus Conifer - Emerald",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_A_Name;" : { # entry 2430103
+        "name" : "Tubus Conifer - Indigo",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_F_Name;" : { # entry 2430104
+        "name" : "Tubus Conifer - Grey",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_G_Name;" : { # entry 2430105
+        "name" : "Tubus Conifer - Red",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_K_Name;" : { # entry 2430106
+        "name" : "Tubus Conifer - Maroon",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_M_Name;" : { # entry 2430107
+        "name" : "Tubus Conifer - Teal",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_L_Name;" : { # entry 2430108
+        "name" : "Tubus Conifer - Turquoise",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_T_Name;" : { # entry 2430109
+        "name" : "Tubus Conifer - Mauve",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_TTS_Name;" : { # entry 2430110
+        "name" : "Tubus Conifer - Ocher",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_D_Name;" : { # entry 2430112
+        "name" : "Tubus Conifer - Yellow",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_01_N_Name;" : { # entry 2430113
+        "name" : "Tubus Conifer - Amethyst",
+        "species" : "$Codex_Ent_Tubus_01_Name;"
+    },
+    "$Codex_Ent_Tubus_02_B_Name;" : { # entry 2430202
+        "name" : "Tubus Sororibus - Emerald",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_A_Name;" : { # entry 2430203
+        "name" : "Tubus Sororibus - Indigo",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_F_Name;" : { # entry 2430204
+        "name" : "Tubus Sororibus - Grey",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_G_Name;" : { # entry 2430205
+        "name" : "Tubus Sororibus - Red",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_K_Name;" : { # entry 2430206
+        "name" : "Tubus Sororibus - Maroon",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_M_Name;" : { # entry 2430207
+        "name" : "Tubus Sororibus - Teal",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_L_Name;" : { # entry 2430208
+        "name" : "Tubus Sororibus - Turquoise",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_T_Name;" : { # entry 2430209
+        "name" : "Tubus Sororibus - Mauve",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_TTS_Name;" : { # entry 2430210
+        "name" : "Tubus Sororibus - Ocher",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_D_Name;" : { # entry 2430212
+        "name" : "Tubus Sororibus - Yellow",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_02_N_Name;" : { # entry 2430213
+        "name" : "Tubus Sororibus - Amethyst",
+        "species" : "$Codex_Ent_Tubus_02_Name;"
+    },
+    "$Codex_Ent_Tubus_03_B_Name;" : { # entry 2430302
+        "name" : "Tubus Cavas - Emerald",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_A_Name;" : { # entry 2430303
+        "name" : "Tubus Cavas - Indigo",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_F_Name;" : { # entry 2430304
+        "name" : "Tubus Cavas - Grey",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_G_Name;" : { # entry 2430305
+        "name" : "Tubus Cavas - Red",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_K_Name;" : { # entry 2430306
+        "name" : "Tubus Cavas - Maroon",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_M_Name;" : { # entry 2430307
+        "name" : "Tubus Cavas - Teal",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_L_Name;" : { # entry 2430308
+        "name" : "Tubus Cavas - Turquoise",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_T_Name;" : { # entry 2430309
+        "name" : "Tubus Cavas - Mauve",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_TTS_Name;" : { # entry 2430310
+        "name" : "Tubus Cavas - Ocher",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_D_Name;" : { # entry 2430312
+        "name" : "Tubus Cavas - Yellow",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_03_N_Name;" : { # entry 2430313
+        "name" : "Tubus Cavas - Amethyst",
+        "species" : "$Codex_Ent_Tubus_03_Name;"
+    },
+    "$Codex_Ent_Tubus_04_O_Name;" : { # entry 2430401
+        "name" : "Tubus Rosarium - Green",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_B_Name;" : { # entry 2430402
+        "name" : "Tubus Rosarium - Emerald",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_A_Name;" : { # entry 2430403
+        "name" : "Tubus Rosarium - Indigo",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_F_Name;" : { # entry 2430404
+        "name" : "Tubus Rosarium - Grey",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_G_Name;" : { # entry 2430405
+        "name" : "Tubus Rosarium - Red",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_K_Name;" : { # entry 2430406
+        "name" : "Tubus Rosarium - Maroon",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_M_Name;" : { # entry 2430407
+        "name" : "Tubus Rosarium - Teal",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_L_Name;" : { # entry 2430408
+        "name" : "Tubus Rosarium - Turquoise",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_T_Name;" : { # entry 2430409
+        "name" : "Tubus Rosarium - Mauve",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_TTS_Name;" : { # entry 2430410
+        "name" : "Tubus Rosarium - Ocher",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_D_Name;" : { # entry 2430412
+        "name" : "Tubus Rosarium - Yellow",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_04_N_Name;" : { # entry 2430413
+        "name" : "Tubus Rosarium - Amethyst",
+        "species" : "$Codex_Ent_Tubus_04_Name;"
+    },
+    "$Codex_Ent_Tubus_05_B_Name;" : { # entry 2430502
+        "name" : "Tubus Compagibus - Emerald",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_A_Name;" : { # entry 2430503
+        "name" : "Tubus Compagibus - Indigo",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_F_Name;" : { # entry 2430504
+        "name" : "Tubus Compagibus - Grey",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_G_Name;" : { # entry 2430505
+        "name" : "Tubus Compagibus - Red",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_K_Name;" : { # entry 2430506
+        "name" : "Tubus Compagibus - Maroon",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_M_Name;" : { # entry 2430507
+        "name" : "Tubus Compagibus - Teal",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_L_Name;" : { # entry 2430508
+        "name" : "Tubus Compagibus - Turquoise",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_T_Name;" : { # entry 2430509
+        "name" : "Tubus Compagibus - Mauve",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_TTS_Name;" : { # entry 2430510
+        "name" : "Tubus Compagibus - Ocher",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_W_Name;" : { # entry 2430511
+        "name" : "Tubus Compagibus - Lime",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_D_Name;" : { # entry 2430512
+        "name" : "Tubus Compagibus - Yellow",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+    "$Codex_Ent_Tubus_05_N_Name;" : { # entry 2430513
+        "name" : "Tubus Compagibus - Amethyst",
+        "species" : "$Codex_Ent_Tubus_05_Name;"
+    },
+
+    "$Codex_Ent_Shrubs_01_O_Name;" : { # entry 2440101
+        "name" : "Frutexa Flabellum - Yellow",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_01_B_Name;" : { # entry 2440102
+        "name" : "Frutexa Flabellum - Lime",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_01_F_Name;" : { # entry 2440103
+        "name" : "Frutexa Flabellum - Green",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_01_G_Name;" : { # entry 2440104
+        "name" : "Frutexa Flabellum - Emerald",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_01_M_Name;" : { # entry 2440105
+        "name" : "Frutexa Flabellum - Grey",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_01_L_Name;" : { # entry 2440106
+        "name" : "Frutexa Flabellum - Teal",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_01_TTS_Name;" : { # entry 2440107
+        "name" : "Frutexa Flabellum - Mauve",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_01_W_Name;" : { # entry 2440109
+        "name" : "Frutexa Flabellum - Orange",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_01_D_Name;" : { # entry 2440110
+        "name" : "Frutexa Flabellum - Indigo",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_01_N_Name;" : { # entry 2440111
+        "name" : "Frutexa Flabellum - Red",
+        "species" : "$Codex_Ent_Shrubs_01_Name;"
+    },
+    "$Codex_Ent_Shrubs_02_B_Name;" : { # entry 2440202
+        "name" : "Frutexa Acus - Lime",
+        "species" : "$Codex_Ent_Shrubs_02_Name;"
+    },
+    "$Codex_Ent_Shrubs_02_F_Name;" : { # entry 2440203
+        "name" : "Frutexa Acus - Green",
+        "species" : "$Codex_Ent_Shrubs_02_Name;"
+    },
+    "$Codex_Ent_Shrubs_02_G_Name;" : { # entry 2440204
+        "name" : "Frutexa Acus - Emerald",
+        "species" : "$Codex_Ent_Shrubs_02_Name;"
+    },
+    "$Codex_Ent_Shrubs_02_M_Name;" : { # entry 2440205
+        "name" : "Frutexa Acus - Grey",
+        "species" : "$Codex_Ent_Shrubs_02_Name;"
+    },
+    "$Codex_Ent_Shrubs_02_L_Name;" : { # entry 2440206
+        "name" : "Frutexa Acus - Teal",
+        "species" : "$Codex_Ent_Shrubs_02_Name;"
+    },
+    "$Codex_Ent_Shrubs_02_TTS_Name;" : { # entry 2440207
+        "name" : "Frutexa Acus - Mauve",
+        "species" : "$Codex_Ent_Shrubs_02_Name;"
+    },
+    "$Codex_Ent_Shrubs_02_W_Name;" : { # entry 2440209
+        "name" : "Frutexa Acus - Orange",
+        "species" : "$Codex_Ent_Shrubs_02_Name;"
+    },
+    "$Codex_Ent_Shrubs_02_D_Name;" : { # entry 2440210
+        "name" : "Frutexa Acus - Indigo",
+        "species" : "$Codex_Ent_Shrubs_02_Name;"
+    },
+    "$Codex_Ent_Shrubs_02_N_Name;" : { # entry 2440211
+        "name" : "Frutexa Acus - Red",
+        "species" : "$Codex_Ent_Shrubs_02_Name;"
+    },
+    "$Codex_Ent_Shrubs_03_B_Name;" : { # entry 2440302
+        "name" : "Frutexa Metallicum - Lime",
+        "species" : "$Codex_Ent_Shrubs_03_Name;"
+    },
+    "$Codex_Ent_Shrubs_03_F_Name;" : { # entry 2440303
+        "name" : "Frutexa Metallicum - Green",
+        "species" : "$Codex_Ent_Shrubs_03_Name;"
+    },
+    "$Codex_Ent_Shrubs_03_G_Name;" : { # entry 2440304
+        "name" : "Frutexa Metallicum - Emerald",
+        "species" : "$Codex_Ent_Shrubs_03_Name;"
+    },
+    "$Codex_Ent_Shrubs_03_M_Name;" : { # entry 2440305
+        "name" : "Frutexa Metallicum - Grey",
+        "species" : "$Codex_Ent_Shrubs_03_Name;"
+    },
+    "$Codex_Ent_Shrubs_03_L_Name;" : { # entry 2440306
+        "name" : "Frutexa Metallicum - Teal",
+        "species" : "$Codex_Ent_Shrubs_03_Name;"
+    },
+    "$Codex_Ent_Shrubs_03_TTS_Name;" : { # entry 2440307
+        "name" : "Frutexa Metallicum - Mauve",
+        "species" : "$Codex_Ent_Shrubs_03_Name;"
+    },
+    "$Codex_Ent_Shrubs_03_D_Name;" : { # entry 2440310
+        "name" : "Frutexa Metallicum - Indigo",
+        "species" : "$Codex_Ent_Shrubs_03_Name;"
+    },
+    "$Codex_Ent_Shrubs_03_N_Name;" : { # entry 2440311
+        "name" : "Frutexa Metallicum - Red",
+        "species" : "$Codex_Ent_Shrubs_03_Name;"
+    },
+    "$Codex_Ent_Shrubs_04_B_Name;" : { # entry 2440402
+        "name" : "Frutexa Flammasis - Lime",
+        "species" : "$Codex_Ent_Shrubs_04_Name;"
+    },
+    "$Codex_Ent_Shrubs_04_F_Name;" : { # entry 2440403
+        "name" : "Frutexa Flammasis - Green",
+        "species" : "$Codex_Ent_Shrubs_04_Name;"
+    },
+    "$Codex_Ent_Shrubs_04_G_Name;" : { # entry 2440404
+        "name" : "Frutexa Flammasis - Emerald",
+        "species" : "$Codex_Ent_Shrubs_04_Name;"
+    },
+    "$Codex_Ent_Shrubs_04_M_Name;" : { # entry 2440405
+        "name" : "Frutexa Flammasis - Grey",
+        "species" : "$Codex_Ent_Shrubs_04_Name;"
+    },
+    "$Codex_Ent_Shrubs_04_L_Name;" : { # entry 2440406
+        "name" : "Frutexa Flammasis - Teal",
+        "species" : "$Codex_Ent_Shrubs_04_Name;"
+    },
+    "$Codex_Ent_Shrubs_04_TTS_Name;" : { # entry 2440407
+        "name" : "Frutexa Flammasis - Mauve",
+        "species" : "$Codex_Ent_Shrubs_04_Name;"
+    },
+    "$Codex_Ent_Shrubs_04_D_Name;" : { # entry 2440410
+        "name" : "Frutexa Flammasis - Indigo",
+        "species" : "$Codex_Ent_Shrubs_04_Name;"
+    },
+    "$Codex_Ent_Shrubs_04_N_Name;" : { # entry 2440411
+        "name" : "Frutexa Flammasis - Red",
+        "species" : "$Codex_Ent_Shrubs_04_Name;"
+    },
+    "$Codex_Ent_Shrubs_05_B_Name;" : { # entry 2440502
+        "name" : "Frutexa Fera - Lime",
+        "species" : "$Codex_Ent_Shrubs_05_Name;"
+    },
+    "$Codex_Ent_Shrubs_05_F_Name;" : { # entry 2440503
+        "name" : "Frutexa Fera - Green",
+        "species" : "$Codex_Ent_Shrubs_05_Name;"
+    },
+    "$Codex_Ent_Shrubs_05_G_Name;" : { # entry 2440504
+        "name" : "Frutexa Fera - Emerald",
+        "species" : "$Codex_Ent_Shrubs_05_Name;"
+    },
+    "$Codex_Ent_Shrubs_05_M_Name;" : { # entry 2440505
+        "name" : "Frutexa Fera - Grey",
+        "species" : "$Codex_Ent_Shrubs_05_Name;"
+    },
+    "$Codex_Ent_Shrubs_05_L_Name;" : { # entry 2440506
+        "name" : "Frutexa Fera - Teal",
+        "species" : "$Codex_Ent_Shrubs_05_Name;"
+    },
+    "$Codex_Ent_Shrubs_05_TTS_Name;" : { # entry 2440507
+        "name" : "Frutexa Fera - Mauve",
+        "species" : "$Codex_Ent_Shrubs_05_Name;"
+    },
+    "$Codex_Ent_Shrubs_05_D_Name;" : { # entry 2440510
+        "name" : "Frutexa Fera - Indigo",
+        "species" : "$Codex_Ent_Shrubs_05_Name;"
+    },
+    "$Codex_Ent_Shrubs_05_N_Name;" : { # entry 2440511
+        "name" : "Frutexa Fera - Red",
+        "species" : "$Codex_Ent_Shrubs_05_Name;"
+    },
+    "$Codex_Ent_Shrubs_06_B_Name;" : { # entry 2440602
+        "name" : "Frutexa Sponsae - Lime",
+        "species" : "$Codex_Ent_Shrubs_06_Name;"
+    },
+    "$Codex_Ent_Shrubs_06_F_Name;" : { # entry 2440603
+        "name" : "Frutexa Sponsae - Green",
+        "species" : "$Codex_Ent_Shrubs_06_Name;"
+    },
+    "$Codex_Ent_Shrubs_06_G_Name;" : { # entry 2440604
+        "name" : "Frutexa Sponsae - Emerald",
+        "species" : "$Codex_Ent_Shrubs_06_Name;"
+    },
+    "$Codex_Ent_Shrubs_06_M_Name;" : { # entry 2440605
+        "name" : "Frutexa Sponsae - Grey",
+        "species" : "$Codex_Ent_Shrubs_06_Name;"
+    },
+    "$Codex_Ent_Shrubs_06_L_Name;" : { # entry 2440606
+        "name" : "Frutexa Sponsae - Teal",
+        "species" : "$Codex_Ent_Shrubs_06_Name;"
+    },
+    "$Codex_Ent_Shrubs_06_TTS_Name;" : { # entry 2440607
+        "name" : "Frutexa Sponsae - Mauve",
+        "species" : "$Codex_Ent_Shrubs_06_Name;"
+    },
+    "$Codex_Ent_Shrubs_06_D_Name;" : { # entry 2440610
+        "name" : "Frutexa Sponsae - Indigo",
+        "species" : "$Codex_Ent_Shrubs_06_Name;"
+    },
+    "$Codex_Ent_Shrubs_06_N_Name;" : { # entry 2440611
+        "name" : "Frutexa Sponsae - Red",
+        "species" : "$Codex_Ent_Shrubs_06_Name;"
+    },
+    "$Codex_Ent_Shrubs_07_O_Name;" : { # entry 2440701
+        "name" : "Frutexa Collum - Yellow",
+        "species" : "$Codex_Ent_Shrubs_07_Name;"
+    },
+    "$Codex_Ent_Shrubs_07_B_Name;" : { # entry 2440702
+        "name" : "Frutexa Collum - Lime",
+        "species" : "$Codex_Ent_Shrubs_07_Name;"
+    },
+    "$Codex_Ent_Shrubs_07_F_Name;" : { # entry 2440703
+        "name" : "Frutexa Collum - Green",
+        "species" : "$Codex_Ent_Shrubs_07_Name;"
+    },
+    "$Codex_Ent_Shrubs_07_G_Name;" : { # entry 2440704
+        "name" : "Frutexa Collum - Emerald",
+        "species" : "$Codex_Ent_Shrubs_07_Name;"
+    },
+    "$Codex_Ent_Shrubs_07_M_Name;" : { # entry 2440705
+        "name" : "Frutexa Collum - Grey",
+        "species" : "$Codex_Ent_Shrubs_07_Name;"
+    },
+    "$Codex_Ent_Shrubs_07_L_Name;" : { # entry 2440706
+        "name" : "Frutexa Collum - Teal",
+        "species" : "$Codex_Ent_Shrubs_07_Name;"
+    },
+    "$Codex_Ent_Shrubs_07_TTS_Name;" : { # entry 2440707
+        "name" : "Frutexa Collum - Mauve",
+        "species" : "$Codex_Ent_Shrubs_07_Name;"
+    },
+    "$Codex_Ent_Shrubs_07_D_Name;" : { # entry 2440710
+        "name" : "Frutexa Collum - Indigo",
+        "species" : "$Codex_Ent_Shrubs_07_Name;"
+    },
+    "$Codex_Ent_Shrubs_07_N_Name;" : { # entry 2440711
+        "name" : "Frutexa Collum - Red",
+        "species" : "$Codex_Ent_Shrubs_07_Name;"
+    },
+
+    "$Codex_Ent_Tussocks_01_F_Name;" : { # entry 2450101
+        "name" : "Tussock Pennata - Yellow",
+        "species" : "$Codex_Ent_Tussocks_01_Name;"
+    },
+    "$Codex_Ent_Tussocks_01_G_Name;" : { # entry 2450102
+        "name" : "Tussock Pennata - Lime",
+        "species" : "$Codex_Ent_Tussocks_01_Name;"
+    },
+    "$Codex_Ent_Tussocks_01_K_Name;" : { # entry 2450103
+        "name" : "Tussock Pennata - Green",
+        "species" : "$Codex_Ent_Tussocks_01_Name;"
+    },
+    "$Codex_Ent_Tussocks_01_M_Name;" : { # entry 2450104
+        "name" : "Tussock Pennata - Emerald",
+        "species" : "$Codex_Ent_Tussocks_01_Name;"
+    },
+    "$Codex_Ent_Tussocks_01_L_Name;" : { # entry 2450105
+        "name" : "Tussock Pennata - Sage",
+        "species" : "$Codex_Ent_Tussocks_01_Name;"
+    },
+    "$Codex_Ent_Tussocks_01_T_Name;" : { # entry 2450106
+        "name" : "Tussock Pennata - Teal",
+        "species" : "$Codex_Ent_Tussocks_01_Name;"
+    },
+    "$Codex_Ent_Tussocks_01_Y_Name;" : { # entry 2450109
+        "name" : "Tussock Pennata - Red",
+        "species" : "$Codex_Ent_Tussocks_01_Name;"
+    },
+    "$Codex_Ent_Tussocks_01_W_Name;" : { # entry 2450110
+        "name" : "Tussock Pennata - Orange",
+        "species" : "$Codex_Ent_Tussocks_01_Name;"
+    },
+    "$Codex_Ent_Tussocks_01_D_Name;" : { # entry 2450111
+        "name" : "Tussock Pennata - Maroon",
+        "species" : "$Codex_Ent_Tussocks_01_Name;"
+    },
+    "$Codex_Ent_Tussocks_02_F_Name;" : { # entry 2450201
+        "name" : "Tussock Ventusa - Yellow",
+        "species" : "$Codex_Ent_Tussocks_02_Name;"
+    },
+    "$Codex_Ent_Tussocks_02_G_Name;" : { # entry 2450202
+        "name" : "Tussock Ventusa - Lime",
+        "species" : "$Codex_Ent_Tussocks_02_Name;"
+    },
+    "$Codex_Ent_Tussocks_02_K_Name;" : { # entry 2450203
+        "name" : "Tussock Ventusa - Green",
+        "species" : "$Codex_Ent_Tussocks_02_Name;"
+    },
+    "$Codex_Ent_Tussocks_02_M_Name;" : { # entry 2450204
+        "name" : "Tussock Ventusa - Emerald",
+        "species" : "$Codex_Ent_Tussocks_02_Name;"
+    },
+    "$Codex_Ent_Tussocks_02_L_Name;" : { # entry 2450205
+        "name" : "Tussock Ventusa - Sage",
+        "species" : "$Codex_Ent_Tussocks_02_Name;"
+    },
+    "$Codex_Ent_Tussocks_02_T_Name;" : { # entry 2450206
+        "name" : "Tussock Ventusa - Teal",
+        "species" : "$Codex_Ent_Tussocks_02_Name;"
+    },
+    "$Codex_Ent_Tussocks_02_Y_Name;" : { # entry 2450209
+        "name" : "Tussock Ventusa - Red",
+        "species" : "$Codex_Ent_Tussocks_02_Name;"
+    },
+    "$Codex_Ent_Tussocks_02_W_Name;" : { # entry 2450210
+        "name" : "Tussock Ventusa - Orange",
+        "species" : "$Codex_Ent_Tussocks_02_Name;"
+    },
+    "$Codex_Ent_Tussocks_02_D_Name;" : { # entry 2450211
+        "name" : "Tussock Ventusa - Maroon",
+        "species" : "$Codex_Ent_Tussocks_02_Name;"
+    },
+    "$Codex_Ent_Tussocks_03_F_Name;" : { # entry 2450301
+        "name" : "Tussock Ignis - Yellow",
+        "species" : "$Codex_Ent_Tussocks_03_Name;"
+    },
+    "$Codex_Ent_Tussocks_03_G_Name;" : { # entry 2450302
+        "name" : "Tussock Ignis - Lime",
+        "species" : "$Codex_Ent_Tussocks_03_Name;"
+    },
+    "$Codex_Ent_Tussocks_03_K_Name;" : { # entry 2450303
+        "name" : "Tussock Ignis - Green",
+        "species" : "$Codex_Ent_Tussocks_03_Name;"
+    },
+    "$Codex_Ent_Tussocks_03_M_Name;" : { # entry 2450304
+        "name" : "Tussock Ignis - Emerald",
+        "species" : "$Codex_Ent_Tussocks_03_Name;"
+    },
+    "$Codex_Ent_Tussocks_03_L_Name;" : { # entry 2450305
+        "name" : "Tussock Ignis - Sage",
+        "species" : "$Codex_Ent_Tussocks_03_Name;"
+    },
+    "$Codex_Ent_Tussocks_03_T_Name;" : { # entry 2450306
+        "name" : "Tussock Ignis - Teal",
+        "species" : "$Codex_Ent_Tussocks_03_Name;"
+    },
+    "$Codex_Ent_Tussocks_03_Y_Name;" : { # entry 2450309
+        "name" : "Tussock Ignis - Red",
+        "species" : "$Codex_Ent_Tussocks_03_Name;"
+    },
+    "$Codex_Ent_Tussocks_03_W_Name;" : { # entry 2450310
+        "name" : "Tussock Ignis - Orange",
+        "species" : "$Codex_Ent_Tussocks_03_Name;"
+    },
+    "$Codex_Ent_Tussocks_03_D_Name;" : { # entry 2450311
+        "name" : "Tussock Ignis - Maroon",
+        "species" : "$Codex_Ent_Tussocks_03_Name;"
+    },
+    "$Codex_Ent_Tussocks_04_F_Name;" : { # entry 2450401
+        "name" : "Tussock Cultro - Yellow",
+        "species" : "$Codex_Ent_Tussocks_04_Name;"
+    },
+    "$Codex_Ent_Tussocks_04_G_Name;" : { # entry 2450402
+        "name" : "Tussock Cultro - Lime",
+        "species" : "$Codex_Ent_Tussocks_04_Name;"
+    },
+    "$Codex_Ent_Tussocks_04_K_Name;" : { # entry 2450403
+        "name" : "Tussock Cultro - Green",
+        "species" : "$Codex_Ent_Tussocks_04_Name;"
+    },
+    "$Codex_Ent_Tussocks_04_M_Name;" : { # entry 2450404
+        "name" : "Tussock Cultro - Emerald",
+        "species" : "$Codex_Ent_Tussocks_04_Name;"
+    },
+    "$Codex_Ent_Tussocks_04_L_Name;" : { # entry 2450405
+        "name" : "Tussock Cultro - Sage",
+        "species" : "$Codex_Ent_Tussocks_04_Name;"
+    },
+    "$Codex_Ent_Tussocks_04_T_Name;" : { # entry 2450406
+        "name" : "Tussock Cultro - Teal",
+        "species" : "$Codex_Ent_Tussocks_04_Name;"
+    },
+    "$Codex_Ent_Tussocks_04_Y_Name;" : { # entry 2450409
+        "name" : "Tussock Cultro - Red",
+        "species" : "$Codex_Ent_Tussocks_04_Name;"
+    },
+    "$Codex_Ent_Tussocks_04_W_Name;" : { # entry 2450410
+        "name" : "Tussock Cultro - Orange",
+        "species" : "$Codex_Ent_Tussocks_04_Name;"
+    },
+    "$Codex_Ent_Tussocks_04_D_Name;" : { # entry 2450411
+        "name" : "Tussock Cultro - Maroon",
+        "species" : "$Codex_Ent_Tussocks_04_Name;"
+    },
+    "$Codex_Ent_Tussocks_05_F_Name;" : { # entry 2450501
+        "name" : "Tussock Catena - Yellow",
+        "species" : "$Codex_Ent_Tussocks_05_Name;"
+    },
+    "$Codex_Ent_Tussocks_05_G_Name;" : { # entry 2450502
+        "name" : "Tussock Catena - Lime",
+        "species" : "$Codex_Ent_Tussocks_05_Name;"
+    },
+    "$Codex_Ent_Tussocks_05_K_Name;" : { # entry 2450503
+        "name" : "Tussock Catena - Green",
+        "species" : "$Codex_Ent_Tussocks_05_Name;"
+    },
+    "$Codex_Ent_Tussocks_05_M_Name;" : { # entry 2450504
+        "name" : "Tussock Catena - Emerald",
+        "species" : "$Codex_Ent_Tussocks_05_Name;"
+    },
+    "$Codex_Ent_Tussocks_05_L_Name;" : { # entry 2450505
+        "name" : "Tussock Catena - Sage",
+        "species" : "$Codex_Ent_Tussocks_05_Name;"
+    },
+    "$Codex_Ent_Tussocks_05_T_Name;" : { # entry 2450506
+        "name" : "Tussock Catena - Teal",
+        "species" : "$Codex_Ent_Tussocks_05_Name;"
+    },
+    "$Codex_Ent_Tussocks_05_Y_Name;" : { # entry 2450509
+        "name" : "Tussock Catena - Red",
+        "species" : "$Codex_Ent_Tussocks_05_Name;"
+    },
+    "$Codex_Ent_Tussocks_05_D_Name;" : { # entry 2450511
+        "name" : "Tussock Catena - Maroon",
+        "species" : "$Codex_Ent_Tussocks_05_Name;"
+    },
+    "$Codex_Ent_Tussocks_06_F_Name;" : { # entry 2450601
+        "name" : "Tussock Pennatis - Yellow",
+        "species" : "$Codex_Ent_Tussocks_06_Name;"
+    },
+    "$Codex_Ent_Tussocks_06_G_Name;" : { # entry 2450602
+        "name" : "Tussock Pennatis - Lime",
+        "species" : "$Codex_Ent_Tussocks_06_Name;"
+    },
+    "$Codex_Ent_Tussocks_06_K_Name;" : { # entry 2450603
+        "name" : "Tussock Pennatis - Green",
+        "species" : "$Codex_Ent_Tussocks_06_Name;"
+    },
+    "$Codex_Ent_Tussocks_06_M_Name;" : { # entry 2450604
+        "name" : "Tussock Pennatis - Emerald",
+        "species" : "$Codex_Ent_Tussocks_06_Name;"
+    },
+    "$Codex_Ent_Tussocks_06_L_Name;" : { # entry 2450605
+        "name" : "Tussock Pennatis - Sage",
+        "species" : "$Codex_Ent_Tussocks_06_Name;"
+    },
+    "$Codex_Ent_Tussocks_06_T_Name;" : { # entry 2450606
+        "name" : "Tussock Pennatis - Teal",
+        "species" : "$Codex_Ent_Tussocks_06_Name;"
+    },
+    "$Codex_Ent_Tussocks_06_Y_Name;" : { # entry 2450609
+        "name" : "Tussock Pennatis - Red",
+        "species" : "$Codex_Ent_Tussocks_06_Name;"
+    },
+    "$Codex_Ent_Tussocks_06_D_Name;" : { # entry 2450611
+        "name" : "Tussock Pennatis - Maroon",
+        "species" : "$Codex_Ent_Tussocks_06_Name;"
+    },
+    "$Codex_Ent_Tussocks_07_F_Name;" : { # entry 2450701
+        "name" : "Tussock Serrati - Yellow",
+        "species" : "$Codex_Ent_Tussocks_07_Name;"
+    },
+    "$Codex_Ent_Tussocks_07_G_Name;" : { # entry 2450702
+        "name" : "Tussock Serrati - Lime",
+        "species" : "$Codex_Ent_Tussocks_07_Name;"
+    },
+    "$Codex_Ent_Tussocks_07_K_Name;" : { # entry 2450703
+        "name" : "Tussock Serrati - Green",
+        "species" : "$Codex_Ent_Tussocks_07_Name;"
+    },
+    "$Codex_Ent_Tussocks_07_M_Name;" : { # entry 2450704
+        "name" : "Tussock Serrati - Emerald",
+        "species" : "$Codex_Ent_Tussocks_07_Name;"
+    },
+    "$Codex_Ent_Tussocks_07_L_Name;" : { # entry 2450705
+        "name" : "Tussock Serrati - Sage",
+        "species" : "$Codex_Ent_Tussocks_07_Name;"
+    },
+    "$Codex_Ent_Tussocks_07_T_Name;" : { # entry 2450706
+        "name" : "Tussock Serrati - Teal",
+        "species" : "$Codex_Ent_Tussocks_07_Name;"
+    },
+    "$Codex_Ent_Tussocks_07_Y_Name;" : { # entry 2450709
+        "name" : "Tussock Serrati - Red",
+        "species" : "$Codex_Ent_Tussocks_07_Name;"
+    },
+    "$Codex_Ent_Tussocks_07_D_Name;" : { # entry 2450711
+        "name" : "Tussock Serrati - Maroon",
+        "species" : "$Codex_Ent_Tussocks_07_Name;"
+    },
+    "$Codex_Ent_Tussocks_08_F_Name;" : { # entry 2450801
+        "name" : "Tussock Albata - Yellow",
+        "species" : "$Codex_Ent_Tussocks_08_Name;"
+    },
+    "$Codex_Ent_Tussocks_08_G_Name;" : { # entry 2450802
+        "name" : "Tussock Albata - Lime",
+        "species" : "$Codex_Ent_Tussocks_08_Name;"
+    },
+    "$Codex_Ent_Tussocks_08_K_Name;" : { # entry 2450803
+        "name" : "Tussock Albata - Green",
+        "species" : "$Codex_Ent_Tussocks_08_Name;"
+    },
+    "$Codex_Ent_Tussocks_08_M_Name;" : { # entry 2450804
+        "name" : "Tussock Albata - Emerald",
+        "species" : "$Codex_Ent_Tussocks_08_Name;"
+    },
+    "$Codex_Ent_Tussocks_08_L_Name;" : { # entry 2450805
+        "name" : "Tussock Albata - Sage",
+        "species" : "$Codex_Ent_Tussocks_08_Name;"
+    },
+    "$Codex_Ent_Tussocks_08_T_Name;" : { # entry 2450806
+        "name" : "Tussock Albata - Teal",
+        "species" : "$Codex_Ent_Tussocks_08_Name;"
+    },
+    "$Codex_Ent_Tussocks_08_Y_Name;" : { # entry 2450809
+        "name" : "Tussock Albata - Red",
+        "species" : "$Codex_Ent_Tussocks_08_Name;"
+    },
+    "$Codex_Ent_Tussocks_08_W_Name;" : { # entry 2450810
+        "name" : "Tussock Albata - Orange",
+        "species" : "$Codex_Ent_Tussocks_08_Name;"
+    },
+    "$Codex_Ent_Tussocks_08_D_Name;" : { # entry 2450811
+        "name" : "Tussock Albata - Maroon",
+        "species" : "$Codex_Ent_Tussocks_08_Name;"
+    },
+    "$Codex_Ent_Tussocks_09_F_Name;" : { # entry 2450901
+        "name" : "Tussock Propagito - Yellow",
+        "species" : "$Codex_Ent_Tussocks_09_Name;"
+    },
+    "$Codex_Ent_Tussocks_09_G_Name;" : { # entry 2450902
+        "name" : "Tussock Propagito - Lime",
+        "species" : "$Codex_Ent_Tussocks_09_Name;"
+    },
+    "$Codex_Ent_Tussocks_09_K_Name;" : { # entry 2450903
+        "name" : "Tussock Propagito - Green",
+        "species" : "$Codex_Ent_Tussocks_09_Name;"
+    },
+    "$Codex_Ent_Tussocks_09_M_Name;" : { # entry 2450904
+        "name" : "Tussock Propagito - Emerald",
+        "species" : "$Codex_Ent_Tussocks_09_Name;"
+    },
+    "$Codex_Ent_Tussocks_09_L_Name;" : { # entry 2450905
+        "name" : "Tussock Propagito - Sage",
+        "species" : "$Codex_Ent_Tussocks_09_Name;"
+    },
+    "$Codex_Ent_Tussocks_09_T_Name;" : { # entry 2450906
+        "name" : "Tussock Propagito - Teal",
+        "species" : "$Codex_Ent_Tussocks_09_Name;"
+    },
+    "$Codex_Ent_Tussocks_09_Y_Name;" : { # entry 2450909
+        "name" : "Tussock Propagito - Red",
+        "species" : "$Codex_Ent_Tussocks_09_Name;"
+    },
+    "$Codex_Ent_Tussocks_09_D_Name;" : { # entry 2450911
+        "name" : "Tussock Propagito - Maroon",
+        "species" : "$Codex_Ent_Tussocks_09_Name;"
+    },
+    "$Codex_Ent_Tussocks_10_F_Name;" : { # entry 2451001
+        "name" : "Tussock Divisa - Yellow",
+        "species" : "$Codex_Ent_Tussocks_10_Name;"
+    },
+    "$Codex_Ent_Tussocks_10_G_Name;" : { # entry 2451002
+        "name" : "Tussock Divisa - Lime",
+        "species" : "$Codex_Ent_Tussocks_10_Name;"
+    },
+    "$Codex_Ent_Tussocks_10_K_Name;" : { # entry 2451003
+        "name" : "Tussock Divisa - Green",
+        "species" : "$Codex_Ent_Tussocks_10_Name;"
+    },
+    "$Codex_Ent_Tussocks_10_M_Name;" : { # entry 2451004
+        "name" : "Tussock Divisa - Emerald",
+        "species" : "$Codex_Ent_Tussocks_10_Name;"
+    },
+    "$Codex_Ent_Tussocks_10_L_Name;" : { # entry 2451005
+        "name" : "Tussock Divisa - Sage",
+        "species" : "$Codex_Ent_Tussocks_10_Name;"
+    },
+    "$Codex_Ent_Tussocks_10_T_Name;" : { # entry 2451006
+        "name" : "Tussock Divisa - Teal",
+        "species" : "$Codex_Ent_Tussocks_10_Name;"
+    },
+    "$Codex_Ent_Tussocks_10_Y_Name;" : { # entry 2451009
+        "name" : "Tussock Divisa - Red",
+        "species" : "$Codex_Ent_Tussocks_10_Name;"
+    },
+    "$Codex_Ent_Tussocks_10_D_Name;" : { # entry 2451011
+        "name" : "Tussock Divisa - Maroon",
+        "species" : "$Codex_Ent_Tussocks_10_Name;"
+    },
+    "$Codex_Ent_Tussocks_11_F_Name;" : { # entry 2451101
+        "name" : "Tussock Caputus - Yellow",
+        "species" : "$Codex_Ent_Tussocks_11_Name;"
+    },
+    "$Codex_Ent_Tussocks_11_G_Name;" : { # entry 2451102
+        "name" : "Tussock Caputus - Lime",
+        "species" : "$Codex_Ent_Tussocks_11_Name;"
+    },
+    "$Codex_Ent_Tussocks_11_K_Name;" : { # entry 2451103
+        "name" : "Tussock Caputus - Green",
+        "species" : "$Codex_Ent_Tussocks_11_Name;"
+    },
+    "$Codex_Ent_Tussocks_11_M_Name;" : { # entry 2451104
+        "name" : "Tussock Caputus - Emerald",
+        "species" : "$Codex_Ent_Tussocks_11_Name;"
+    },
+    "$Codex_Ent_Tussocks_11_L_Name;" : { # entry 2451105
+        "name" : "Tussock Caputus - Sage",
+        "species" : "$Codex_Ent_Tussocks_11_Name;"
+    },
+    "$Codex_Ent_Tussocks_11_T_Name;" : { # entry 2451106
+        "name" : "Tussock Caputus - Teal",
+        "species" : "$Codex_Ent_Tussocks_11_Name;"
+    },
+    "$Codex_Ent_Tussocks_11_Y_Name;" : { # entry 2451109
+        "name" : "Tussock Caputus - Red",
+        "species" : "$Codex_Ent_Tussocks_11_Name;"
+    },
+    "$Codex_Ent_Tussocks_11_D_Name;" : { # entry 2451111
+        "name" : "Tussock Caputus - Maroon",
+        "species" : "$Codex_Ent_Tussocks_11_Name;"
+    },
+    "$Codex_Ent_Tussocks_12_F_Name;" : { # entry 2451201
+        "name" : "Tussock Triticum - Yellow",
+        "species" : "$Codex_Ent_Tussocks_12_Name;"
+    },
+    "$Codex_Ent_Tussocks_12_G_Name;" : { # entry 2451202
+        "name" : "Tussock Triticum - Lime",
+        "species" : "$Codex_Ent_Tussocks_12_Name;"
+    },
+    "$Codex_Ent_Tussocks_12_K_Name;" : { # entry 2451203
+        "name" : "Tussock Triticum - Green",
+        "species" : "$Codex_Ent_Tussocks_12_Name;"
+    },
+    "$Codex_Ent_Tussocks_12_M_Name;" : { # entry 2451204
+        "name" : "Tussock Triticum - Emerald",
+        "species" : "$Codex_Ent_Tussocks_12_Name;"
+    },
+    "$Codex_Ent_Tussocks_12_L_Name;" : { # entry 2451205
+        "name" : "Tussock Triticum - Sage",
+        "species" : "$Codex_Ent_Tussocks_12_Name;"
+    },
+    "$Codex_Ent_Tussocks_12_T_Name;" : { # entry 2451206
+        "name" : "Tussock Triticum - Teal",
+        "species" : "$Codex_Ent_Tussocks_12_Name;"
+    },
+    "$Codex_Ent_Tussocks_12_Y_Name;" : { # entry 2451209
+        "name" : "Tussock Triticum - Red",
+        "species" : "$Codex_Ent_Tussocks_12_Name;"
+    },
+    "$Codex_Ent_Tussocks_12_D_Name;" : { # entry 2451211
+        "name" : "Tussock Triticum - Maroon",
+        "species" : "$Codex_Ent_Tussocks_12_Name;"
+    },
+    "$Codex_Ent_Tussocks_13_F_Name;" : { # entry 2451301
+        "name" : "Tussock Stigmasis - Yellow",
+        "species" : "$Codex_Ent_Tussocks_13_Name;"
+    },
+    "$Codex_Ent_Tussocks_13_G_Name;" : { # entry 2451302
+        "name" : "Tussock Stigmasis - Lime",
+        "species" : "$Codex_Ent_Tussocks_13_Name;"
+    },
+    "$Codex_Ent_Tussocks_13_K_Name;" : { # entry 2451303
+        "name" : "Tussock Stigmasis - Green",
+        "species" : "$Codex_Ent_Tussocks_13_Name;"
+    },
+    "$Codex_Ent_Tussocks_13_M_Name;" : { # entry 2451304
+        "name" : "Tussock Stigmasis - Emerald",
+        "species" : "$Codex_Ent_Tussocks_13_Name;"
+    },
+    "$Codex_Ent_Tussocks_13_L_Name;" : { # entry 2451305
+        "name" : "Tussock Stigmasis - Sage",
+        "species" : "$Codex_Ent_Tussocks_13_Name;"
+    },
+    "$Codex_Ent_Tussocks_13_T_Name;" : { # entry 2451306
+        "name" : "Tussock Stigmasis - Teal",
+        "species" : "$Codex_Ent_Tussocks_13_Name;"
+    },
+    "$Codex_Ent_Tussocks_13_Y_Name;" : { # entry 2451309
+        "name" : "Tussock Stigmasis - Red",
+        "species" : "$Codex_Ent_Tussocks_13_Name;"
+    },
+    "$Codex_Ent_Tussocks_13_D_Name;" : { # entry 2451311
+        "name" : "Tussock Stigmasis - Maroon",
+        "species" : "$Codex_Ent_Tussocks_13_Name;"
+    },
+    "$Codex_Ent_Tussocks_14_F_Name;" : { # entry 2451401
+        "name" : "Tussock Virgam - Yellow",
+        "species" : "$Codex_Ent_Tussocks_14_Name;"
+    },
+    "$Codex_Ent_Tussocks_14_G_Name;" : { # entry 2451402
+        "name" : "Tussock Virgam - Lime",
+        "species" : "$Codex_Ent_Tussocks_14_Name;"
+    },
+    "$Codex_Ent_Tussocks_14_K_Name;" : { # entry 2451403
+        "name" : "Tussock Virgam - Green",
+        "species" : "$Codex_Ent_Tussocks_14_Name;"
+    },
+    "$Codex_Ent_Tussocks_14_M_Name;" : { # entry 2451404
+        "name" : "Tussock Virgam - Emerald",
+        "species" : "$Codex_Ent_Tussocks_14_Name;"
+    },
+    "$Codex_Ent_Tussocks_14_L_Name;" : { # entry 2451405
+        "name" : "Tussock Virgam - Sage",
+        "species" : "$Codex_Ent_Tussocks_14_Name;"
+    },
+    "$Codex_Ent_Tussocks_14_T_Name;" : { # entry 2451406
+        "name" : "Tussock Virgam - Teal",
+        "species" : "$Codex_Ent_Tussocks_14_Name;"
+    },
+    "$Codex_Ent_Tussocks_14_Y_Name;" : { # entry 2451409
+        "name" : "Tussock Virgam - Red",
+        "species" : "$Codex_Ent_Tussocks_14_Name;"
+    },
+    "$Codex_Ent_Tussocks_14_D_Name;" : { # entry 2451411
+        "name" : "Tussock Virgam - Maroon",
+        "species" : "$Codex_Ent_Tussocks_14_Name;"
+    },
+    "$Codex_Ent_Tussocks_15_F_Name;" : { # entry 2451501
+        "name" : "Tussock Capillum - Yellow",
+        "species" : "$Codex_Ent_Tussocks_15_Name;"
+    },
+    "$Codex_Ent_Tussocks_15_G_Name;" : { # entry 2451502
+        "name" : "Tussock Capillum - Lime",
+        "species" : "$Codex_Ent_Tussocks_15_Name;"
+    },
+    "$Codex_Ent_Tussocks_15_K_Name;" : { # entry 2451503
+        "name" : "Tussock Capillum - Green",
+        "species" : "$Codex_Ent_Tussocks_15_Name;"
+    },
+    "$Codex_Ent_Tussocks_15_M_Name;" : { # entry 2451504
+        "name" : "Tussock Capillum - Emerald",
+        "species" : "$Codex_Ent_Tussocks_15_Name;"
+    },
+    "$Codex_Ent_Tussocks_15_L_Name;" : { # entry 2451505
+        "name" : "Tussock Capillum - Sage",
+        "species" : "$Codex_Ent_Tussocks_15_Name;"
+    },
+    "$Codex_Ent_Tussocks_15_T_Name;" : { # entry 2451506
+        "name" : "Tussock Capillum - Teal",
+        "species" : "$Codex_Ent_Tussocks_15_Name;"
+    },
+    "$Codex_Ent_Tussocks_15_Y_Name;" : { # entry 2451509
+        "name" : "Tussock Capillum - Red",
+        "species" : "$Codex_Ent_Tussocks_15_Name;"
+    },
+    "$Codex_Ent_Tussocks_15_D_Name;" : { # entry 2451511
+        "name" : "Tussock Capillum - Maroon",
+        "species" : "$Codex_Ent_Tussocks_15_Name;"
+    },
 }
 
 
