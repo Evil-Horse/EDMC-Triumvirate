@@ -8,12 +8,13 @@ from tkinter import ttk
 from tkinter.messagebox import askyesno, WARNING
 from datetime import datetime
 from pathlib import Path
-from math import sqrt
+from math import sqrt, trunc
 from threading import Lock
 from time import sleep
 from typing import Callable, Any
 from PIL import Image
 from enum import Enum
+from decimal import Decimal
 
 from .debug import debug
 from modules.lib.module import Module
@@ -29,6 +30,37 @@ from modules.bio_dicts import codex_genuses, codex_species, codex_variants, code
 from modules.sectors import merge_ids, split_ids, get_procgen_name, get_sector, get_boxel, get_children
 
 from modules.legacy import Reporter, URL_GOOGLE
+
+
+def format_number(number):
+    decimal_number = Decimal(number)
+    if decimal_number < 1000:
+        return f'{decimal_number}'
+
+    suffixes = {
+        3 : 'k',
+        6 : 'M',
+        9 : 'G',
+        12 : 'T'
+    }
+
+    exponent = 0
+    while decimal_number >= 1000:
+        if exponent >= 12:
+            break
+
+        decimal_number /= 10
+        exponent += 1
+
+    decimal_number //= 1 # truncate
+    while exponent % 3 != 0:
+        if exponent >= 12:
+            break
+
+        decimal_number /= 10
+        exponent += 1
+
+    return f'{decimal_number:,}{suffixes[exponent]}'
 
 
 def distance_between(a: Coords, b: Coords):
@@ -533,10 +565,17 @@ class BioPatrol(tk.Frame, Module):
         self.stats_body_name = tk.Label(self.stats_body_frame, textvariable=self.__stats_body_name_var)
         self.stats_body_name.grid(column=0, row=0, sticky="W")
 
+        self.stats_estimated_bio_frame = tk.Frame(self.stats)
+        self.stats_estimated_bio_frame.grid_columnconfigure(0, weight=1)
+        self.__stats_unsold_bio_var = tk.StringVar(self.stats_estimated_bio_frame)
+        self.stats_unsold_bio = tk.Label(self.stats_estimated_bio_frame, textvariable=self.__stats_unsold_bio_var)
+        self.stats_unsold_bio.grid(column=0, row=0, sticky="W")
+
         self.stats_sector_frame.grid(row=0, sticky="NWSE")
         self.stats_boxel_frame.grid(row=1, sticky="NWSE")
         self.stats_system_frame.grid(row=2, sticky="NWSE")
         self.stats_body_frame.grid(row=3, sticky="NWSE")
+        self.stats_estimated_bio_frame.grid(row=3, sticky="NWSE")
 
         self.__stats_sector_name_var.set("Чо-то тестовое")
 
@@ -795,8 +834,8 @@ class BioPatrol(tk.Frame, Module):
             genus TEXT NOT NULL,
             species TEXT NOT NULL,
             variant TEXT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, genus),
-            FOREIGN KEY (system_id64, bodyid, genus) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE
+            PRIMARY KEY (system_id64, bodyid, codex_genus),
+            FOREIGN KEY (system_id64, bodyid, codex_genus) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE
         )
         ''')
         # state: 0 - Known (CodexEntry), 1 - Logged, 2 - Analyzed, 3 - Possibly Sold, 4 - Sold
@@ -812,8 +851,8 @@ class BioPatrol(tk.Frame, Module):
             variant TEXT NOT NULL,
             cmdr_id INT NOT NULL,
             state INT NOT NULL,
-            PRIMARY KEY (system_id64, bodyid, genus, cmdr_id, state),
-            FOREIGN KEY (system_id64, bodyid, genus) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE,
+            PRIMARY KEY (system_id64, bodyid, codex_genus, cmdr_id, state),
+            FOREIGN KEY (system_id64, bodyid, codex_genus) REFERENCES data_body_signals_dss_bio(system_id64, bodyid, signal) ON DELETE CASCADE,
             FOREIGN KEY (cmdr_id) REFERENCES data_cmdrs(id) ON DELETE CASCADE
         )
         ''')
@@ -1191,7 +1230,9 @@ class BioPatrol(tk.Frame, Module):
             "Disembark",
             "SAAScanComplete",
             "FSSDiscoveryScan",
-            "FSSAllBodiesFound"
+            "FSSAllBodiesFound",
+            "ScanOrganic"
+            "CodexEntry"
         ]
 
         event = entry.data["event"]
@@ -1279,6 +1320,97 @@ class BioPatrol(tk.Frame, Module):
         else:
             self.stats_body_frame.grid()
             self.__stats_body_name_var.set(f'{self.get_current_body(self.current_system_id64, self.current_bodyid)}')
+
+        self.stats_update_estimators()
+
+
+    def stats_update_estimators(self):
+        known_bios = {}
+
+        # pick all possible genuses known from logs
+        for i in self.db.execute('''
+        SELECT
+            system_id64,
+            bodyid,
+            signal
+        FROM
+            data_body_signals_dss_bio
+        '''):
+            system = i[0]
+            planet = i[1]
+            genus = i[2]
+
+            l = [codex_species[j]["value"] for j in codex_species if codex_species[j]["genus"] == genus]
+            key = (system, planet, genus)
+            known_bios[key] = {
+                "cost_min" : min(l) if l else 0,
+                "cost_max" : max(l) if l else 0
+            }
+
+        # pick all known species
+        for i in self.db.execute('''
+        SELECT
+            system_id64,
+            bodyid,
+            codex_genus,
+            codex_species
+        FROM
+            data_exobiology
+        '''):
+            system = i[0]
+            planet = i[1]
+            genus = i[2]
+            species = i[3]
+
+            key = (system, planet, genus)
+            cost = 0
+            if species in codex_species:
+                cost = codex_species[species]["value"]
+
+            known_bios[key]["cost_known"] = cost
+
+        # pick all scanned species
+        for i in self.db.execute('''
+        SELECT
+            system_id64,
+            bodyid,
+            codex_genus,
+            codex_species,
+            cmdr_id,
+            MAX(state) AS m
+        FROM
+            data_scans_exobiology
+        WHERE
+            cmdr_id = ?
+        GROUP BY system_id64, bodyid, species
+        HAVING m = 2
+        ''', (self.cmdr_id, )):
+            system = i[0]
+            planet = i[1]
+            genus = i[2]
+            species = i[3]
+
+            key = (system, planet, genus)
+            known_bios[key]["scanned"] = True
+
+        estimated_unsold = 0
+        estimated_unscan_min = 0
+        estimated_unscan_max = 0
+        for k, v in known_bios.items():
+            if v.get("scanned", False):
+                estimated_unsold += v["cost_known"]
+                continue
+
+            if cost := v.get("cost_known", None) is not None:
+                estimated_unscan_min += cost
+                estimated_unscan_max += cost
+                continue
+
+            estimated_unscan_min += v["cost_min"]
+            estimated_unscan_max += v["cost_max"]
+
+        self.__stats_unsold_bio_var.set(f'''Unsold bio: {format_number(estimated_unsold)}\nUnscanned bio: {format_number(estimated_unscan_min)}-{format_number(estimated_unscan_max)}''')
+
 
     def yoba_process_entry(self, entry):
         required_events = [
@@ -1459,9 +1591,7 @@ class BioPatrol(tk.Frame, Module):
                 self.db.execute("INSERT OR IGNORE INTO data_body_signals_fss (system_id64, bodyid, type, count) VALUES (?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Type"], i["Count"], ))
 
             for i in entry.data.get("Genuses", []):
-                genus_codex = i["Genus"]
-                genus_human = genus_codex if genus_codex not in codex_genuses else codex_genuses[genus_codex].get("name", genus_codex)
-                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], genus_human, ))
+                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], i["Genus"], ))
 
         elif event == "ScanOrganic":
             if "Variant" in entry.data:
@@ -1481,13 +1611,13 @@ class BioPatrol(tk.Frame, Module):
                     raise ValueError(entry.data)
 
                 # in case we skipped DSS
-                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], genus_human, ))
+                self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], genus_codex, ))
 
                 if entry.data["ScanType"] in ('Log', 'Sample'):
                     # partial sample: "Log" = first, "Sample" = subsequent
                     self.db.execute("INSERT OR IGNORE INTO data_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["Body"], genus_codex, species_codex, variant_codex, genus_human, species_human, variant_human, ))
                     self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)", (entry.data["SystemAddress"], entry.data["Body"], genus_codex, species_codex, variant_codex, genus_human, species_human, variant_human, self.cmdr_id))
-                elif entry.data["ScanType"] == "Analyze":
+                elif entry.data["ScanType"] == "Analyse":
                     # complete sample
                     self.db.execute("INSERT OR IGNORE INTO data_scans_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant, cmdr_id, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 2)", (entry.data["SystemAddress"], entry.data["Body"], genus_codex, species_codex, variant_codex, genus_human, species_human, variant_human, self.cmdr_id))
 
@@ -1506,7 +1636,7 @@ class BioPatrol(tk.Frame, Module):
             species_human = species_codex if species_codex not in codex_species else codex_species[species_codex].get("name", species_codex)
             genus_human = genus_codex if genus_codex not in codex_genuses else codex_genuses[genus_codex].get("name", genus_codex)
 
-            self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], genus_human, ))
+            self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], genus_codex, ))
 
             # we only know there's a bio but didn't sample it yet
             self.db.execute("INSERT OR IGNORE INTO data_exobiology (system_id64, bodyid, codex_genus, codex_species, codex_variant, genus, species, variant) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], genus_codex, species_codex, variant_codex, genus_human, species_human, variant_human, ))
@@ -2273,24 +2403,29 @@ class BioPatrol(tk.Frame, Module):
             data_bodies.bodyid,
             data_bodies.name,
             data_body_signals_dss_bio.signal,
+            data_scans_bodies.cmdr_id,
             data_scans_exobiology.species
         FROM data_bodies
         INNER JOIN
             data_body_signals_dss_bio
         ON data_bodies.system_id64 = data_body_signals_dss_bio.system_id64
         AND data_bodies.bodyid = data_body_signals_dss_bio.bodyid
+        INNER JOIN
+            data_scans_bodies
+        ON data_scans_bodies.system_id64 = data_bodies.system_id64
+        AND data_scans_bodies.bodyid = data_bodies.bodyid
         LEFT JOIN
             data_scans_exobiology
         ON data_body_signals_dss_bio.system_id64 = data_scans_exobiology.system_id64
         AND data_body_signals_dss_bio.bodyid = data_scans_exobiology.bodyid
-        AND data_body_signals_dss_bio.signal = data_scans_exobiology.genus
+        AND data_body_signals_dss_bio.signal = data_scans_exobiology.codex_genus
         WHERE data_bodies.system_id64 = ?
-        AND data_scans_exobiology.cmdr_id = ?
+        AND data_scans_bodies.cmdr_id = ?
         AND data_bodies.bodyid = ?
         ''', (id64, cmdr_id, bodyid, )):
             body_name = signal[2]
-            signal_name = signal[3]
-            species = signal[4]
+            signal_name = codex_genuses.get(signal[3], {}).get("name", signal[3])
+            species = signal[5]
             if species is None:
                 user_messages.append(f"{signal_name}: {body_name}")
                 return False
