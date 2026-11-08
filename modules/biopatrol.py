@@ -1633,6 +1633,13 @@ class BioPatrol(tk.Frame, Module):
             if entry.data["SubCategory"] != "$Codex_SubCategory_Organic_Structures;":
                 return
 
+            # skip Horizons Organic species
+            if any((
+                variant_codex.startswith("$Codex_Ent_Small_Org_Moll"),
+                variant_codex.startswith("$Codex_Ent_L_Cry_")
+            )):
+                return
+
             variant_codex: str = entry.data["Name"]
             species_codex = codex_variants.get(variant_codex, {}).get("species", variant_codex)
             genus_codex = codex_species.get(species_codex, {}).get("genus", species_codex)
