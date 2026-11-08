@@ -1231,8 +1231,10 @@ class BioPatrol(tk.Frame, Module):
             "SAAScanComplete",
             "FSSDiscoveryScan",
             "FSSAllBodiesFound",
-            "ScanOrganic"
-            "CodexEntry"
+            "ScanOrganic",
+            "CodexEntry",
+            "NavBeaconScan",
+            "Scan"
         ]
 
         event = entry.data["event"]
@@ -1242,6 +1244,9 @@ class BioPatrol(tk.Frame, Module):
         self.stats_update()
 
     def stats_update(self):
+        if not self.__live_data:
+            return
+
         if self.cmdr_id is None:
             return
 
@@ -2388,7 +2393,7 @@ class BioPatrol(tk.Frame, Module):
         FROM data_scans_systems
         WHERE id64 = ? AND cmdr_id = ?
         GROUP BY id64, cmdr_id
-        HAVING m > 0
+        HAVING m > 1
         ''', (id64, cmdr_id, )).fetchone()
         if fss_complete is None:
             user_messages.append(f"FSS: {boxel_name}-{system_id}")
@@ -2449,10 +2454,33 @@ class BioPatrol(tk.Frame, Module):
           AND data_bodies.bodyid = ?
           AND data_scans_bodies.cmdr_id = ?
         GROUP BY data_scans_bodies.system_id64, data_scans_bodies.bodyid, data_scans_bodies.cmdr_id
-        HAVING level >= 2
+        HAVING level = 2
         ''', (id64, bodyid, cmdr_id,)).fetchone()
         if dss_query is not None:
             return True
+
+        beacon_query = self.db.execute('''
+        SELECT
+            data_bodies.system_id64,
+            data_bodies.bodyid,
+            data_bodies.name,
+            MAX(data_scans_bodies.scan_level) AS level
+        FROM data_bodies
+        INNER JOIN
+            data_scans_bodies
+        ON
+            data_bodies.system_id64 = data_scans_bodies.system_id64
+        AND data_bodies.bodyid = data_scans_bodies.bodyid
+        WHERE data_bodies.system_id64 = ?
+          AND data_bodies.bodyid = ?
+          AND data_scans_bodies.cmdr_id = ?
+        GROUP BY data_scans_bodies.system_id64, data_scans_bodies.bodyid, data_scans_bodies.cmdr_id
+        HAVING level = 0
+        ''', (id64, bodyid, cmdr_id,)).fetchone()
+        if beacon_query is not None:
+            body_name = beacon_query[2]
+            user_messages.append(f"DSS: {body_name}")
+            return False
 
         bio_query = self.db.execute('''
         SELECT
@@ -2477,7 +2505,7 @@ class BioPatrol(tk.Frame, Module):
         AND data_body_signals_fss.type = '$SAA_SignalType_Biological;'
         GROUP BY data_bodies.system_id64, data_bodies.bodyid;
         ''', (id64, bodyid, cmdr_id)).fetchone()
-        if bio_query is not None and bio_query[3] > bio_query[4]:
+        if bio_query is not None and bio_query[3] < bio_query[4]:
             body_name = bio_query[2]
             user_messages.append(f"DSS: {body_name}")
             return False
