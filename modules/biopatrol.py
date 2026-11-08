@@ -1604,9 +1604,9 @@ class BioPatrol(tk.Frame, Module):
                 species_codex = entry.data["Species"]
                 genus_codex = entry.data["Genus"]
 
-                variant_human = variant_codex if variant_codex not in codex_variants else codex_variants[variant_codex].get("name", variant_codex)
-                species_human = species_codex if species_codex not in codex_species else codex_species[species_codex].get("name", species_codex)
-                genus_human = genus_codex if genus_codex not in codex_genuses else codex_genuses[genus_codex].get("name", genus_codex)
+                variant_human = codex_variants.get(variant_codex, {}).get("name", variant_codex)
+                species_human = codex_species.get(species_codex, {}).get("name", species_codex)
+                genus_human = codex_genuses.get(genus_codex, {}).get("name", genus_codex)
 
                 # sanity check
                 if species_codex != codex_variants.get(variant_codex, {}).get("species", None):
@@ -1633,13 +1633,13 @@ class BioPatrol(tk.Frame, Module):
             if entry.data["SubCategory"] != "$Codex_SubCategory_Organic_Structures;":
                 return
 
-            variant_codex = entry.data["Name"]
-            species_codex = variant_codex if variant_codex not in codex_variants else codex_variants[variant_codex]["species"]
-            genus_codex = species_codex if species_codex not in codex_species else codex_species[species_codex]["genus"]
+            variant_codex: str = entry.data["Name"]
+            species_codex = codex_variants.get(variant_codex, {}).get("species", variant_codex)
+            genus_codex = codex_species.get(species_codex, {}).get("genus", species_codex)
 
-            variant_human = variant_codex if variant_codex not in codex_variants else codex_variants[variant_codex].get("name", variant_codex)
-            species_human = species_codex if species_codex not in codex_species else codex_species[species_codex].get("name", species_codex)
-            genus_human = genus_codex if genus_codex not in codex_genuses else codex_genuses[genus_codex].get("name", genus_codex)
+            variant_human = codex_variants.get(variant_codex, {}).get("name", variant_codex)
+            species_human = codex_species.get(species_codex, {}).get("name", species_codex)
+            genus_human = codex_genuses.get(genus_codex, {}).get("name", genus_codex)
 
             self.db.execute("INSERT OR IGNORE INTO data_body_signals_dss_bio (system_id64, bodyid, signal) VALUES (?, ?, ?)", (entry.data["SystemAddress"], entry.data["BodyID"], genus_codex, ))
 

@@ -1,6 +1,8 @@
 codex_genuses = {
     # Horizons
+    "$Codex_Ent_Brancae_Name;": {"name": "Brain Trees"},
     "$Codex_Ent_Cone_Name;": {"name" : "Bark Mounds"},
+    "$Codex_Ent_Ground_Struct_Ice_Name;": {"name" : "Crystalline Shards"},
     "$Codex_Ent_Sphere_Name;": {"name" : "Luteolum Anemone"},
     "$Codex_Ent_Tube_Name;": {"name" : "Roseum Sinuous Tubers"},
     "$Codex_Ent_Ingensradices_Genus_Name;": {"name" : "Radicoida"},
@@ -25,8 +27,13 @@ codex_genuses = {
 codex_species = {
     # Horizons
     "$Codex_Ent_Cone_Name;" : {"value" : 1_000_000, "genus" : "$Codex_Ent_Cone_Name;", "name" : "Bark Mounds"},
+    "$Codex_Ent_Ground_Struct_Ice_Name;" : {"value" : 1_628_800, "genus" : "$Codex_Ent_Ground_Struct_Ice_Name;", "name" : "Crystalline Shards"},
+    "$Codex_Ent_Seed_Name;" : {"value" : 1_593_700, "genus" : "$Codex_Ent_Brancae_Name;", "name" : "Roseum Brain Tree"},
+    "$Codex_Ent_SeedEFGH_Name;": {"value" : 1_593_700, "genus" : "$Codex_Ent_Brancae_Name;", "name" : "Lividum Brain Tree"},
+    "$Codex_Ent_SphereEFGH_Name;" : {"value" : 1_499_900, "genus" : "$Codex_Ent_Sphere_Name;", "name" : "Blatteum Bioluminescent Anemone"},
     "$Codex_Ent_SphereEFGH_02_Name;" : {"value" : 1_000_000, "genus" : "$Codex_Ent_Sphere_Name;", "name" : "Prasinum Bioluminescent Anemone"},
     "$Codex_Ent_Tube_Name;" : {"value" : 1_000_000, "genus" : "$Codex_Ent_Tube_Name;", "name" : "Roseum Sinuous Tubers"},
+    "$Codex_Ent_TubeABCD_01_Name;" : {"value" : 1_514_500, "genus" : "$Codex_Ent_Tube_Name;", "name" : "Prasinum Sinuous Tubers"},
 
     "$Codex_Ent_Aleoids_01_Name;" : {"value" :  7_252_500, "genus" : "$Codex_Ent_Aleoids_Genus_Name;", "name" : "Aleoida Arcus"},
     "$Codex_Ent_Aleoids_02_Name;" : {"value" :  6_284_600, "genus" : "$Codex_Ent_Aleoids_Genus_Name;", "name" : "Aleoida Coronamus"},
@@ -73,6 +80,7 @@ codex_species = {
     "$Codex_Ent_Fonticulus_05_Name;" : {"value" : 20_000_000, "genus" : "$Codex_Ent_Fonticulus_Genus_Name;", "name" : "Fonticulua Fluctus"},
     "$Codex_Ent_Fonticulus_06_Name;" : {"value" :  1_804_100, "genus" : "$Codex_Ent_Fonticulus_Genus_Name;", "name" : "Fonticulua Digitos"},
 
+    "$Codex_Ent_Fumerolas_01_Name;" : {"value" :  6_284_600, "genus" : "$Codex_Ent_Fumerolas_Genus_Name;", "name" : "Fumerola Carbosis"},
     "$Codex_Ent_Fumerolas_02_Name;" : {"value" : 16_202_800, "genus" : "$Codex_Ent_Fumerolas_Genus_Name;", "name" : "Fumerola Extremus"},
     "$Codex_Ent_Fumerolas_03_Name;" : {"value" :  7_500_900, "genus" : "$Codex_Ent_Fumerolas_Genus_Name;", "name" : "Fumerola Nitris"},
     "$Codex_Ent_Fumerolas_04_Name;" : {"value" :  6_284_600, "genus" : "$Codex_Ent_Fumerolas_Genus_Name;", "name" : "Fumerola Aquatis"},
@@ -141,9 +149,25 @@ codex_variants = {
         "name" : "Bark Mounds",
         "species" : "$Codex_Ent_Cone_Name;"
     },
+    "$Codex_Ent_Ground_Struct_Ice_Name;" : { # entry 2101500
+        "name" : "Crystalline Shards",
+        "species" : "$Codex_Ent_Ground_Struct_Ice_Name;"
+    },
     "$Codex_Ent_Tube_Name;" : { # entry 2100501
         "name" : "Roseum Sinuous Tubers",
         "species" : "$Codex_Ent_Tube_Name;"
+    },
+    "$Codex_Ent_TubeABCD_01_Name;" : { # entry 2100502
+        "name": "Prasinum Sinuous Tubers",
+        "species": "$Codex_Ent_TubeABCD_01_Name;"
+    },
+    "$Codex_Ent_Seed_Name;" : { # entry 2100201
+        "name" : "Roseum Brain Tree",
+        "species" : "$Codex_Ent_Seed_Name;"
+    },
+    "$Codex_Ent_SeedEFGH_Name;" : { # entry 2100205
+        "name" : "Lividum Brain Tree",
+        "species" : "$Codex_Ent_SeedEFGH_Name;"
     },
     "$Codex_Ent_SPOI_Ball_Name;" : { # entry 1410100
         "name" : "Solid Mineral Spheres",
@@ -152,6 +176,10 @@ codex_variants = {
     "$Codex_Ent_SphereABCD_02_Name;" : { # entry 2100403
         "name" : "Luteolum Anemone",
         "species" : "Codex_Ent_SphereABCD_02_Name;"
+    },
+    "$Codex_Ent_SphereEFGH_Name;" : { # entry 2100405
+        "name" : "Blatteum Bioluminescent Anemone",
+        "species" : "$Codex_Ent_SphereEFGH_Name;"
     },
     "$Codex_Ent_SphereEFGH_02_Name;" : { # entry 2100407
         "name" : "Prasinum Bioluminescent Anemone",
